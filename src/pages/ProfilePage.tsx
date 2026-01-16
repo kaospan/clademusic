@@ -457,26 +457,18 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, x: 0 }}
                     className="p-3 glass rounded-xl flex gap-3 hover:bg-muted/30 transition-colors"
                   >
-                    {/* Artwork */}
+                    {/* Artwork placeholder - track data not loaded */}
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">
-                      {track.artwork_url ? (
-                        <img
-                          src={track.artwork_url}
-                          alt={track.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                      )}
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Music className="w-6 h-6 text-muted-foreground" />
+                      </div>
                     </div>
 
-                    {/* Track Info */}
+                    {/* Track Info - showing track_id since full track data not loaded */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{track.title}</h4>
+                      <h4 className="font-medium text-sm truncate">Track</h4>
                       <p className="text-xs text-muted-foreground truncate">
-                        {Array.isArray(track.artists) ? track.artists.join(', ') : track.artist}
+                        {event.track_id.slice(0, 8)}...
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         {/* Provider Badge */}

@@ -35,7 +35,6 @@ export interface Track {
   url_spotify_web?: string;
   url_spotify_app?: string;
   url_youtube?: string;
-  preview_url?: string;
   
   // Harmonic fingerprint data
   detected_key?: string;
