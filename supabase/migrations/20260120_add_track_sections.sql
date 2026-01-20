@@ -30,7 +30,28 @@ for all
 using (false)
 with check (false);
 
+-- RPC function for fetching track sections (typed access from client)
+create or replace function public.get_track_sections(p_track_id uuid)
+returns table (
+  id uuid,
+  track_id uuid,
+  label text,
+  start_ms integer,
+  end_ms integer,
+  created_at timestamptz
+)
+language sql
+stable
+security definer
+as $$
+  select id, track_id, label, start_ms, end_ms, created_at
+  from public.track_sections
+  where track_id = p_track_id
+  order by start_ms asc;
+$$;
+
 comment on table public.track_sections is 'Canonical song structure sections with timestamps for seek-based playback';
 comment on column public.track_sections.label is 'Section type: intro, verse, pre-chorus, chorus, bridge, outro, breakdown, drop';
 comment on column public.track_sections.start_ms is 'Section start time in milliseconds';
 comment on column public.track_sections.end_ms is 'Section end time in milliseconds';
+comment on function public.get_track_sections is 'Fetch all sections for a track, ordered by start time';

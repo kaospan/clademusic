@@ -14,3 +14,5 @@ export * from './useSearch';
 export * from './useSpotifyConnect';
 export * from './useSpotifyUser';
 export * from './useTracks';
+export * from './useTrackSections';
+export * from './useLastFm';
