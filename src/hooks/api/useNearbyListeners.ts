@@ -182,7 +182,9 @@ export function useNearbyListeners(trackId?: string, artist?: string) {
           activityQuery = activityQuery.eq('track_id', trackId);
         }
         if (artist) {
-          activityQuery = activityQuery.ilike('artist', `%${artist}%`);
+          // Escape ILIKE special characters
+          const escapedArtist = artist.replace(/[%_]/g, '\\$&');
+          activityQuery = activityQuery.ilike('artist', `%${escapedArtist}%`);
         }
 
         const { data: activity } = await activityQuery;
