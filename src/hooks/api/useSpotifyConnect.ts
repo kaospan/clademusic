@@ -92,10 +92,14 @@ export function useConnectSpotify() {
 
   return useMutation({
     mutationFn: async () => {
+      console.log('[Spotify Connect] Starting OAuth flow...');
+      
       if (!user) throw new Error('Must be logged in to connect Spotify');
 
       // Get Spotify client ID from environment
       const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+      console.log('[Spotify Connect] Client ID:', clientId ? `${clientId.substring(0, 8)}...` : 'MISSING');
+      
       if (!clientId) {
         throw new Error('Spotify client ID not configured. Add VITE_SPOTIFY_CLIENT_ID to your .env file.');
       }
@@ -107,10 +111,12 @@ export function useConnectSpotify() {
 
       // Store state in localStorage for callback verification
       storeOAuthState(state, codeVerifier);
+      console.log('[Spotify Connect] State stored:', state.substring(0, 8) + '...');
 
       // Get the redirect URI - should match what's configured in Spotify Developer Dashboard
       const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 
         `${window.location.origin}/spotify-callback`;
+      console.log('[Spotify Connect] Redirect URI:', redirectUri);
 
       // Build authorization URL
       const params = new URLSearchParams({
@@ -125,6 +131,7 @@ export function useConnectSpotify() {
 
       // Redirect to Spotify
       const authUrl = `${SPOTIFY_AUTH_URL}?${params.toString()}`;
+      console.log('[Spotify Connect] Redirecting to:', authUrl.substring(0, 80) + '...');
       window.location.href = authUrl;
     },
   });

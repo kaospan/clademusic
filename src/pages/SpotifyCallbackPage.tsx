@@ -41,34 +41,49 @@ export default function SpotifyCallbackPage() {
   useEffect(() => {
     async function handleCallback() {
       try {
+        console.log('[Spotify Callback] Starting...');
+        console.log('[Spotify Callback] URL params:', Object.fromEntries(searchParams.entries()));
+        
         // Get params from URL
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
 
         // Handle Spotify errors
         if (error) {
-          throw new Error(`Spotify authorization failed: ${error}`);
+          console.error('[Spotify Callback] Spotify error:', error, errorDescription);
+          throw new Error(errorDescription || `Spotify authorization failed: ${error}`);
         }
 
         if (!code || !state) {
+          console.error('[Spotify Callback] Missing code or state');
           throw new Error('Missing authorization code or state');
         }
 
         // Verify state matches what we stored
         const storedState = getStoredOAuthState();
+        console.log('[Spotify Callback] Stored state:', storedState?.state?.substring(0, 8) + '...');
+        console.log('[Spotify Callback] Received state:', state?.substring(0, 8) + '...');
+        
         if (!storedState || storedState.state !== state) {
+          console.error('[Spotify Callback] State mismatch');
           throw new Error('Invalid state parameter. Please try connecting again.');
         }
 
         if (!user) {
+          console.error('[Spotify Callback] No user logged in');
           throw new Error('You must be logged in to connect Spotify');
         }
 
+        console.log('[Spotify Callback] Exchanging code for tokens...');
+        
         // Exchange code for tokens
         const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
         const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 
           `${window.location.origin}/spotify-callback`;
+        
+        console.log('[Spotify Callback] Using redirect URI:', redirectUri);
 
         const tokenResponse = await fetch(SPOTIFY_TOKEN_URL, {
           method: 'POST',
@@ -86,11 +101,14 @@ export default function SpotifyCallbackPage() {
 
         if (!tokenResponse.ok) {
           const errorData = await tokenResponse.json();
-          throw new Error(errorData.error_description || 'Failed to exchange code for tokens');
+          console.error('[Spotify Callback] Token exchange failed:', errorData);
+          throw new Error(errorData.error_description || `Token exchange failed: ${errorData.error}`);
         }
 
+        console.log('[Spotify Callback] Token exchange successful');
         const tokens: SpotifyTokenResponse = await tokenResponse.json();
 
+        console.log('[Spotify Callback] Fetching Spotify profile...');
         // Get user's Spotify profile
         const profileResponse = await fetch('https://api.spotify.com/v1/me', {
           headers: {
