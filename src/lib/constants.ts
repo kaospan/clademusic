@@ -24,6 +24,8 @@ export const QUERY_KEYS = {
   followingFeed: ['following-feed'],
   
   // Tracks
+  TRACKS: 'tracks',
+  FEED: 'feed',
   trackComments: (trackId: string) => ['track-comments', trackId],
   trackConnections: (trackId: string) => ['track-connections', trackId],
   
