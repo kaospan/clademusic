@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Music, Play, Heart, Clock, User, Loader2 } from 'lucide-react';
-import { BottomNav } from '@/components/BottomNav';
+import { Users, Music, Play, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AudioPreview } from '@/components/AudioPreview';
 import { StreamingLinks } from '@/components/StreamingLinks';
+import { PageLayout, EmptyState, LoadingSpinner, CardSkeleton } from '@/components/shared';
 import { useAuth } from '@/hooks/useAuth';
 import { useFollowingFeed, useFollowing, useRecordPlay } from '@/hooks/api/useFollowing';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { fadeInUp } from '@/lib/animations';
 
 export default function FollowingPage() {
   const { user, loading: authLoading } = useAuth();
@@ -21,103 +21,67 @@ export default function FollowingPage() {
   const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <BottomNav />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <header className="fixed top-0 left-0 right-0 z-40 glass-strong safe-top">
-          <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
-            <h1 className="text-lg font-bold gradient-text">Following</h1>
-          </div>
-        </header>
-
-        <main className="flex-1 pt-20 pb-24 flex flex-col items-center justify-center px-4">
-          <div className="text-center space-y-4 max-w-sm">
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto">
-              <Users className="w-10 h-10 text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-semibold">Sign in to see what people are listening to</h2>
-            <p className="text-muted-foreground">
-              Follow other music lovers and discover new tracks through their listening activity.
-            </p>
-            <Button onClick={() => navigate('/auth')} className="gap-2">
-              <User className="w-4 h-4" />
-              Sign in
-            </Button>
-          </div>
-        </main>
-
-        <BottomNav />
-      </div>
+      <PageLayout title="Following" fixedHeader>
+        <EmptyState
+          icon={Users}
+          title="Sign in to see what people are listening to"
+          description="Follow other music lovers and discover new tracks through their listening activity."
+          actionLabel="Sign in"
+          actionIcon={User}
+          onAction={() => navigate('/auth')}
+        />
+      </PageLayout>
     );
   }
 
   const isLoading = feedLoading || followingLoading;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 glass-strong safe-top">
-        <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
+    <PageLayout
+      fixedHeader
+      headerContent={
+        <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold gradient-text">Following</h1>
           <span className="text-sm text-muted-foreground">
             {following?.length || 0} following
           </span>
         </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-1 pt-16 pb-24 px-4">
-        <div className="max-w-lg mx-auto space-y-4">
-          {isLoading ? (
-            <div className="space-y-4 pt-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/50">
-                    <div className="w-12 h-12 rounded-full bg-muted" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted rounded w-2/3" />
-                      <div className="h-3 bg-muted rounded w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : !feed || feed.length === 0 ? (
-            <div className="text-center py-12 space-y-4">
-              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto">
-                <Music className="w-10 h-10 text-muted-foreground" />
-              </div>
-              <h2 className="text-xl font-semibold">No activity yet</h2>
-              <p className="text-muted-foreground max-w-xs mx-auto">
-                {following && following.length > 0
-                  ? "The people you follow haven't played any tracks recently."
-                  : 'Follow some music lovers to see what they\'re listening to!'}
-              </p>
-              {(!following || following.length === 0) && (
-                <Button onClick={() => navigate('/search')} variant="outline" className="gap-2">
-                  <Users className="w-4 h-4" />
-                  Find people to follow
-                </Button>
-              )}
-            </div>
-          ) : (
-            <AnimatePresence>
-              {feed.map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 overflow-hidden"
-                >
+      }
+    >
+      <div className="space-y-4">
+        {isLoading ? (
+          <div className="space-y-4 pt-4">
+            <CardSkeleton count={5} />
+          </div>
+        ) : !feed || feed.length === 0 ? (
+          <EmptyState
+            icon={Music}
+            title="No activity yet"
+            description={
+              following && following.length > 0
+                ? "The people you follow haven't played any tracks recently."
+                : "Follow some music lovers to see what they're listening to!"
+            }
+            actionLabel={(!following || following.length === 0) ? "Find people to follow" : undefined}
+            actionIcon={Users}
+            onAction={(!following || following.length === 0) ? () => navigate('/search') : undefined}
+          />
+        ) : (
+          <AnimatePresence>
+            {feed.map((item, index) => (
+              <motion.div
+                key={item.id}
+                variants={fadeInUp}
+                initial="initial"
+                animate="animate"
+                transition={{ delay: index * 0.05 }}
+                className="rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 overflow-hidden"
+              >
                   {/* User info header */}
                   <div className="flex items-center gap-3 p-4 border-b border-border/30">
                     <Avatar className="w-10 h-10">
@@ -227,9 +191,6 @@ export default function FollowingPage() {
             </AnimatePresence>
           )}
         </div>
-      </main>
-
-      <BottomNav />
-    </div>
+    </PageLayout>
   );
 }

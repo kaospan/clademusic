@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChordBadge } from '@/components/ChordBadge';
+import { SpotifyIcon } from '@/components/QuickStreamButtons';
 import { PageLayout, EmptyState, LoadingSpinner } from '@/components/shared';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -17,9 +18,11 @@ import {
   Zap,
   Check,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import { usePlayHistory, usePlayStats } from '@/hooks/api/usePlayEvents';
 import { useProfile, useUserProviders, useSetPreferredProvider } from '@/hooks/api/useProfile';
+import { useConnectSpotify, useDisconnectSpotify } from '@/hooks/api/useSpotifyConnect';
 import { PROVIDER_INFO } from '@/lib/providers';
 import { MusicProvider } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -48,17 +51,38 @@ export default function ProfilePage() {
   
   // Fetch data
   const { data: profile } = useProfile();
-  const { data: userProviders = [] } = useUserProviders();
+  const { data: userProviders = [], refetch: refetchProviders } = useUserProviders();
   const { data: playStats } = usePlayStats();
   const { data: playHistory = [] } = usePlayHistory({
     limit: 20,
     provider: providerFilter === 'all' ? undefined : providerFilter,
   });
   const setPreferredProvider = useSetPreferredProvider();
+  
+  // Spotify connection
+  const connectSpotify = useConnectSpotify();
+  const disconnectSpotify = useDisconnectSpotify();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleConnectSpotify = async () => {
+    try {
+      await connectSpotify.mutateAsync();
+    } catch (error) {
+      console.error('Failed to connect Spotify:', error);
+    }
+  };
+
+  const handleDisconnectSpotify = async () => {
+    try {
+      await disconnectSpotify.mutateAsync();
+      refetchProviders();
+    } catch (error) {
+      console.error('Failed to disconnect Spotify:', error);
+    }
   };
 
   const handleSetPreferredProvider = async (provider: MusicProvider | 'none') => {
@@ -228,37 +252,70 @@ export default function ProfilePage() {
           </h3>
 
           {/* Spotify */}
-          <button 
-            className="w-full p-4 glass rounded-2xl flex items-center justify-between hover:bg-muted/30 transition-colors"
-            onClick={() => {/* TODO: Connect Spotify */}}
-          >
-            {(() => {
-              const spotifyProvider = userProviders.find(p => p.provider === 'spotify');
-              return (
-                <>
+          {(() => {
+            const spotifyProvider = userProviders.find(p => p.provider === 'spotify');
+            const isConnecting = connectSpotify.isPending;
+            const isDisconnecting = disconnectSpotify.isPending;
+            
+            return (
+              <div className="w-full p-4 glass rounded-2xl">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#1DB954]/20 flex items-center justify-center">
-                      <Music className="w-5 h-5 text-[#1DB954]" />
+                      <SpotifyIcon className="w-5 h-5 text-[#1DB954]" />
                     </div>
                     <div className="text-left">
                       <span className="font-medium">Spotify</span>
                       <p className="text-xs text-muted-foreground">
                         {spotifyProvider 
                           ? `Connected ${formatDistanceToNow(new Date(spotifyProvider.connected_at))} ago`
-                          : 'Not connected'}
+                          : 'Sync your listening history'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {spotifyProvider && (
-                      <Check className="w-4 h-4 text-[#1DB954]" />
-                    )}
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  
+                  {spotifyProvider ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDisconnectSpotify}
+                      disabled={isDisconnecting}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      {isDisconnecting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Disconnect'
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={handleConnectSpotify}
+                      disabled={isConnecting}
+                      className="bg-[#1DB954] hover:bg-[#1ed760] text-white gap-2"
+                    >
+                      {isConnecting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <SpotifyIcon className="w-4 h-4" />
+                          Connect
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                
+                {spotifyProvider && (
+                  <div className="flex items-center gap-2 mt-2 text-xs text-[#1DB954]">
+                    <Check className="w-3 h-3" />
+                    <span>Syncing your recently played tracks</span>
                   </div>
-                </>
-              );
-            })()}
-          </button>
+                )}
+              </div>
+            );
+          })()}
 
           {/* YouTube Music */}
           <button 
@@ -278,7 +335,7 @@ export default function ProfilePage() {
                       <p className="text-xs text-muted-foreground">
                         {youtubeProvider 
                           ? `Connected ${formatDistanceToNow(new Date(youtubeProvider.connected_at))} ago`
-                          : 'Not connected'}
+                          : 'Coming soon'}
                       </p>
                     </div>
                   </div>
@@ -366,8 +423,9 @@ export default function ProfilePage() {
         {/* Play History Section */}
         {playHistory.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
             transition={{ delay: 0.2 }}
             className="space-y-3"
           >
@@ -470,8 +528,9 @@ export default function ProfilePage() {
 
         {/* Quick links */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={fadeInUp}
+          initial="initial"
+          animate="animate"
           transition={{ delay: 0.25 }}
           className="grid grid-cols-2 gap-3"
         >
@@ -487,9 +546,6 @@ export default function ProfilePage() {
             <span className="text-xs text-muted-foreground">0 songs</span>
           </button>
         </motion.div>
-      </main>
-
-      <BottomNav />
-    </div>
+    </PageLayout>
   );
 }

@@ -1,11 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Bookmark, X, Sparkles, Waves, Play, Pause, ChevronDown, ExternalLink, Music, Youtube } from 'lucide-react';
+import { Heart, Bookmark, X, Sparkles, Waves, Play, Pause, Music, Youtube } from 'lucide-react';
 import { HarmonyCard } from './HarmonyCard';
 import { CommentsSheet } from './CommentsSheet';
 import { NearbyListenersSheet } from './NearbyListenersSheet';
 import { ShareSheet } from './ShareSheet';
 import { AudioPreview } from './AudioPreview';
-import { StreamingLinks } from './StreamingLinks';
+import { QuickStreamButtons } from './QuickStreamButtons';
 import { YouTubeEmbed } from './YouTubeEmbed';
 import { SongSections } from './SongSections';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,6 @@ export function TrackCard({
 }: TrackCardProps) {
   const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showStreamingLinks, setShowStreamingLinks] = useState(false);
   const [showYouTubeEmbed, setShowYouTubeEmbed] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const playStartTimeRef = useRef<number | null>(null);
@@ -73,9 +72,6 @@ export function TrackCard({
       } catch (err) {
         console.error('Playback failed:', err);
       }
-    } else {
-      // No preview, show streaming links
-      setShowStreamingLinks(true);
     }
   }, [track.preview_url, track.id, track.artist, recordActivity]);
 
@@ -208,21 +204,24 @@ export function TrackCard({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-3"
         >
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handlePlayPause}
-            className="gap-2 glass border-white/20 hover:bg-white/10"
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5" />
-            ) : (
-              <Play className="w-5 h-5" />
-            )}
-            {isPlaying ? 'Pause' : track.preview_url ? 'Play Preview' : 'Listen'}
-          </Button>
+          {/* Preview play button (if available) */}
+          {track.preview_url && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handlePlayPause}
+              className="gap-2 glass border-white/20 hover:bg-white/10"
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5" />
+              )}
+              {isPlaying ? 'Pause' : 'Preview'}
+            </Button>
+          )}
 
           {/* YouTube embed button - inline play without leaving the app */}
           {track.youtube_id && (
@@ -242,41 +241,18 @@ export function TrackCard({
             </Button>
           )}
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="glass border-white/20 hover:bg-white/10"
-            onClick={() => setShowStreamingLinks(!showStreamingLinks)}
-          >
-            <ChevronDown className={cn('w-5 h-5 transition-transform', showStreamingLinks && 'rotate-180')} />
-          </Button>
+          {/* Quick streaming buttons - Spotify & YouTube icons */}
+          <QuickStreamButtons
+            track={{
+              spotifyId: track.spotify_id || undefined,
+              youtubeId: track.youtube_id || undefined,
+              urlSpotifyWeb: track.url_spotify_web || undefined,
+              urlSpotifyApp: track.url_spotify_app || undefined,
+              urlYoutube: track.url_youtube || undefined,
+            }}
+            size="md"
+          />
         </motion.div>
-
-        {/* Streaming Links Dropdown */}
-        <AnimatePresence>
-          {showStreamingLinks && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="py-2">
-                <StreamingLinks
-                  track={{
-                    spotifyId: track.spotify_id || undefined,
-                    youtubeId: track.youtube_id || undefined,
-                    urlSpotifyWeb: track.url_spotify_web || undefined,
-                    urlSpotifyApp: track.url_spotify_app || undefined,
-                    urlYoutube: track.url_youtube || undefined,
-                  }}
-                  compact
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Harmony card */}
         {track.progression_roman && track.progression_roman.length > 0 && (

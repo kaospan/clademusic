@@ -1,73 +1,163 @@
-# Welcome to your Lovable project
+# 🎵 Harmony Hub
 
-## Project info
+A music discovery app that helps you find songs based on **harmonic progressions** and connect with listeners who share your taste.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![React](https://img.shields.io/badge/React-18-blue?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-5-purple?logo=vite)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-green?logo=supabase)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-cyan?logo=tailwindcss)
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+### 🎶 Harmonic Discovery
+- **Chord Progression Search** — Find songs by their harmonic structure (e.g., vi–IV–I–V)
+- **Progression Archetypes** — Explore popular chord patterns like the "Axis of Awesome" or "50s Progression"
+- **Taste DNA** — Track your listening preferences and favorite progressions
 
-**Use Lovable**
+### 🎧 Multi-Platform Streaming
+- **Spotify Integration** — Connect your Spotify account to sync listening history
+- **Quick Stream Buttons** — One-tap access to play songs on Spotify or YouTube
+- **Embedded YouTube Player** — Watch music videos without leaving the app
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 👥 Social Features
+- **Follow Friends** — See what others are listening to
+- **Nearby Listeners** — Discover people nearby playing the same tracks
+- **Comments & Reactions** — Discuss songs with the community
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🔗 Track Connections
+- **Sample Relationships** — See which songs sample or are sampled by others
+- **Cover Versions** — Discover original versions and covers
+- **Interpolations** — Find songs with similar melodic elements
 
-**Use your preferred IDE**
+## 🚀 Quick Start
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Node.js 18+** (we recommend using [nvm](https://github.com/nvm-sh/nvm))
+- **Bun** (optional, for faster installs) or **npm/yarn**
 
-Follow these steps:
+### Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Clone the repository
+git clone https://github.com/kaospan/harmony-hub.git
+cd harmony-hub
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+bun install
+# or: npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Start the development server
+bun dev
+# or: npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Environment Variables
 
-**Use GitHub Codespaces**
+Create a `.env.local` file in the project root:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```env
+# Supabase
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-## What technologies are used for this project?
+# Spotify OAuth (optional)
+VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
+VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/api/spotify-callback
+```
 
-This project is built with:
+## 🏗️ Project Structure
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+src/
+├── components/          # Reusable UI components
+│   ├── shared/          # Layout, EmptyState, LoadingSpinner
+│   └── ui/              # shadcn/ui primitives
+├── hooks/               # React hooks
+│   └── api/             # Data fetching hooks (React Query)
+├── lib/                 # Utilities & helpers
+│   ├── animations.ts    # Framer Motion variants
+│   ├── constants.ts     # App-wide constants
+│   └── providers.ts     # Music provider utilities
+├── pages/               # Route pages
+├── player/              # Embedded player components
+└── types/               # TypeScript types
+```
 
-## How can I deploy this project?
+## 🛠️ Tech Stack
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+| Category | Technology |
+|----------|------------|
+| **Framework** | React 18 + TypeScript |
+| **Build Tool** | Vite 5 |
+| **Styling** | Tailwind CSS + shadcn/ui |
+| **Animations** | Framer Motion |
+| **State Management** | TanStack Query (React Query) |
+| **Backend** | Supabase (Auth, Postgres, Edge Functions) |
+| **Testing** | Vitest |
 
-## Can I connect a custom domain to my Lovable project?
+## 📱 Key Pages
 
-Yes, you can!
+| Route | Description |
+|-------|-------------|
+| `/` | Feed — Swipe through tracks with harmonic analysis |
+| `/search` | Search songs by name or chord progression |
+| `/following` | Activity feed from people you follow |
+| `/profile` | Your taste DNA, connected services, play history |
+| `/connections` | Track relationships (samples, covers, etc.) |
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔧 Development
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+# Run development server with hot reload
+bun dev
+
+# Type checking
+bun run typecheck
+
+# Run tests
+bun test
+
+# Build for production
+bun run build
+
+# Preview production build
+bun run preview
+```
+
+## 📦 Deployment
+
+The app is designed to be deployed on any static hosting platform:
+
+```bash
+# Build the app
+bun run build
+
+# The `dist/` folder contains the production build
+```
+
+Recommended platforms:
+- **Vercel** — Zero-config React deployment
+- **Netlify** — Great for static sites
+- **Cloudflare Pages** — Edge-first hosting
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  Made with 🎵 by <a href="https://github.com/kaospan">kaospan</a>
+</p>
