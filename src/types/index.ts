@@ -206,3 +206,71 @@ export const ROMAN_NUMERALS = {
   'VII': { label: 'VII', class: 'chord-vii' },
   'vii': { label: 'vii', class: 'chord-vii' },
 } as const;
+
+// Album type
+export interface Album {
+  id: string;
+  name: string;
+  artist: string;
+  artist_id?: string;
+  cover_url?: string;
+  release_date?: string;
+  total_tracks?: number;
+  tracks?: Track[];
+  spotify_id?: string;
+  genres?: string[];
+}
+
+// Artist type
+export interface Artist {
+  id: string;
+  name: string;
+  image_url?: string;
+  genres?: string[];
+  followers?: number;
+  popularity?: number;
+  spotify_id?: string;
+  top_tracks?: Track[];
+  albums?: Album[];
+}
+
+// Comment with likes for live feed
+export interface Comment {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  likes_count: number;
+  user_liked?: boolean;
+  user?: {
+    display_name?: string;
+    avatar_url?: string;
+  };
+  is_pinned?: boolean;
+}
+
+// Sample connection element types (like WhoSampled)
+export type SampleElement = 'vocals' | 'hook' | 'drums' | 'bassline' | 'melody' | 'lyrics' | 'multiple' | 'other';
+
+// Sample connection between tracks
+export interface SampleConnection {
+  id: string;
+  original_track: Track;
+  sampling_track: Track;
+  element: SampleElement;
+  description?: string;
+  start_time?: number; // Timestamp in original track
+  verified?: boolean;
+  votes?: number;
+}
+
+// Nearby listener
+export interface NearbyListener {
+  id: string;
+  user_id: string;
+  display_name: string;
+  avatar_url?: string;
+  listened_at: string;
+  distance_km?: number;
+  city?: string;
+}

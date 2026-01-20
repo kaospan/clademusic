@@ -5,6 +5,7 @@ import { SpotifyIcon } from '@/components/QuickStreamButtons';
 import { PageLayout, EmptyState, LoadingSpinner } from '@/components/shared';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -19,16 +20,59 @@ import {
   Check,
   Clock,
   Loader2,
+  Radio,
+  TrendingUp,
+  BarChart3,
+  Disc3,
+  X,
 } from 'lucide-react';
 import { usePlayHistory, usePlayStats } from '@/hooks/api/usePlayEvents';
 import { useProfile, useUserProviders, useSetPreferredProvider } from '@/hooks/api/useProfile';
+import { useUserInteractionStats } from '@/hooks/api/useFeed';
 import { useConnectSpotify, useDisconnectSpotify } from '@/hooks/api/useSpotifyConnect';
+import { 
+  useSpotifyProfile, 
+  useSpotifyTopTracks, 
+  useSpotifyTopArtists,
+  useSpotifyRecentlyPlayed,
+  useMusicStats,
+  useSpotifyRecommendations,
+  useSpotifyConnected,
+} from '@/hooks/api/useSpotifyUser';
+import {
+  useLastFmUsername,
+  useLastFmStats,
+  useConnectLastFm,
+  useDisconnectLastFm,
+} from '@/hooks/api/useLastFm';
 import { PROVIDER_INFO } from '@/lib/providers';
 import { MusicProvider } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fadeInUp } from '@/lib/animations';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
+import type { TimeRange } from '@/services/spotifyUserService';
 
-// Mock taste DNA data
+// Mood profile styling
+const moodColors: Record<string, string> = {
+  energetic: 'from-orange-500 to-red-500',
+  chill: 'from-blue-400 to-cyan-400',
+  melancholic: 'from-purple-500 to-indigo-600',
+  upbeat: 'from-yellow-400 to-orange-400',
+  balanced: 'from-green-400 to-emerald-500',
+};
+
+const moodEmojis: Record<string, string> = {
+  energetic: '⚡',
+  chill: '🌊',
+  melancholic: '🌙',
+  upbeat: '☀️',
+  balanced: '🎯',
+};
+
+// Mock taste DNA data (chord progressions)
 const tasteDNA = {
   favoriteProgressions: [
     { progression: ['vi', 'IV', 'I', 'V'], count: 42 },
@@ -48,20 +92,42 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [providerFilter, setProviderFilter] = useState<MusicProvider | 'all'>('all');
   const [showProviderSelector, setShowProviderSelector] = useState(false);
+  const [lastFmInput, setLastFmInput] = useState('');
+  const [lastFmDialogOpen, setLastFmDialogOpen] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>('medium_term');
   
-  // Fetch data
+  // Profile data
   const { data: profile } = useProfile();
   const { data: userProviders = [], refetch: refetchProviders } = useUserProviders();
   const { data: playStats } = usePlayStats();
+  const { data: interactionStats } = useUserInteractionStats(user?.id);
   const { data: playHistory = [] } = usePlayHistory({
     limit: 20,
     provider: providerFilter === 'all' ? undefined : providerFilter,
   });
   const setPreferredProvider = useSetPreferredProvider();
   
-  // Spotify connection
+  // Spotify data
+  const { data: isSpotifyConnected } = useSpotifyConnected();
+  const { data: spotifyProfile } = useSpotifyProfile();
+  const { data: topTracks = [] } = useSpotifyTopTracks(timeRange, 10);
+  const { data: topArtists = [] } = useSpotifyTopArtists(timeRange, 10);
+  const { data: recentlyPlayed } = useSpotifyRecentlyPlayed(20);
+  const { data: musicStats } = useMusicStats();
+  const { data: recommendations = [] } = useSpotifyRecommendations([], [], 10);
   const connectSpotify = useConnectSpotify();
   const disconnectSpotify = useDisconnectSpotify();
+  
+  // Last.fm data
+  const { data: lastFmUsername } = useLastFmUsername();
+  const { data: lastFmStats } = useLastFmStats();
+  const connectLastFm = useConnectLastFm();
+  const disconnectLastFm = useDisconnectLastFm();
+
+  const spotifyConnected = isSpotifyConnected === true;
+  const lastFmConnected = !!lastFmUsername;
+  const likesCount = interactionStats?.likes ?? 0;
+  const savesCount = interactionStats?.saves ?? 0;
 
   const handleSignOut = async () => {
     await signOut();
@@ -71,17 +137,44 @@ export default function ProfilePage() {
   const handleConnectSpotify = async () => {
     try {
       await connectSpotify.mutateAsync();
-    } catch (error) {
-      console.error('Failed to connect Spotify:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to connect Spotify');
     }
   };
 
   const handleDisconnectSpotify = async () => {
     try {
       await disconnectSpotify.mutateAsync();
+      toast.success('Spotify disconnected');
       refetchProviders();
     } catch (error) {
-      console.error('Failed to disconnect Spotify:', error);
+      toast.error('Failed to disconnect Spotify');
+    }
+  };
+
+  const handleConnectLastFm = async () => {
+    if (!lastFmInput.trim()) {
+      toast.error('Please enter your Last.fm username');
+      return;
+    }
+    try {
+      await connectLastFm.mutateAsync(lastFmInput.trim());
+      toast.success('Last.fm connected successfully!');
+      setLastFmDialogOpen(false);
+      setLastFmInput('');
+      refetchProviders();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to connect Last.fm');
+    }
+  };
+
+  const handleDisconnectLastFm = async () => {
+    try {
+      await disconnectLastFm.mutateAsync();
+      toast.success('Last.fm disconnected');
+      refetchProviders();
+    } catch (error) {
+      toast.error('Failed to disconnect Last.fm');
     }
   };
 
@@ -121,21 +214,40 @@ export default function ProfilePage() {
         </Button>
       }
     >
-      {/* User info */}
+      {/* User info - Enhanced with Spotify profile */}
       <motion.div
         variants={fadeInUp}
         initial="initial"
         animate="animate"
         className="flex items-center gap-4 p-4 glass rounded-2xl"
       >
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <span className="text-2xl font-bold text-white">
-              {user.email?.[0].toUpperCase() || 'U'}
-            </span>
-          </div>
+          <Avatar className="w-16 h-16">
+            <AvatarImage src={spotifyProfile?.imageUrl || profile?.avatar_url || undefined} />
+            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white text-xl">
+              {spotifyProfile?.displayName?.[0] || user.email?.[0].toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex-1 min-w-0">
-            <h2 className="font-bold truncate">{user.email?.split('@')[0]}</h2>
+            <h2 className="font-bold truncate">
+              {spotifyProfile?.displayName || user.email?.split('@')[0]}
+            </h2>
             <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+            {spotifyProfile && (
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  spotifyProfile.product === 'premium' 
+                    ? 'bg-[#1DB954]/20 text-[#1DB954]' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {spotifyProfile.product === 'premium' ? '👑 Premium' : 'Free'}
+                </span>
+                {spotifyProfile.followers && spotifyProfile.followers > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {spotifyProfile.followers} followers
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -165,17 +277,104 @@ export default function ProfilePage() {
           </p>
         </motion.div>
 
-        {/* Taste DNA */}
+        {/* Music DNA - From Spotify */}
+        {spotifyConnected && musicStats && (
+          <motion.div
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 0.1 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              <h3 className="font-bold">Your Music DNA</h3>
+            </div>
+
+            {/* Mood Profile Card */}
+            <div className={`p-6 rounded-2xl bg-gradient-to-br ${moodColors[musicStats.moodProfile]} text-white`}>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-4xl">{moodEmojis[musicStats.moodProfile]}</span>
+                <div>
+                  <h4 className="text-xl font-bold capitalize">{musicStats.moodProfile}</h4>
+                  <p className="text-white/80 text-sm">Your listening mood profile</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-white/60 text-xs">Energy</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/20 rounded-full">
+                      <div 
+                        className="h-full bg-white rounded-full" 
+                        style={{ width: `${musicStats.averageEnergy * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm">{Math.round(musicStats.averageEnergy * 100)}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-white/60 text-xs">Danceability</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/20 rounded-full">
+                      <div 
+                        className="h-full bg-white rounded-full" 
+                        style={{ width: `${musicStats.averageDanceability * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm">{Math.round(musicStats.averageDanceability * 100)}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-white/60 text-xs">Happiness</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-white/20 rounded-full">
+                      <div 
+                        className="h-full bg-white rounded-full" 
+                        style={{ width: `${musicStats.averageValence * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm">{Math.round(musicStats.averageValence * 100)}%</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-white/60 text-xs">Avg Tempo</p>
+                  <p className="text-lg font-bold">{Math.round(musicStats.averageTempo)} BPM</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Genres */}
+            {musicStats.topGenres.length > 0 && (
+              <div className="p-4 glass rounded-2xl">
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">Top Genres</h4>
+                <div className="flex flex-wrap gap-2">
+                  {musicStats.topGenres.slice(0, 8).map((g, i) => (
+                    <span 
+                      key={g.genre} 
+                      className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm"
+                      style={{ opacity: 1 - (i * 0.08) }}
+                    >
+                      {g.genre}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Chord Taste DNA - Always show */}
         <motion.div
           variants={fadeInUp}
           initial="initial"
           animate="animate"
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.12 }}
           className="space-y-4"
         >
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent" />
-            <h3 className="font-bold">Your Taste DNA</h3>
+            <h3 className="font-bold">Chord Taste DNA</h3>
           </div>
 
           {/* Favorite progressions */}
@@ -350,6 +549,85 @@ export default function ProfilePage() {
             })()}
           </button>
 
+          {/* Last.fm */}
+          <div className="w-full p-4 glass rounded-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#D51007]/20 flex items-center justify-center">
+                  <Radio className="w-5 h-5 text-[#D51007]" />
+                </div>
+                <div className="text-left">
+                  <span className="font-medium">Last.fm</span>
+                  <p className="text-xs text-muted-foreground">
+                    {lastFmConnected ? (
+                      <>@{lastFmUsername} • {lastFmStats?.totalScrobbles.toLocaleString()} scrobbles</>
+                    ) : (
+                      'Connect to see your listening history'
+                    )}
+                  </p>
+                </div>
+              </div>
+              {lastFmConnected ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleDisconnectLastFm}
+                  disabled={disconnectLastFm.isPending}
+                  className="text-destructive hover:text-destructive"
+                >
+                  {disconnectLastFm.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <X className="w-4 h-4 mr-1" />
+                      Disconnect
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Dialog open={lastFmDialogOpen} onOpenChange={setLastFmDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-[#D51007] hover:bg-[#D51007]/90">
+                      Connect
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Connect Last.fm</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Enter your Last.fm username to sync your listening history and scrobbles.
+                      </p>
+                      <Input
+                        placeholder="Your Last.fm username"
+                        value={lastFmInput}
+                        onChange={(e) => setLastFmInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleConnectLastFm()}
+                      />
+                      <Button 
+                        onClick={handleConnectLastFm} 
+                        disabled={connectLastFm.isPending}
+                        className="w-full bg-[#D51007] hover:bg-[#D51007]/90"
+                      >
+                        {connectLastFm.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : null}
+                        {connectLastFm.isPending ? 'Connecting...' : 'Connect Last.fm'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+            {lastFmConnected && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-[#D51007]">
+                <Check className="w-3 h-3" />
+                <span>Syncing your scrobble history</span>
+              </div>
+            )}
+          </div>
+
           {/* Preferred Provider Selector */}
           {userProviders.length > 0 && (
             <div className="p-4 glass rounded-2xl space-y-3">
@@ -419,6 +697,202 @@ export default function ProfilePage() {
             </div>
           )}
         </motion.div>
+
+        {/* Spotify Top Tracks / Artists / Recent - Tabs */}
+        {spotifyConnected && (
+          <motion.div
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 0.17 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Your Music
+              </h3>
+              <select 
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as TimeRange)}
+                className="text-xs bg-muted/50 border-none rounded-lg px-2 py-1"
+              >
+                <option value="short_term">Last 4 weeks</option>
+                <option value="medium_term">Last 6 months</option>
+                <option value="long_term">All time</option>
+              </select>
+            </div>
+
+            <Tabs defaultValue="tracks" className="w-full">
+              <TabsList className="w-full">
+                <TabsTrigger value="tracks" className="flex-1">Top Tracks</TabsTrigger>
+                <TabsTrigger value="artists" className="flex-1">Top Artists</TabsTrigger>
+                <TabsTrigger value="recent" className="flex-1">Recent</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="tracks" className="mt-4 space-y-2">
+                {topTracks.map((track, i) => (
+                  <div key={track.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30">
+                    <span className="w-6 text-center text-muted-foreground text-sm">{i + 1}</span>
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted">
+                      {track.cover_url ? (
+                        <img src={track.cover_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Music className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{track.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
+                    </div>
+                  </div>
+                ))}
+                {topTracks.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No top tracks yet</p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="artists" className="mt-4 space-y-2">
+                {topArtists.map((artist, i) => (
+                  <div key={artist.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30">
+                    <span className="w-6 text-center text-muted-foreground text-sm">{i + 1}</span>
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
+                      {artist.images?.[0]?.url ? (
+                        <img src={artist.images[0].url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{artist.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {artist.genres?.slice(0, 2).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {topArtists.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No top artists yet</p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="recent" className="mt-4 space-y-2">
+                {recentlyPlayed?.tracks?.map((track) => (
+                  <div key={track.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/30">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted">
+                      {track.cover_url ? (
+                        <img src={track.cover_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Music className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{track.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
+                    </div>
+                  </div>
+                )) ?? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No recent plays</p>
+                )}
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        )}
+
+        {/* Recommendations */}
+        {spotifyConnected && recommendations.length > 0 && (
+          <motion.div
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 0.19 }}
+            className="space-y-4"
+          >
+            <h3 className="font-bold flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-accent" />
+              Recommended For You
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {recommendations.slice(0, 10).map((track) => (
+                <div key={track.id} className="p-2 glass rounded-xl hover:bg-muted/30 transition-colors group cursor-pointer">
+                  <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-2">
+                    {track.cover_url ? (
+                      <img src={track.cover_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Disc3 className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="font-medium text-xs truncate">{track.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Last.fm Stats */}
+        {lastFmConnected && lastFmStats && (
+          <motion.div
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 0.21 }}
+            className="space-y-4"
+          >
+            <h3 className="font-bold flex items-center gap-2">
+              <Radio className="w-5 h-5 text-[#D51007]" />
+              Last.fm Stats
+            </h3>
+            
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-4 glass rounded-2xl text-center">
+                <p className="text-2xl font-bold">{lastFmStats.totalScrobbles.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Total Scrobbles</p>
+              </div>
+              <div className="p-4 glass rounded-2xl text-center">
+                <p className="text-2xl font-bold">{lastFmStats.weeklyArtistCount}</p>
+                <p className="text-xs text-muted-foreground">Artists This Week</p>
+              </div>
+              <div className="p-4 glass rounded-2xl text-center">
+                <p className="text-2xl font-bold">{lastFmStats.topArtists.length}</p>
+                <p className="text-xs text-muted-foreground">Top Artists</p>
+              </div>
+            </div>
+
+            {/* Last.fm Top Artists */}
+            {lastFmStats.topArtists.length > 0 && (
+              <div className="p-4 glass rounded-2xl">
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">Top Artists (3 months)</h4>
+                <div className="space-y-2">
+                  {lastFmStats.topArtists.slice(0, 5).map((artist, i) => (
+                    <div key={artist.name} className="flex items-center gap-3">
+                      <span className="w-5 text-muted-foreground text-sm">{i + 1}</span>
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-muted">
+                        {artist.imageUrl ? (
+                          <img src={artist.imageUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <User className="w-3 h-3 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="flex-1 text-sm truncate">{artist.name}</span>
+                      <span className="text-xs text-muted-foreground">{artist.playcount} plays</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Play History Section */}
         {playHistory.length > 0 && (
@@ -537,13 +1011,13 @@ export default function ProfilePage() {
           <button className="p-4 glass rounded-2xl flex flex-col items-center gap-2 hover:bg-muted/30 transition-colors">
             <Heart className="w-6 h-6 text-accent" />
             <span className="text-sm font-medium">Liked</span>
-            <span className="text-xs text-muted-foreground">0 songs</span>
+            <span className="text-xs text-muted-foreground">{likesCount} songs</span>
           </button>
 
           <button className="p-4 glass rounded-2xl flex flex-col items-center gap-2 hover:bg-muted/30 transition-colors">
             <Bookmark className="w-6 h-6 text-primary" />
             <span className="text-sm font-medium">Saved</span>
-            <span className="text-xs text-muted-foreground">0 songs</span>
+            <span className="text-xs text-muted-foreground">{savesCount} songs</span>
           </button>
         </motion.div>
     </PageLayout>
