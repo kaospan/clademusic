@@ -1,6 +1,9 @@
 /**
  * Spotify API Connector
  * Implements unified search and link resolution for Spotify
+ * 
+ * SECURITY: Uses Supabase Edge Function for search (server-side auth)
+ * Client secret is NEVER exposed to the browser
  */
 
 import {
@@ -10,6 +13,7 @@ import {
   searchWithTimeout,
 } from './base';
 import { ProviderLink } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SpotifyTrack {
   id: string;
@@ -30,57 +34,16 @@ interface SpotifyTrack {
   uri: string;
 }
 
-interface SpotifySearchResponse {
-  tracks: {
-    items: SpotifyTrack[];
-    total: number;
-  };
-}
-
 export class SpotifyConnector implements ProviderConnector {
   readonly name = 'spotify' as const;
   readonly enabled: boolean;
-  private accessToken?: string;
-  private tokenExpiresAt?: number;
   
   constructor(
-    private clientId?: string,
-    private clientSecret?: string
+    private clientId?: string
+    // NOTE: No client secret - auth happens server-side via Edge Function
   ) {
-    this.enabled = !!(clientId && clientSecret);
-  }
-
-  /**
-   * Get or refresh Spotify access token using client credentials flow
-   */
-  private async getAccessToken(): Promise<string> {
-    // Return cached token if still valid
-    if (this.accessToken && this.tokenExpiresAt && Date.now() < this.tokenExpiresAt) {
-      return this.accessToken;
-    }
-
-    if (!this.clientId || !this.clientSecret) {
-      throw new Error('Spotify credentials not configured');
-    }
-
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + btoa(`${this.clientId}:${this.clientSecret}`),
-      },
-      body: 'grant_type=client_credentials',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Spotify auth failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    this.accessToken = data.access_token;
-    this.tokenExpiresAt = Date.now() + (data.expires_in * 1000) - 60000; // 1 min buffer
-
-    return this.accessToken;
+    // Spotify is always enabled - uses Edge Function for search
+    this.enabled = true;
   }
 
   async searchTracks(options: SearchOptions): Promise<NormalizedTrack[]> {
@@ -92,90 +55,111 @@ export class SpotifyConnector implements ProviderConnector {
     return results;
   }
 
+  /**
+   * Search using Supabase Edge Function (server-side Spotify auth)
+   * Falls back to cached/external tracks if user not authenticated
+   */
   private async performSearch(
     query: string,
     market: string,
     limit: number
   ): Promise<NormalizedTrack[]> {
-    const token = await this.getAccessToken();
-    
-    const params = new URLSearchParams({
-      q: query,
-      type: 'track',
-      market,
-      limit: limit.toString(),
-    });
-
-    const response = await fetch(
-      `https://api.spotify.com/v1/search?${params}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+    try {
+      // Try Edge Function (for authenticated users with connected Spotify)
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session?.session) {
+        const { data, error } = await supabase.functions.invoke('search_spotify', {
+          body: { query, limit, market },
+        });
+        
+        if (!error && data?.results) {
+          return data.results.map((r: any) => this.normalizeEdgeFunctionResult(r));
+        }
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Spotify search failed: ${response.statusText}`);
+      
+      // Fallback: Search cached external_tracks table
+      const { data: cached } = await supabase
+        .from('external_tracks')
+        .select('*')
+        .eq('provider', 'spotify')
+        .or(`title.ilike.%${query}%,artist.ilike.%${query}%`)
+        .limit(limit);
+      
+      if (cached && cached.length > 0) {
+        return cached.map(track => this.normalizeCachedTrack(track));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Spotify search failed:', error);
+      return [];
     }
-
-    const data: SpotifySearchResponse = await response.json();
-
-    return data.tracks.items.map(track => this.normalizeTrack(track));
   }
 
-  private normalizeTrack(track: SpotifyTrack): NormalizedTrack {
-    // Get largest album art
-    const artwork = track.album.images.sort((a, b) => b.height - a.height)[0];
-
+  private normalizeEdgeFunctionResult(result: any): NormalizedTrack {
     return {
-      title: track.name,
-      artists: track.artists.map(a => a.name),
-      album: track.album.name,
-      duration_ms: track.duration_ms,
-      artwork_url: artwork?.url,
-      isrc: track.external_ids?.isrc,
-      provider_track_id: track.id,
+      title: result.title,
+      artists: result.artist?.split(', ') || [],
+      album: result.album || '',
+      duration_ms: result.duration_ms || 0,
+      artwork_url: result.artwork_url,
+      isrc: result.isrc,
+      provider_track_id: result.providers?.spotify?.provider_track_id || '',
       provider: 'spotify',
-      url_web: track.external_urls.spotify,
-      url_app: track.uri, // spotify:track:...
-      url_preview: track.preview_url,
+      url_web: `https://open.spotify.com/track/${result.providers?.spotify?.provider_track_id}`,
+      url_app: `spotify:track:${result.providers?.spotify?.provider_track_id}`,
+    };
+  }
+
+  private normalizeCachedTrack(track: any): NormalizedTrack {
+    return {
+      title: track.title,
+      artists: track.artist?.split(', ') || [],
+      album: track.album || '',
+      duration_ms: track.duration_ms || 0,
+      artwork_url: track.artwork_url,
+      isrc: track.isrc,
+      provider_track_id: track.provider_track_id,
+      provider: 'spotify',
+      url_web: `https://open.spotify.com/track/${track.provider_track_id}`,
+      url_app: `spotify:track:${track.provider_track_id}`,
     };
   }
 
   async resolveLinks(providerTrackId: string): Promise<ProviderLink> {
-    const token = await this.getAccessToken();
+    // Look up from track_provider_links table
+    const { data } = await supabase
+      .from('track_provider_links')
+      .select('*')
+      .eq('provider', 'spotify')
+      .eq('provider_track_id', providerTrackId)
+      .single();
     
-    const response = await fetch(
-      `https://api.spotify.com/v1/tracks/${providerTrackId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Spotify track fetch failed: ${response.statusText}`);
+    if (data) {
+      return {
+        provider: 'spotify',
+        provider_track_id: data.provider_track_id,
+        url_web: data.url_web,
+        url_app: data.url_app,
+      };
     }
 
-    const track: SpotifyTrack = await response.json();
-
+    // Fallback to generated URLs
     return {
       provider: 'spotify',
-      provider_track_id: track.id,
-      url_web: track.external_urls.spotify,
-      url_app: track.uri,
-      url_preview: track.preview_url,
+      provider_track_id: providerTrackId,
+      url_web: `https://open.spotify.com/track/${providerTrackId}`,
+      url_app: `spotify:track:${providerTrackId}`,
     };
   }
 
   async checkHealth(): Promise<boolean> {
+    // Check if we can connect to Supabase
     try {
-      await this.getAccessToken();
-      return true;
-    } catch (error) {
-      console.error('Spotify health check failed:', error);
+      const { error } = await supabase.from('external_tracks').select('id').limit(1);
+      return !error;
+    } catch {
       return false;
     }
   }

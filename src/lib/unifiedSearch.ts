@@ -23,10 +23,11 @@ class ConnectorRegistry {
 
   constructor() {
     // Initialize all connectors
-    // In production, credentials would come from environment variables
+    // Spotify uses server-side Edge Function for authentication (no client secret exposed)
+    // The SpotifyConnector will call the Edge Function instead of using client credentials
     this.register(new SpotifyConnector(
-      import.meta.env.VITE_SPOTIFY_CLIENT_ID,
-      import.meta.env.VITE_SPOTIFY_CLIENT_SECRET
+      import.meta.env.VITE_SPOTIFY_CLIENT_ID
+      // NOTE: Client secret is NOT exposed here - auth happens server-side
     ));
     
     this.register(new YouTubeConnector(
