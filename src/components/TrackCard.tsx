@@ -8,8 +8,9 @@ import { AudioPreview } from './AudioPreview';
 import { QuickStreamButtons } from './QuickStreamButtons';
 import { YouTubeEmbed } from './YouTubeEmbed';
 import { SongSections } from './SongSections';
+import { CompactSongSections } from './CompactSongSections';
 import { Button } from '@/components/ui/button';
-import { Track, InteractionType } from '@/types';
+import { Track, InteractionType, TrackSection, SongSection } from '@/types';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { useRecordListeningActivity } from '@/hooks/api/useNearbyListeners';
@@ -40,6 +41,77 @@ export function TrackCard({
   const playStartTimeRef = useRef<number | null>(null);
   const recordActivity = useRecordListeningActivity();
   const recordPlay = useRecordPlay();
+
+  // Convert SongSection to TrackSection format
+  const convertSections = useCallback((sections: SongSection[]): TrackSection[] => {
+    return sections.map((section, index) => ({
+      id: `${track.id}-${section.type}-${index}`,
+      track_id: track.id,
+      label: section.type,
+      start_ms: section.start_time * 1000,
+      end_ms: section.end_time ? section.end_time * 1000 : (sections[index + 1]?.start_time || track.duration_ms || 240000 / 1000) * 1000,
+      created_at: new Date().toISOString(),
+    }));
+  }, [track.id, track.duration_ms]);
+
+  // Generate default sections if not present
+  const generateDefaultSections = useCallback((): TrackSection[] => {
+    const durationMs = track.duration_ms || 240000; // Default 4 minutes
+    return [
+      {
+        id: `${track.id}-intro`,
+        track_id: track.id,
+        label: 'intro',
+        start_ms: 0,
+        end_ms: Math.floor(durationMs * 0.1),
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: `${track.id}-verse1`,
+        track_id: track.id,
+        label: 'verse',
+        start_ms: Math.floor(durationMs * 0.1),
+        end_ms: Math.floor(durationMs * 0.3),
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: `${track.id}-chorus1`,
+        track_id: track.id,
+        label: 'chorus',
+        start_ms: Math.floor(durationMs * 0.3),
+        end_ms: Math.floor(durationMs * 0.5),
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: `${track.id}-verse2`,
+        track_id: track.id,
+        label: 'verse',
+        start_ms: Math.floor(durationMs * 0.5),
+        end_ms: Math.floor(durationMs * 0.65),
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: `${track.id}-chorus2`,
+        track_id: track.id,
+        label: 'chorus',
+        start_ms: Math.floor(durationMs * 0.65),
+        end_ms: Math.floor(durationMs * 0.85),
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: `${track.id}-outro`,
+        track_id: track.id,
+        label: 'outro',
+        start_ms: Math.floor(durationMs * 0.85),
+        end_ms: durationMs,
+        created_at: new Date().toISOString(),
+      },
+    ];
+  }, [track.id, track.duration_ms]);
+
+  const trackSections: TrackSection[] = track.sections && track.sections.length > 0 
+    ? convertSections(track.sections)
+    : generateDefaultSections();
 
   // Pause audio when card becomes inactive
   useEffect(() => {
@@ -184,20 +256,20 @@ export function TrackCard({
           </motion.p>
         </div>
 
-        {/* Song Sections - shows when not playing YouTube */}
-        {track.sections && track.sections.length > 0 && track.youtube_id && !showYouTubeEmbed && (
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.08 }}
-          >
-            <SongSections
-              sections={track.sections}
-              youtubeId={track.youtube_id}
-              title={`${track.title} - ${track.artist}`}
-            />
-          </motion.div>
-        )}
+        {/* Compact Song Sections - always visible */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.08 }}
+        >
+          <CompactSongSections
+            sections={trackSections}
+            youtubeId={track.youtube_id}
+            spotifyId={track.spotify_id}
+            trackTitle={track.title}
+            trackArtist={track.artist || ''}
+          />
+        </motion.div>
 
         {/* Play button and streaming links */}
         <motion.div
