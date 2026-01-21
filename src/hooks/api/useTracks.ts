@@ -3,6 +3,7 @@
  * 
  * React Query hooks for track data with automatic fallback.
  * Uses the trackService which handles database -> seed data fallback.
+ * For Spotify IDs (spotify:xxx), fetches directly from Spotify API.
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +15,8 @@ import {
   getDataSourceStatus,
   TrackQuery,
 } from '@/services/trackService';
+import { getSpotifyTrack } from '@/services/spotifySearchService';
+import { useAuth } from '@/hooks/useAuth';
 import { QUERY_KEYS } from '@/lib/constants';
 
 /**
@@ -30,11 +33,26 @@ export function useTracks(query: TrackQuery = {}, enabled = true) {
 
 /**
  * Hook to fetch a single track by ID
+ * Handles both local IDs and Spotify IDs (prefixed with "spotify:")
  */
 export function useTrack(id: string | undefined, enabled = true) {
+  const { user } = useAuth();
+  const isSpotifyId = id?.startsWith('spotify:');
+  
   return useQuery({
     queryKey: [QUERY_KEYS.TRACKS, 'single', id],
-    queryFn: () => getTrackById(id!),
+    queryFn: async () => {
+      if (!id) return null;
+      
+      // If it's a Spotify ID, fetch from Spotify API
+      if (isSpotifyId && user) {
+        const spotifyId = id.replace('spotify:', '');
+        return await getSpotifyTrack(user.id, spotifyId);
+      }
+      
+      // Otherwise, fetch from local database/seed data
+      return await getTrackById(id);
+    },
     enabled: !!id && enabled,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });

@@ -99,3 +99,57 @@ export async function searchSpotify(
     return [];
   }
 }
+
+/**
+ * Get a single track by Spotify ID
+ */
+export async function getSpotifyTrack(
+  userId: string,
+  spotifyId: string
+): Promise<Track | null> {
+  const accessToken = await getValidAccessToken(userId);
+  
+  if (!accessToken) {
+    console.warn('No Spotify access token available - user may need to reconnect');
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${SPOTIFY_API_BASE}/tracks/${spotifyId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Spotify track fetch failed:', response.status);
+      return null;
+    }
+
+    const track = await response.json();
+
+    return {
+      id: `spotify:${track.id}`,
+      title: track.name,
+      artist: track.artists.map((a: any) => a.name).join(', '),
+      artists: track.artists.map((a: any) => a.name),
+      album: track.album.name,
+      cover_url: track.album.images[0]?.url,
+      artwork_url: track.album.images[0]?.url,
+      duration_ms: track.duration_ms,
+      preview_url: track.preview_url,
+      spotify_id: track.id,
+      url_spotify_web: track.external_urls.spotify,
+      url_spotify_app: track.uri,
+      provider: 'spotify' as const,
+      external_id: track.id,
+      isrc: track.external_ids?.isrc,
+    };
+  } catch (error) {
+    console.error('Error fetching Spotify track:', error);
+    return null;
+  }
+}
