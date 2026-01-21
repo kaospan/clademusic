@@ -41,7 +41,7 @@ A music discovery app that helps you find songs based on **harmonic progressions
 
 ```bash
 # Clone the repository
-git clone https://github.com/kaospan/harmony-hub.git
+git clone https://github.com/repoisrael/harmony-hub.git
 cd harmony-hub
 
 # Install dependencies
@@ -151,7 +151,7 @@ Recommended platforms:
 1. Make sure your `package.json` includes:
 
   ```json
-  "homepage": "https://kaospan.github.io/harmony-hub",
+  "homepage": "https://repoisrael.github.io/harmony-hub",
   "scripts": {
     "predeploy": "bun run build",
     "deploy": "gh-pages -d dist"
@@ -172,7 +172,7 @@ Recommended platforms:
   # or: npm run deploy
   ```
 
-Your site will be live at https://kaospan.github.io/harmony-hub
+Your site will be live at https://repoisrael.github.io/harmony-hub
 
 ## 🤝 Contributing
 
@@ -189,5 +189,5 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 ---
 
 <p align="center">
-  Made with 🎵 by <a href="https://github.com/kaospan">kaospan</a>
+  Made with 🎵 by <a href="https://github.com/repoisrael">repoisrael</a>
 </p>
