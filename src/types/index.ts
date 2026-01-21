@@ -103,6 +103,14 @@ export interface Track {
   genres?: string[]; // Multiple genre tags
   genre_description?: string;
   
+  // Credits
+  songwriter?: string; // Primary songwriter
+  songwriters?: string[]; // All songwriters
+  producer?: string; // Primary producer
+  producers?: string[]; // All producers
+  label?: string; // Record label
+  release_date?: string; // YYYY-MM-DD format
+  
   // Metadata
   popularity_score?: number;
   created_at?: string;

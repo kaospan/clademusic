@@ -519,7 +519,13 @@ export default function ProfilePage() {
           {/* YouTube Music */}
           <button 
             className="w-full p-4 glass rounded-2xl flex items-center justify-between hover:bg-muted/30 transition-colors"
-            onClick={() => {/* TODO: Connect YouTube */}}
+            onClick={() => {
+              // TODO: Connect YouTube
+              // Implement YouTube OAuth flow similar to Spotify
+              // Scopes: https://www.googleapis.com/auth/youtube.readonly
+              // Store tokens in user_providers table with provider='youtube'
+              // See TASKS.md for implementation steps
+            }}
           >
             {(() => {
               const youtubeProvider = userProviders.find(p => p.provider === 'youtube');
@@ -952,29 +958,31 @@ export default function ProfilePage() {
             {/* Play History List */}
             <div className="space-y-2">
               {playHistory.map((event) => {
-                // Track info from event itself (no nested tracks in PlayEventData)
                 if (!event.track_id) return null;
+                
+                // Parse track info from track_id (format: seed-1, spotify:track:xxx, etc.)
+                const trackTitle = event.track_id.includes('seed-') 
+                  ? 'Sample Track' 
+                  : event.track_id.split(':').pop()?.slice(0, 12) || 'Unknown Track';
 
                 return (
                   <motion.div
                     key={event.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="p-3 glass rounded-xl flex gap-3 hover:bg-muted/30 transition-colors"
+                    className="p-3 glass rounded-xl flex gap-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/track/${encodeURIComponent(event.track_id)}`)}
                   >
-                    {/* Artwork placeholder - track data not loaded */}
+                    {/* Artwork */}
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">
                       <div className="w-full h-full flex items-center justify-center">
                         <Music className="w-6 h-6 text-muted-foreground" />
                       </div>
                     </div>
 
-                    {/* Track Info - showing track_id since full track data not loaded */}
+                    {/* Track Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">Track</h4>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {event.track_id.slice(0, 8)}...
-                      </p>
+                      <h4 className="font-medium text-sm truncate">{trackTitle}</h4>
                       <div className="flex items-center gap-2 mt-1">
                         {/* Provider Badge */}
                         <span
@@ -993,6 +1001,7 @@ export default function ProfilePage() {
                         </span>
                       </div>
                     </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   </motion.div>
                 );
               })}

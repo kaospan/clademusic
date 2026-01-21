@@ -134,6 +134,10 @@ export default function TrackDetailPage() {
     
     try {
       // TODO: Integrate with actual Hooktheory API
+      // API endpoint: https://api.hooktheory.com/v1/trends/nodes
+      // Requires API key from hooktheory.com/api/trends/docs
+      // See TASKS.md for integration steps
+      
       // For now, use track's existing chord data
       if (track.progression_roman) {
         setHooktheoryData({
@@ -153,6 +157,10 @@ export default function TrackDetailPage() {
     
     try {
       // TODO: Integrate with actual WhoSampled API
+      // API endpoint: https://www.whosampled.com/api/
+      // Requires API key from whosampled.com
+      // See TASKS.md for integration steps
+      
       // For now, return mock data
       setWhoSampledData({
         samples: [],
@@ -378,6 +386,32 @@ export default function TrackDetailPage() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {track.genre_description}
               </p>
+            )}
+            
+            {/* Credits */}
+            {(track.songwriter || track.producer || track.label || track.release_date) && (
+              <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t border-border/50">
+                {track.songwriter && (
+                  <div>
+                    <span className="font-medium">Written by:</span> {track.songwriter}
+                  </div>
+                )}
+                {track.producer && (
+                  <div>
+                    <span className="font-medium">Produced by:</span> {track.producer}
+                  </div>
+                )}
+                {track.label && (
+                  <div>
+                    <span className="font-medium">Label:</span> {track.label}
+                  </div>
+                )}
+                {track.release_date && (
+                  <div>
+                    <span className="font-medium">Released:</span> {new Date(track.release_date).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Play Controls */}

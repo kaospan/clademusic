@@ -49,6 +49,17 @@ export function useTrackConnections(trackId: string) {
       if (!trackId) return null;
       
       // TODO: Implement when track_connections table is created
+      // Table schema:
+      //   - id: uuid primary key
+      //   - from_track_id: text
+      //   - to_track_id: text
+      //   - connection_type: text (sample, cover, remix, interpolation, reference)
+      //   - confidence: numeric (0-1)
+      //   - evidence_url: text
+      //   - created_by: uuid (foreign key to auth.users)
+      //   - created_at: timestamptz
+      // See TASKS.md for migration SQL
+      
       console.log('useTrackConnections: Waiting for track_connections table', trackId);
       
       return {

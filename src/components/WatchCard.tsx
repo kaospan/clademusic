@@ -146,7 +146,13 @@ export function WatchCard({
                     variant="ghost"
                     size="icon"
                     className="text-white hover:bg-white/20"
-                    onClick={() => {/* TODO: fullscreen */}}
+                    onClick={() => {
+                      // TODO: Implement fullscreen mode
+                      // Use Fullscreen API: element.requestFullscreen()
+                      // Add controls overlay with exit button
+                      // Handle ESC key to exit fullscreen
+                      // See TASKS.md for implementation details
+                    }}
                   >
                     <Maximize2 className="w-5 h-5" />
                   </Button>

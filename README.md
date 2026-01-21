@@ -5,13 +5,6 @@ A music discovery app that helps you find songs based on **harmonic progressions
 ![React](https://img.shields.io/badge/React-18-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-5-purple?logo=vite)
-# 🎵 Harmony Hub
-
-A music discovery app that helps you find songs based on **harmonic progressions** and connect with listeners who share your taste.
-
-![React](https://img.shields.io/badge/React-18-blue?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-5-purple?logo=vite)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-green?logo=supabase)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS-cyan?logo=tailwindcss)
 
