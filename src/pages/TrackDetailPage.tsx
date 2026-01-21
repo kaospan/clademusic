@@ -24,6 +24,7 @@ import { ArrowLeft, Play, Music2, Link as LinkIcon, ExternalLink, Info } from 'l
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 
 interface VideoSource {
   id: string;
@@ -338,6 +339,38 @@ export default function TrackDetailPage() {
                 </span>
               </div>
             )}
+
+            {/* Play Controls */}
+            <div className="flex gap-2 pt-2">
+              {currentVideo && (
+                <Button
+                  onClick={() => {
+                    if (activeVideoId) {
+                      playVideo({
+                        videoId: activeVideoId,
+                        title: track.title,
+                        artist: track.artist,
+                        startSeconds: 0,
+                      });
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Play on YouTube
+                </Button>
+              )}
+              {track.url_spotify_web && (
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(track.url_spotify_web, '_blank')}
+                  className="flex-1"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Open in Spotify
+                </Button>
+              )}
+            </div>
           </div>
         </motion.div>
 
