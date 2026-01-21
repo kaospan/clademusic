@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Music } from 'lucide-react';
+import { useCallback } from 'react';
 import { TrackProviderInfo, getProviderLinks } from '@/lib/providers';
 import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
 import { useFloatingPlayers } from '@/contexts/FloatingPlayersContext';
@@ -33,8 +34,8 @@ const YouTubeIcon = ({ className }: { className?: string }) => (
 );
 
 /**
- * Simple streaming buttons showing just Spotify and Apple Music icons.
- * Direct click opens the provider - no dropdown menu.
+ * Streaming buttons for Spotify and YouTube.
+ * Opens floating PiP players inside the app.
  */
 export function QuickStreamButtons({
   track,
@@ -49,19 +50,19 @@ export function QuickStreamButtons({
   const preferredProvider = getPreferredProvider();
   const { playSpotify, playYouTube } = useFloatingPlayers();
 
-  const handleSpotifyClick = () => {
+  const handleSpotifyClick = useCallback(() => {
     if (track.spotifyId) {
       setPreferredProvider('spotify');
       playSpotify(track.spotifyId, trackTitle, trackArtist);
     }
-  };
+  }, [track.spotifyId, trackTitle, trackArtist, playSpotify]);
 
-  const handleYouTubeClick = () => {
+  const handleYouTubeClick = useCallback(() => {
     if (track.youtubeId) {
       setPreferredProvider('youtube');
       playYouTube(track.youtubeId, trackTitle, trackArtist);
     }
-  };
+  }, [track.youtubeId, trackTitle, trackArtist, playYouTube]);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -87,7 +88,7 @@ export function QuickStreamButtons({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {/* Spotify button */}
-      {spotifyLink && (
+      {spotifyLink && track.spotifyId && (
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -99,13 +100,14 @@ export function QuickStreamButtons({
             preferredProvider === 'spotify' && 'ring-2 ring-white ring-offset-2 ring-offset-background'
           )}
           title="Play in Spotify"
+          aria-label={`Play ${trackTitle} in Spotify`}
         >
           <SpotifyIcon className={iconSizes[size]} />
         </motion.button>
       )}
 
       {/* YouTube button */}
-      {youtubeLink && (
+      {youtubeLink && track.youtubeId && (
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -117,6 +119,7 @@ export function QuickStreamButtons({
             preferredProvider === 'youtube' && 'ring-2 ring-white ring-offset-2 ring-offset-background'
           )}
           title="Play on YouTube"
+          aria-label={`Play ${trackTitle} on YouTube`}
         >
           <YouTubeIcon className={iconSizes[size]} />
         </motion.button>
