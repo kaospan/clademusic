@@ -12,6 +12,7 @@ import { openProviderLink, getProviderLinks } from '@/lib/providers';
 import { useAuth } from '@/hooks/useAuth';
 import { searchSpotify } from '@/services/spotifySearchService';
 import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
+import { ResponsiveContainer, ResponsiveGrid } from '@/components/layout/ResponsiveLayout';
 import { 
   getSearchHistory, 
   addToSearchHistory, 
@@ -120,30 +121,33 @@ export default function SearchPage() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
-        <div className="px-4 py-4 max-w-lg mx-auto space-y-3">
-          <h1 className="text-xl font-bold">Search</h1>
-          
-          {/* Search mode toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={searchMode === 'song' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSearchMode('song')}
-              className="flex-1"
-            >
-              <Music className="w-4 h-4 mr-1.5" />
-              Song / Artist
-            </Button>
-            <Button
-              variant={searchMode === 'chord' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSearchMode('chord')}
-              className="flex-1"
-            >
-              <TrendingUp className="w-4 h-4 mr-1.5" />
-              Chord Progression
-            </Button>
-          </div>
+        <ResponsiveContainer maxWidth="2xl">
+          <div className="py-4 space-y-3">
+            <h1 className="text-xl lg:text-2xl font-bold">Search</h1>
+            
+            {/* Search mode toggle */}
+            <div className="flex gap-2">
+              <Button
+                variant={searchMode === 'song' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSearchMode('song')}
+                className="flex-1"
+              >
+                <Music className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Song / Artist</span>
+                <span className="sm:hidden">Song</span>
+              </Button>
+              <Button
+                variant={searchMode === 'chord' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSearchMode('chord')}
+                className="flex-1"
+              >
+                <TrendingUp className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Chord Progression</span>
+                <span className="sm:hidden">Chords</span>
+              </Button>
+            </div>
 
           {/* Search input */}
           <div className="relative">
@@ -160,11 +164,13 @@ export default function SearchPage() {
               autoFocus
             />
           </div>
-        </div>
+          </div>
+        </ResponsiveContainer>
       </header>
 
       {/* Content */}
-      <main className="px-4 py-4 max-w-lg mx-auto space-y-6">
+      <main className="py-4 space-y-6">
+        <ResponsiveContainer maxWidth="2xl">
         {/* Recent Searches - Show when no active search */}
         {!query && searchHistory.length > 0 && (
           <section>
@@ -421,6 +427,7 @@ export default function SearchPage() {
             </div>
           </section>
         )}
+        </ResponsiveContainer>
       </main>
 
       <BottomNav />

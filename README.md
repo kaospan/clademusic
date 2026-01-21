@@ -10,13 +10,42 @@ A music discovery app that helps you find songs based on **harmonic progressions
 
 ## ✨ Features
 
-### 🎶 Harmonic Discovery
+### 🎶 Harmonic Analysis & Discovery
+- **Relative theory-based analysis** — Songs analyzed by Roman numeral progressions (I-V-vi-IV), not absolute chords
+- **Hybrid analysis pipeline** — Instant cached results + async ML processing for new tracks
+- **Confidence scoring** — All analyses labeled with confidence levels (High/Medium/Low/Provisional)
+- **Smart similarity matching** — Find tracks by harmonic structure: progression shape (50%), cadence type (20%), loop length (15%), modal color (10%)
+- **Cost-efficient at scale** — Aggressive caching (90-day TTL), ISRC deduplication, batch processing
+- **Section-aware navigation** — Jump to specific song sections (verse, chorus, bridge) with one tap
 
 ### 🎧 Multi-Platform Streaming
+- **YouTube & Spotify** — Seamless playback with embedded players
+- **Quick stream buttons** — One-tap access to Apple Music, Deezer, SoundCloud
+- **Provider badges** — Visual indicators for available platforms
+- **Floating players** — Picture-in-picture mode with active player z-index management
 
 ### 👥 Social Features
+- **Following system** — Track friends and discover their music taste
+- **Live comments** — Real-time discussion on tracks
+- **Nearby listeners** — See who's listening to similar music around you
+- **Play history** — Complete listening history with clickable tracks
 
 ### 🔗 Track Connections
+- **Sample detection** — Find original samples and tracks that sample this song
+- **Cover versions** — Discover different interpretations
+- **Remix relationships** — Track the remix tree
+
+### 📊 Rich Metadata
+- **Song credits** — Songwriter, producer, label, release date
+- **BPM & Key** — Detected tempo and harmonic key with confidence scores
+- **Genre tags** — Multiple genre classifications
+- **Chord progressions** — Visual chord badges with Roman numeral display
+
+### 🎨 Responsive Desktop UI
+- **Widescreen layouts** — Professional multi-column desktop interface
+- **Adaptive breakpoints** — Optimized for sm/md/lg/xl/2xl screens (640px-1536px+)
+- **Desktop sidebars** — Track metadata, keyboard shortcuts, progress indicators
+- **Mobile-first design** — Seamless experience across all devices
 
 ## 🚀 Quick Start
 
@@ -60,40 +89,57 @@ VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/api/spotify-callback
 ```
 src/
 ├── components/          # Reusable UI components
+│   ├── layout/          # ResponsiveLayout, DesktopColumns, DesktopSidebar
 │   ├── shared/          # Layout, EmptyState, LoadingSpinner
-│   └── ui/              # shadcn/ui primitives
+│   ├── ui/              # shadcn/ui primitives + ProviderBadge, GlassCard
+│   └── AnalysisStatusBadge.tsx  # Harmonic confidence indicators
 ├── hooks/               # React hooks
 │   └── api/             # Data fetching hooks (React Query)
 ├── lib/                 # Utilities & helpers
 │   ├── animations.ts    # Framer Motion variants
 │   ├── constants.ts     # App-wide constants
-│   └── providers.ts     # Music provider utilities
-├── pages/               # Route pages
+│   ├── formatters.ts    # formatBPM, formatRelativeTime, capitalize
+│   ├── providers.ts     # Music provider utilities
+│   └── sections.ts      # Section timestamp utilities
+├── pages/               # Route pages (responsive layouts)
 ├── player/              # Embedded player components
-└── types/               # TypeScript types
+├── services/            # Business logic layer
+│   ├── harmonicAnalysis.ts    # Hybrid analysis pipeline
+│   ├── similarityEngine.ts    # Track matching algorithm
+│   └── lastfmService.ts       # External API integrations
+├── types/               # TypeScript types
+│   ├── harmony.ts       # Harmonic analysis types
+│   └── index.ts         # Core Track, User types
+└── contexts/            # React Context providers
+    ├── QueueContext.tsx         # Playback queue management
+    └── FloatingPlayersContext.tsx  # Player z-index control
 ```
 
 ## 🛠️ Tech Stack
 
 | Category | Technology |
 |----------|------------|
-| **Framework** | React 18 + TypeScript |
-| **Build Tool** | Vite 5 |
-| **Styling** | Tailwind CSS + shadcn/ui |
+| **Framework** | React 18 + TypeScript (Strict Mode) |
+| **Build Tool** | Vite 5.4.19 |
+| **Styling** | Tailwind CSS + shadcn/ui + Responsive Breakpoints |
 | **Animations** | Framer Motion |
-| **State Management** | TanStack Query (React Query) |
+| **State Management** | TanStack Query (React Query) + Context API |
 | **Backend** | Supabase (Auth, Postgres, Edge Functions) |
-| **Testing** | Vitest |
+| **Music Theory** | Custom Harmonic Analysis Engine |
+| **Audio Analysis** | ML-ready pipeline (Essentia.js integration pending) |
+| **Testing** | Vitest + Cypress (E2E) |
 
 ## 📱 Key Pages
 
 | Route | Description |
 |-------|-------------|
-| `/` | Feed — Swipe through tracks with harmonic analysis |
-| `/search` | Search songs by name or chord progression |
-| `/following` | Activity feed from people you follow |
-| `/profile` | Your taste DNA, connected services, play history |
-| `/connections` | Track relationships (samples, covers, etc.) |
+| `/` | **Feed** — TikTok-style track discovery with desktop sidebar, progress tracking, and keyboard shortcuts |
+| `/search` | **Search** — Find songs by name/artist or chord progression patterns (e.g., "I-V-vi-IV") |
+| `/following` | **Following** — Activity feed from people you follow with play events |
+| `/profile` | **Profile** — Your taste DNA, connected services, complete play history with clickable tracks |
+| `/connections` | **Connections** — Track relationships (samples, covers, remixes) with network visualization |
+| `/compare` | **Compare** — Side-by-side harmonic analysis comparison tool |
+| `/track/:id` | **Track Detail** — Full metadata, credits, sections, similar tracks by harmony |
 
 ## 🔧 Development
 

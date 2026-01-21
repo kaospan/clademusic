@@ -50,6 +50,21 @@ export function formatNumber(num: number): string {
 }
 
 /**
+ * Format BPM for display
+ */
+export function formatBPM(tempo?: number): string | null {
+  if (!tempo) return null;
+  return `${Math.round(tempo)} BPM`;
+}
+
+/**
+ * Capitalize first letter of string
+ */
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+/**
  * Format a number compactly (e.g., 1.2K, 3.4M)
  */
 export function formatCompactNumber(num: number): string {

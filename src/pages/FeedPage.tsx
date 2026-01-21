@@ -2,8 +2,10 @@ import { useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrackCard } from '@/components/TrackCard';
 import { FeedSkeleton } from '@/components/FeedSkeleton';
+import { FeedSidebar } from '@/components/FeedSidebar';
 import { BottomNav } from '@/components/BottomNav';
 import { YouTubeEmbed } from '@/components/YouTubeEmbed';
+import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
 import { useFeedTracks } from '@/hooks/api/useTracks';
 import { useSpotifyRecentlyPlayed } from '@/hooks/api/useSpotifyUser';
 import { useAuth } from '@/hooks/useAuth';
@@ -177,10 +179,11 @@ export default function FeedPage() {
     <div className="min-h-screen bg-background flex flex-col touch-pan-y" ref={containerRef}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 glass-strong safe-top">
-        <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
-          <h1 className="text-lg font-bold gradient-text">HarmonyFeed</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
+        <ResponsiveContainer maxWidth="2xl">
+          <div className="flex items-center justify-between py-3">
+            <h1 className="text-lg lg:text-xl font-bold gradient-text">HarmonyFeed</h1>
+            <div className="flex items-center gap-3 lg:gap-4">
+              <span className="text-xs lg:text-sm text-muted-foreground flex items-center gap-1">
               {currentIndex + 1} / {tracks.length}
               {dataSource === 'spotify' && (
                 <span className="ml-1 text-[#1DB954] flex items-center gap-0.5" title="Your Spotify history">
@@ -199,11 +202,12 @@ export default function FeedPage() {
                 className="gap-1.5"
               >
                 <LogIn className="w-4 h-4" />
-                Sign in
+                <span className="hidden sm:inline">Sign in</span>
               </Button>
             )}
           </div>
         </div>
+        </ResponsiveContainer>
       </header>
 
       {/* Navigation arrows (desktop) */}
@@ -230,29 +234,43 @@ export default function FeedPage() {
 
       {/* Feed content */}
       <main className="flex-1 pt-16 pb-24">
-        <div className="h-[calc(100vh-10rem)] max-w-lg mx-auto">
-          <AnimatePresence mode="wait">
-            {currentTrack && (
-              <motion.div
-                key={currentTrack.id}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -50 }}
-                transition={{ duration: 0.3 }}
-                className="h-full"
-              >
-                <TrackCard
-                  track={currentTrack}
-                  isActive={true}
-                  onInteraction={handleInteraction}
-                  interactions={interactions.get(currentTrack.id) || new Set()}
-                  onPipModeActivate={handlePipModeActivate}
-                  isPipActive={pipVideo?.videoId === currentTrack.youtube_id}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <ResponsiveContainer maxWidth="2xl" className="py-6">
+          <DesktopColumns
+            left={
+              <FeedSidebar
+                currentTrack={currentTrack}
+                trackIndex={currentIndex}
+                totalTracks={tracks.length}
+              />
+            }
+            center={
+              <div className="h-[calc(100vh-12rem)] max-w-lg mx-auto lg:max-w-2xl">
+                <AnimatePresence mode="wait">
+                  {currentTrack && (
+                    <motion.div
+                      key={currentTrack.id}
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -50 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full"
+                    >
+                      <TrackCard
+                        track={currentTrack}
+                        isActive={true}
+                        onInteraction={handleInteraction}
+                        interactions={interactions.get(currentTrack.id) || new Set()}
+                        onPipModeActivate={handlePipModeActivate}
+                        isPipActive={pipVideo?.videoId === currentTrack.youtube_id}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            }
+            centerWidth="wide"
+          />
+        </ResponsiveContainer>
       </main>
 
       {/* Picture-in-Picture mini player - persists across track changes */}

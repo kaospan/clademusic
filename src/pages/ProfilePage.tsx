@@ -49,6 +49,9 @@ import { PROVIDER_INFO } from '@/lib/providers';
 import { MusicProvider } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fadeInUp } from '@/lib/animations';
+import { formatRelativeTime } from '@/lib/formatters';
+import { ProviderBadge } from '@/components/ui/ProviderBadge';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -984,20 +987,9 @@ export default function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm truncate">{trackTitle}</h4>
                       <div className="flex items-center gap-2 mt-1">
-                        {/* Provider Badge */}
-                        <span
-                          className="px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1"
-                          style={{ 
-                            backgroundColor: `${PROVIDER_INFO[event.provider].color}20`,
-                            color: PROVIDER_INFO[event.provider].color 
-                          }}
-                        >
-                          <span className="text-[10px]">{PROVIDER_INFO[event.provider].icon}</span>
-                          {PROVIDER_INFO[event.provider].name}
-                        </span>
-                        {/* Timestamp */}
+                        <ProviderBadge provider={event.provider} size="sm" />
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(event.played_at), { addSuffix: true })}
+                          {formatRelativeTime(event.played_at)}
                         </span>
                       </div>
                     </div>
