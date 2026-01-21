@@ -824,12 +824,6 @@ export default function ProfilePage() {
         )}
 
         {/* Recommendations */}
-              </TabsContent>
-            </Tabs>
-          </motion.div>
-        )}
-
-        {/* Recommendations */}
         {spotifyConnected && recommendations.length > 0 && (
           <motion.div
             variants={fadeInUp}
