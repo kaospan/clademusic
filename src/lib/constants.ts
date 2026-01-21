@@ -67,3 +67,26 @@ export const LIMITS = {
   MAX_NEARBY_RADIUS_KM: 100,
   MIN_NEARBY_RADIUS_KM: 1,
 } as const;
+
+// Cache / Stale time constants for React Query (in milliseconds)
+export const CACHE_TIMES = {
+  /** 30 seconds - for frequently changing data */
+  VERY_SHORT: 30 * 1000,
+  /** 2 minutes - for semi-realtime data */
+  SHORT: 2 * 60 * 1000,
+  /** 5 minutes - default for most queries */
+  MEDIUM: 5 * 60 * 1000,
+  /** 15 minutes - for rarely changing data */
+  LONG: 15 * 60 * 1000,
+  /** 1 hour - for static reference data */
+  VERY_LONG: 60 * 60 * 1000,
+  /** Infinite - never refetch automatically */
+  INFINITE: Infinity,
+} as const;
+
+// API endpoints
+export const API_ENDPOINTS = {
+  SPOTIFY_AUTH: 'https://accounts.spotify.com/authorize',
+  SPOTIFY_TOKEN: 'https://accounts.spotify.com/api/token',
+  SPOTIFY_API: 'https://api.spotify.com/v1',
+} as const;
