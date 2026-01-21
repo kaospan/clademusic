@@ -114,6 +114,78 @@
 
 ## 📋 Backlog
 
+### 🔴 URGENT - Recently Requested (Jan 22, 2026)
+
+#### Admin Dashboard System
+- [ ] **Admin role & access control**
+  - Set `repoisrael@gmail.com` as sole admin in user_roles table
+  - Create RLS policies for admin-only access
+  - Add admin check utility functions
+
+- [ ] **Admin dashboard page** (`/admin`)
+  - Subtle admin link in site settings (only visible to admin)
+  - Protected route with admin role verification
+  - Dashboard layout with sidebar navigation
+
+- [ ] **User management panel**
+  - List all users with search/filter
+  - View user profiles and activity
+  - Ban/unban users
+  - Reset user passwords
+  - Delete accounts
+
+- [ ] **Content moderation tools**
+  - Review flagged comments/content
+  - Moderate user-submitted chord progressions
+  - Track connections approval/rejection
+  - Bulk moderation actions
+
+- [ ] **Analytics dashboard**
+  - Active users count (daily/weekly/monthly)
+  - Most played tracks
+  - Popular chord progressions
+  - API usage metrics
+  - Error rate monitoring
+
+- [ ] **System configuration**
+  - Feature flags (enable/disable features)
+  - Rate limit settings
+  - Credit system configuration
+  - Maintenance mode toggle
+
+#### Profile Theme Customization (MySpace meets TikTok)
+- [ ] **Profile theme editor**
+  - Background color/image picker
+  - Accent color customization
+  - Font style selector
+  - Layout preset templates (minimal, vibrant, retro, neon)
+
+- [ ] **Custom profile sections**
+  - Bio section with rich text editor
+  - Featured tracks showcase
+  - Custom playlists display
+  - Top progressions grid
+  - Mood board/aesthetic section
+
+- [ ] **Profile themes data model**
+  - Create `user_themes` table
+  - Store theme JSON: colors, fonts, layout, custom_css
+  - Allow theme preview before saving
+  - Share theme templates
+
+- [ ] **Social profile enhancements**
+  - Profile banner image
+  - Custom profile URL slugs
+  - Visitor counter (optional)
+  - Music player skin customization
+  - Animated backgrounds (subtle)
+
+- [ ] **Theme marketplace (future)**
+  - Browse community-created themes
+  - One-click theme import
+  - Theme ratings and comments
+  - Featured themes section
+
 ### High Priority - Harmonic Analysis
 - [ ] **Progression rotation matching** — Detect rotated progressions (I-V-vi-IV ≈ V-vi-IV-I)
 - [ ] **ML embeddings** — Semantic similarity beyond exact matching
