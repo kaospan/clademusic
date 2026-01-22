@@ -1484,12 +1484,50 @@ export const seedTracks: SeedTrack[] = [
 
 // Progression archetypes for cold start / search
 export const progressionArchetypes = [
+  // Pop & Rock Classics
   { name: 'Pop Anthem', progression: ['vi', 'IV', 'I', 'V'], description: 'The most popular progression in modern pop' },
   { name: 'Classic Pop', progression: ['I', 'V', 'vi', 'IV'], description: 'Axis of Awesome, countless hits' },
+  { name: '50s Doo-wop', progression: ['I', 'vi', 'IV', 'V'], description: 'Classic 50s and doo-wop standard' },
+  { name: 'Rock Ballad', progression: ['I', 'IV', 'V', 'IV'], description: 'Power ballad staple' },
+  { name: 'Canon in D', progression: ['I', 'V', 'vi', 'iii', 'IV', 'I', 'IV', 'V'], description: 'Pachelbel progression, wedding favorite' },
+  { name: 'Sensitive Singer', progression: ['IV', 'I', 'V', 'vi'], description: 'Ed Sheeran, Coldplay style' },
+  { name: 'Indie Folk', progression: ['I', 'IV', 'vi', 'V'], description: 'Modern indie and folk rock' },
+  
+  // Minor Key Progressions
   { name: 'Minor Funk', progression: ['i', 'VII', 'VI', 'VII'], description: 'Minor key funk and RnB' },
   { name: 'Andalusian', progression: ['i', 'VII', 'VI', 'V'], description: 'Flamenco-inspired descending minor' },
-  { name: '50s Doo-wop', progression: ['I', 'vi', 'IV', 'V'], description: 'Classic 50s and doo-wop standard' },
+  { name: 'Minor Pop', progression: ['i', 'VI', 'III', 'VII'], description: 'Dark pop and electronic' },
+  { name: 'Sad Ballad', progression: ['i', 'v', 'VII', 'IV'], description: 'Emotional minor ballads' },
   { name: 'Minor Two-chord', progression: ['i', 'iv'], description: 'Minimalist minor groove' },
+  { name: 'Natural Minor', progression: ['i', 'VII', 'VI', 'VII'], description: 'Aeolian mode progression' },
+  { name: 'Harmonic Minor', progression: ['i', 'V', 'i'], description: 'Classical harmonic minor sound' },
+  
+  // Jazz & Complex
   { name: 'Jazz ii-V-I', progression: ['ii', 'V', 'I'], description: 'The foundation of jazz harmony' },
+  { name: 'Jazz Turnaround', progression: ['I', 'vi', 'ii', 'V'], description: 'Classic jazz ending' },
+  { name: 'Coltrane Changes', progression: ['I', 'III', 'VI', 'II', 'V'], description: 'Giant Steps progression' },
+  { name: 'Modal Jazz', progression: ['ii', 'IV', 'I'], description: 'Dorian mode vamp' },
+  { name: 'Rhythm Changes', progression: ['I', 'vi', 'ii', 'V', 'I', 'vi', 'ii', 'V'], description: 'From "I Got Rhythm"' },
+  
+  // Blues
   { name: 'Blues Shuffle', progression: ['I', 'I', 'IV', 'I', 'V', 'IV', 'I', 'V'], description: '12-bar blues' },
+  { name: 'Quick Change Blues', progression: ['I', 'IV', 'I', 'I', 'IV', 'IV', 'I', 'I', 'V', 'IV', 'I', 'V'], description: '12-bar with IV in bar 2' },
+  { name: 'Minor Blues', progression: ['i', 'i', 'iv', 'i', 'v', 'iv', 'i', 'v'], description: '12-bar minor blues' },
+  
+  // Electronic & Modern
+  { name: 'EDM Drop', progression: ['vi', 'IV', 'I', 'V'], description: 'Festival anthem buildup' },
+  { name: 'Tropical House', progression: ['I', 'V', 'IV', 'V'], description: 'Kygo, summer vibes' },
+  { name: 'Future Bass', progression: ['VI', 'IV', 'I', 'V'], description: 'Flume, Illenium style' },
+  { name: 'Lo-fi Hip Hop', progression: ['ii', 'V', 'I', 'vi'], description: 'Chill beats to study to' },
+  
+  // Gospel & Soul
+  { name: 'Gospel Soul', progression: ['I', 'IV', 'I', 'V'], description: 'Church music staple' },
+  { name: 'Motown Magic', progression: ['I', 'vi', 'IV', 'V'], description: '60s soul standard' },
+  { name: 'Neo-Soul', progression: ['ii', 'iii', 'IV', 'V'], description: 'D\'Angelo, Erykah Badu' },
+  
+  // Experimental
+  { name: 'Radiohead', progression: ['I', 'iii', 'IV', 'iv'], description: 'Alternative rock complexity' },
+  { name: 'Lydian Mode', progression: ['I', 'II', 'iii'], description: 'Bright, dreamy sound' },
+  { name: 'Phrygian Dominant', progression: ['i', 'II', 'VII'], description: 'Spanish/Middle Eastern flavor' },
+  { name: 'Chromatic Descent', progression: ['I', 'I/VII', 'IV/VI', 'IV'], description: 'Beatles-style bassline' },
 ];

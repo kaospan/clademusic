@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TrackCard } from '@/components/TrackCard';
 import { FeedSkeleton } from '@/components/FeedSkeleton';
 import { FeedSidebar } from '@/components/FeedSidebar';
+import { LiveChat } from '@/components/LiveChat';
 import { BottomNav } from '@/components/BottomNav';
 import { YouTubeEmbed } from '@/components/YouTubeEmbed';
 import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
@@ -266,6 +267,11 @@ export default function FeedPage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
+            }
+            right={
+              <div className="sticky top-20 space-y-4">
+                <LiveChat roomType="global" className="h-[calc(100vh-8rem)]" />
               </div>
             }
             centerWidth="wide"
