@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Menu } from 'lucide-react';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
+import { QueueSheet } from './QueueSheet';
 
 const providerMeta = {
   spotify: { label: 'Spotify', badge: '🎧', color: 'from-green-500/20 to-green-600/10' },
@@ -11,9 +12,26 @@ const providerMeta = {
 } as const;
 
 export function EmbeddedPlayerDrawer() {
-  const { spotifyOpen, youtubeOpen, spotifyTrackId, youtubeTrackId, autoplaySpotify, autoplayYoutube, closeSpotify, closeYoutube } = usePlayer();
+  const {
+    spotifyOpen,
+    youtubeOpen,
+    spotifyTrackId,
+    youtubeTrackId,
+    autoplaySpotify,
+    autoplayYoutube,
+    closeSpotify,
+    closeYoutube,
+    queue,
+    queueIndex,
+    playFromQueue,
+    removeFromQueue,
+    reorderQueue,
+    clearQueue,
+    shuffleQueue,
+  } = usePlayer();
   const [spotifyMinimized, setSpotifyMinimized] = useState(false);
   const [youtubeMinimized, setYoutubeMinimized] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
 
   // Auto-minimize the other player when one opens/expands
   useEffect(() => {
@@ -52,6 +70,14 @@ export function EmbeddedPlayerDrawer() {
               </div>
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setQueueOpen(true)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                aria-label="View queue"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
               <button
                 type="button"
                 onClick={() => setMinimized(!isMinimized)}
@@ -104,6 +130,19 @@ export function EmbeddedPlayerDrawer() {
       <AnimatePresence>
         {renderPlayer('spotify', spotifyMinimized, setSpotifyMinimized, closeSpotify, spotifyTrackId, autoplaySpotify, spotifyOpen)}
       </AnimatePresence>
+
+      {/* Queue Sheet */}
+      <QueueSheet
+        open={queueOpen}
+        onOpenChange={setQueueOpen}
+        queue={queue}
+        currentIndex={queueIndex}
+        onPlayTrack={playFromQueue}
+        onRemoveTrack={removeFromQueue}
+        onReorderQueue={reorderQueue}
+        onClearQueue={clearQueue}
+        onShuffleQueue={shuffleQueue}
+      />
     </div>
   );
 }
