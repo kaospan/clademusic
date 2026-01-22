@@ -128,7 +128,7 @@ export default function SearchPage() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
-        <ResponsiveContainer maxWidth="2xl">
+        <ResponsiveContainer maxWidth="full">
           <div className="py-4 space-y-3">
             <h1 className="text-xl lg:text-2xl font-bold">Search</h1>
             
@@ -171,18 +171,13 @@ export default function SearchPage() {
               autoFocus
             />
           </div>
-
-          {/* DEBUG INFO */}
-          <div className="text-xs bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-400 p-2 rounded">
-            🔍 Debug: {seedTracks.length} tracks | Query: "{query}" | Results: {results.length} local + {spotifyResults.length} spotify
-          </div>
           </div>
         </ResponsiveContainer>
       </header>
 
       {/* Content */}
       <main className="py-4 space-y-6">
-        <ResponsiveContainer maxWidth="2xl">
+        <ResponsiveContainer maxWidth="full">
         {/* Recent Searches - Show when no active search */}
         {!query && searchHistory.length > 0 && (
           <section>

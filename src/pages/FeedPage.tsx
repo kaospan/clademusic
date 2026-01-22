@@ -179,7 +179,7 @@ export default function FeedPage() {
     <div className="min-h-screen bg-background flex flex-col touch-pan-y" ref={containerRef}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 glass-strong safe-top">
-        <ResponsiveContainer maxWidth="2xl">
+        <ResponsiveContainer maxWidth="full">
           <div className="flex items-center justify-between py-3">
             <h1 className="text-lg lg:text-xl font-bold gradient-text">HarmonyFeed</h1>
             <div className="flex items-center gap-3 lg:gap-4">
@@ -234,7 +234,7 @@ export default function FeedPage() {
 
       {/* Feed content */}
       <main className="flex-1 pt-16 pb-24">
-        <ResponsiveContainer maxWidth="2xl" className="py-6">
+        <ResponsiveContainer maxWidth="full" className="py-6">
           <DesktopColumns
             left={
               <FeedSidebar

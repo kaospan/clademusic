@@ -229,7 +229,7 @@ export default function ProfilePage() {
         </div>
       }
     >
-      <ResponsiveContainer maxWidth="2xl" className="space-y-6">
+      <ResponsiveContainer maxWidth="full" className="space-y-6">
       {/* User info - Enhanced with Spotify profile */}
       <motion.div
         variants={fadeInUp}
