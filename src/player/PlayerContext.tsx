@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback, useEffect, ReactNode } from 'react';
 import { recordPlayEvent } from '@/api/playEvents';
 import { MusicProvider } from '@/types';
 import { getPreferredProvider } from '@/lib/preferences';
@@ -70,6 +70,13 @@ interface PlayerContextValue extends PlayerState {
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
+const QUEUE_STORAGE_KEY = 'clade_queue_v1';
+
+const clampQueueIndex = (queueLength: number, index: number) => {
+  if (queueLength === 0) return -1;
+  return Math.max(0, Math.min(index, queueLength - 1));
+};
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PlayerState>({
     spotifyOpen: false,
@@ -85,6 +92,35 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     queue: [],
     queueIndex: -1,
   });
+
+  // Hydrate queue from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { queue?: import('@/types').Track[]; queueIndex?: number };
+      const queue = Array.isArray(parsed?.queue) ? parsed.queue : [];
+      const queueIndex = clampQueueIndex(queue.length, typeof parsed?.queueIndex === 'number' ? parsed.queueIndex : -1);
+      setState((prev) => ({ ...prev, queue, queueIndex }));
+    } catch (err) {
+      console.error('Failed to hydrate queue from storage', err);
+    }
+  }, []);
+
+  // Persist queue to localStorage when it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const payload = JSON.stringify({
+        queue: state.queue,
+        queueIndex: clampQueueIndex(state.queue.length, state.queueIndex),
+      });
+      localStorage.setItem(QUEUE_STORAGE_KEY, payload);
+    } catch (err) {
+      console.error('Failed to persist queue to storage', err);
+    }
+  }, [state.queue, state.queueIndex]);
 
   const seekTo = useCallback((sec: number) => {
     setState((prev) => ({ ...prev, seekToSec: sec }));
@@ -131,13 +167,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const removeFromQueue = useCallback((index: number) => {
     setState((prev) => {
       const newQueue = prev.queue.filter((_, i) => i !== index);
-      const newIndex = index < prev.queueIndex ? prev.queueIndex - 1 : prev.queueIndex;
-      return { ...prev, queue: newQueue, queueIndex: newIndex };
+      const adjustedIndex = index < prev.queueIndex ? prev.queueIndex - 1 : prev.queueIndex;
+      const queueIndex = clampQueueIndex(newQueue.length, adjustedIndex);
+      return { ...prev, queue: newQueue, queueIndex };
     });
   }, []);
 
   const reorderQueue = useCallback((newQueue: import('@/types').Track[]) => {
-    setState((prev) => ({ ...prev, queue: newQueue }));
+    setState((prev) => ({
+      ...prev,
+      queue: newQueue,
+      queueIndex: clampQueueIndex(newQueue.length, prev.queueIndex),
+    }));
   }, []);
 
   const clearQueue = useCallback(() => {
@@ -153,7 +194,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         ...prev.queue.slice(0, prev.queueIndex + 1),
         ...shuffled
       ];
-      return { ...prev, queue: newQueue };
+      return { ...prev, queue: newQueue, queueIndex: clampQueueIndex(newQueue.length, prev.queueIndex) };
     });
   }, []);
 
