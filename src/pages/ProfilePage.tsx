@@ -358,7 +358,7 @@ export default function ProfilePage() {
           </motion.div>
         )}
 
-        {/* Chord Taste DNA - Always show */}
+        {/* Chord Taste DNA - Real user data or loading state */}
         <motion.div
           variants={fadeInUp}
           initial="initial"
@@ -369,66 +369,119 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent" />
             <h3 className="font-bold">Chord Taste DNA</h3>
+            {tasteDNA?.totalTracksAnalyzed && (
+              <span className="text-xs text-muted-foreground">
+                ({tasteDNA.totalTracksAnalyzed} tracks analyzed)
+              </span>
+            )}
           </div>
 
-          {/* Favorite progressions */}
-          <div className="p-4 glass rounded-2xl space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Favorite Progressions
-            </h4>
-            {tasteDNA.favoriteProgressions.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between"
-              >
-                <div className="flex gap-1">
-                  {item.progression.map((chord, i) => (
-                    <ChordBadge key={i} chord={chord} size="sm" />
+          {isTasteDNALoading && (
+            <div className="p-8 glass rounded-2xl text-center">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Analyzing your musical taste...
+              </p>
+            </div>
+          )}
+
+          {!isTasteDNALoading && !tasteDNA && (
+            <div className="p-8 glass rounded-2xl text-center">
+              <Music className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Start listening to tracks to build your taste profile
+              </p>
+            </div>
+          )}
+
+          {!isTasteDNALoading && tasteDNA && (
+            <>
+              {/* Favorite progressions */}
+              {tasteDNA.favoriteProgressions.length > 0 ? (
+                <div className="p-4 glass rounded-2xl space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Favorite Progressions
+                  </h4>
+                  {tasteDNA.favoriteProgressions.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex gap-1">
+                        {item.progression.map((chord, i) => (
+                          <ChordBadge key={i} chord={chord} size="sm" />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {item.count} {item.count === 1 ? 'song' : 'songs'}
+                      </span>
+                    </div>
                   ))}
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {item.count} songs
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Mode preference */}
-          <div className="p-4 glass rounded-2xl space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Mode Preference
-            </h4>
-            <div className="flex gap-2">
-              {tasteDNA.preferredModes.map((item) => (
-                <div
-                  key={item.mode}
-                  className="flex-1 p-3 rounded-xl bg-muted/50 text-center"
-                >
-                  <span className="text-lg font-bold">{item.percentage}%</span>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {item.mode}
-                  </p>
+              ) : (
+                <div className="p-4 glass rounded-2xl text-center text-sm text-muted-foreground">
+                  No chord progressions detected yet
                 </div>
-              ))}
-            </div>
-          </div>
+              )}
 
-          {/* Energy level */}
-          <div className="p-4 glass rounded-2xl space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Energy Preference
-            </h4>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground">Low</span>
-              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                  style={{ width: `${tasteDNA.energyPreference * 100}%` }}
-                />
+              {/* Mode preference */}
+              {tasteDNA.preferredModes.length > 0 && (
+                <div className="p-4 glass rounded-2xl space-y-3">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Mode Preference
+                  </h4>
+                  <div className="flex gap-2">
+                    {tasteDNA.preferredModes.map((item) => (
+                      <div
+                        key={item.mode}
+                        className="flex-1 p-3 rounded-xl bg-muted/50 text-center"
+                      >
+                        <span className="text-lg font-bold">{item.percentage}%</span>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {item.mode}
+                        </p>
+                        <p className="text-xs text-muted-foreground/60">
+                          {item.count} tracks
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Energy level */}
+              <div className="p-4 glass rounded-2xl space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Energy Preference
+                </h4>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">Low</span>
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                      style={{ width: `${tasteDNA.energyPreference * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">High</span>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  {Math.round(tasteDNA.energyPreference * 100)}% energy • {tasteDNA.averageTempo} BPM avg
+                </p>
               </div>
-              <span className="text-xs text-muted-foreground">High</span>
-            </div>
-          </div>
+
+              {/* Cadence preference */}
+              {tasteDNA.cadencePreference && (
+                <div className="p-4 glass rounded-2xl">
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                    Cadence Style
+                  </h4>
+                  <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm capitalize">
+                    {tasteDNA.cadencePreference}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
         </motion.div>
 
         {/* Connected providers */}
