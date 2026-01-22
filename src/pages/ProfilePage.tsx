@@ -26,6 +26,8 @@ import {
   BarChart3,
   Disc3,
   X,
+  Shield,
+  Palette,
 } from 'lucide-react';
 import { usePlayHistory, usePlayStats } from '@/hooks/api/usePlayEvents';
 import { useProfile, useUserProviders, useSetPreferredProvider } from '@/hooks/api/useProfile';
