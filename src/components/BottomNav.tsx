@@ -1,4 +1,4 @@
-import { Home, Search, Music2, User, Users } from 'lucide-react';
+import { Home, Search, Music2, User, Users, ListMusic } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 const navItems = [
   { to: '/', icon: Home, label: 'Feed' },
   { to: '/following', icon: Users, label: 'Following' },
+  { to: '/playlists', icon: ListMusic, label: 'Playlists' },
   { to: '/search', icon: Search, label: 'Search' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];

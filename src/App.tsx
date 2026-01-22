@@ -25,6 +25,8 @@ const SpotifyCallbackPage = lazy(() => import("./pages/SpotifyCallbackPage"));
 const AlbumPage = lazy(() => import("./pages/AlbumPage"));
 const ArtistPage = lazy(() => import("./pages/ArtistPage"));
 const TrackDetailPage = lazy(() => import("./pages/TrackDetailPage"));
+const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
+const PlaylistDetailPage = lazy(() => import("./pages/PlaylistDetailPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -61,6 +63,8 @@ const App = () => (
                     <Route path="/album/:albumId" element={<AlbumPage />} />
                     <Route path="/artist/:artistId" element={<ArtistPage />} />
                     <Route path="/track/:trackId" element={<TrackDetailPage />} />
+                    <Route path="/playlists" element={<PlaylistsPage />} />
+                    <Route path="/playlist/:playlistId" element={<PlaylistDetailPage />} />
                     {/* Admin Routes - Protected */}
                     <Route element={<AdminRoute />}>
                       <Route path="/admin" element={<AdminDashboard />} />
