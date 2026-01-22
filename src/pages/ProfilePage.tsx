@@ -60,6 +60,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { ThemeEditor } from '@/components/ThemeEditor';
+import { useUserTheme } from '@/hooks/api/useThemes';
+import { useIsAdmin } from '@/hooks/api/useAdmin';
 import type { TimeRange } from '@/services/spotifyUserService';
 
 // Mood profile styling
@@ -87,6 +90,7 @@ export default function ProfilePage() {
   const [lastFmInput, setLastFmInput] = useState('');
   const [lastFmDialogOpen, setLastFmDialogOpen] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('medium_term');
+  const [themeEditorOpen, setThemeEditorOpen] = useState(false);
   
   // Profile data
   const { data: profile } = useProfile();
@@ -118,6 +122,10 @@ export default function ProfilePage() {
   
   // Taste DNA - real user data
   const { data: tasteDNA, isLoading: isTasteDNALoading } = useTasteDNA();
+  
+  // Theme and admin
+  const { data: userTheme } = useUserTheme(user?.id);
+  const { data: isAdmin } = useIsAdmin();
 
   const spotifyConnected = isSpotifyConnected === true;
   const lastFmConnected = !!lastFmUsername;
@@ -204,9 +212,21 @@ export default function ProfilePage() {
     <PageLayout
       title="Profile"
       headerActions={
-        <Button variant="ghost" size="icon" onClick={handleSignOut}>
-          <LogOut className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setThemeEditorOpen(true)}>
+            <Palette className="w-4 h-4" />
+            Theme
+          </Button>
+          {isAdmin && (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
+              <Shield className="w-4 h-4" />
+              Admin
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={handleSignOut}>
+            <LogOut className="w-5 h-5" />
+          </Button>
+        </div>
       }
     >
       <ResponsiveContainer maxWidth="2xl" className="space-y-6">
@@ -1075,6 +1095,14 @@ export default function ProfilePage() {
           </button>
         </motion.div>
       </ResponsiveContainer>
+
+      {/* Theme Editor Modal */}
+      <ThemeEditor
+        open={themeEditorOpen}
+        onOpenChange={setThemeEditorOpen}
+        currentTheme={userTheme}
+        userId={user?.id || ''}
+      />
     </PageLayout>
   );
 }
