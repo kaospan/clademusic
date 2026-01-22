@@ -29,6 +29,9 @@ const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
 const PlaylistDetailPage = lazy(() => import("./pages/PlaylistDetailPage"));
 const ForumHomePage = lazy(() => import("./pages/ForumHomePage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const MusicTasteSurvey = lazy(() => import("./components/MusicTasteSurvey"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -69,6 +72,11 @@ const App = () => (
                     <Route path="/forum" element={<ForumHomePage />} />
                     <Route path="/forum/:forumName" element={<ForumHomePage />} />
                     <Route path="/forum/post/:postId" element={<ForumHomePage />} />
+                    {/* Legal Pages */}
+                    <Route path="/terms" element={<TermsOfServicePage />} />
+                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                    {/* Onboarding */}
+                    <Route path="/survey" element={<MusicTasteSurvey />} />
                     {/* Admin Routes - Protected */}
                     <Route element={<AdminRoute />}>
                       <Route path="/admin" element={<AdminDashboard />} />
