@@ -14,6 +14,7 @@ import { LoadingSpinner } from "@/components/shared";
 import { AdminRoute } from "@/components/AdminRoute";
 
 // Lazy load pages for code splitting
+const Index = lazy(() => import("./pages/Index")); // Landing Page
 const FeedPage = lazy(() => import("./pages/FeedPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
@@ -57,7 +58,8 @@ const App = () => (
               <BrowserRouter basename="/clade">
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
-                    <Route path="/" element={<FeedPage />} />
+                    <Route path="/" element={<Index />} />
+                    <Route path="/feed" element={<FeedPage />} />
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/compare" element={<ComparePage />} />
