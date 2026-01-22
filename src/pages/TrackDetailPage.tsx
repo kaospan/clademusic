@@ -18,6 +18,7 @@ import { BottomNav } from '@/components/BottomNav';
 import { ChordBadge } from '@/components/ChordBadge';
 import { YouTubeEmbed } from '@/components/YouTubeEmbed';
 import { TrackLineageView } from '@/components/TrackLineageView';
+import { TrackComments } from '@/components/TrackComments';
 import { getTrackSections } from '@/api/trackSections';
 import { searchYouTubeVideos, VideoResult } from '@/services/youtubeSearchService';
 import { TrackSection, Track } from '@/types';
@@ -503,11 +504,12 @@ export default function TrackDetailPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="sections" className="w-full">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="sections">Sections</TabsTrigger>
             <TabsTrigger value="chords">Chords</TabsTrigger>
             <TabsTrigger value="samples">Samples</TabsTrigger>
             <TabsTrigger value="videos">Videos</TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
           </TabsList>
 
           {/* Sections Tab */}
@@ -685,6 +687,13 @@ export default function TrackDetailPage() {
                   </>
                 )}
               </div>
+            </Card>
+          </TabsContent>
+
+          {/* Comments Tab */}
+          <TabsContent value="comments" className="space-y-3">
+            <Card className="p-6">
+              <TrackComments trackId={trackId || ''} />
             </Card>
           </TabsContent>
         </Tabs>
