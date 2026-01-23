@@ -637,6 +637,36 @@ export default function SearchPage() {
                   </div>
                 </motion.div>
               ))}
+              {/* YouTube search results (fallback when Spotify not connected) */}
+              {youtubeResults.map((track, index) => (
+                <motion.div
+                  key={track.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="p-4 glass rounded-xl cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handlePlayOnProvider(track)}
+                >
+                  <div className="flex gap-4">
+                    {track.cover_url && (
+                      <img
+                        src={track.cover_url}
+                        alt=""
+                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">{track.title}</h3>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {track.artist}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <Play className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
               
               {/* Local seed track results */}
               {results.map((track, index) => (
