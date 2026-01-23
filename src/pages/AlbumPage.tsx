@@ -194,7 +194,7 @@ export default function AlbumPage() {
                     <p className="font-medium text-sm truncate">{track.title}</p>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {track.duration_ms ? formatDuration(track.duration_ms) : '--:--'}
+                    {track.duration_ms ? formatDurationFull(track.duration_ms) : '--:--'}
                   </span>
                 </motion.div>
               ))}

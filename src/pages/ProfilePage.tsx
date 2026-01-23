@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTrack } from '@/lib/navigation';
 import {
   User,
   LogOut,
@@ -1047,7 +1048,7 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="p-3 glass rounded-xl flex gap-3 hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/track/${encodeURIComponent(event.track_id)}`)}
+                    onClick={() => navigateToTrack(navigate, event.track_id)}
                   >
                     {/* Artwork */}
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/50 flex-shrink-0">

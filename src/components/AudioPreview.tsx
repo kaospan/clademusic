@@ -4,6 +4,7 @@ import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { formatTimeFromSeconds } from '@/lib/timeFormat';
 
 interface AudioPreviewProps {
   previewUrl?: string | null;
@@ -189,7 +190,7 @@ export function AudioPreview({
         </div>
 
         <span className="text-xs text-muted-foreground tabular-nums">
-          {formatTime((progress / 100) * duration)} / {formatTime(duration)}
+          {formatTimeFromSeconds((progress / 100) * duration)} / {formatTimeFromSeconds(duration)}
         </span>
       </div>
     );
@@ -277,8 +278,8 @@ export function AudioPreview({
           className="cursor-pointer"
         />
         <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
-          <span>{formatTime((progress / 100) * duration)}</span>
-          <span>{formatTime(duration)}</span>
+          <span>{formatTimeFromSeconds((progress / 100) * duration)}</span>
+          <span>{formatTimeFromSeconds(duration)}</span>
         </div>
       </div>
 

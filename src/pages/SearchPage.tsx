@@ -9,6 +9,7 @@ import { seedTracks, progressionArchetypes } from '@/data/seedTracks';
 import { Track } from '@/types';
 import { Search, Music, TrendingUp, ArrowRight, Play, ExternalLink, Loader2, Clock, X, Filter, Zap, Heart, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTrack } from '@/lib/navigation';
 import { openProviderLink, getProviderLinks } from '@/lib/providers';
 import { useAuth } from '@/hooks/useAuth';
 import { searchSpotify } from '@/services/spotifySearchService';
@@ -204,7 +205,7 @@ export default function SearchPage() {
     // Navigate to track detail page with proper ID encoding
     const trackId = track.id || track.spotify_id || track.external_id;
     if (trackId) {
-      navigate(`/track/${encodeURIComponent(trackId)}`);
+      navigateToTrack(navigate, trackId);
     }
   };
 
@@ -216,7 +217,7 @@ export default function SearchPage() {
 
   const handleHistoryClick = (item: SearchHistoryItem) => {
     if (item.track) {
-      navigate(`/track/${encodeURIComponent(item.track.id)}`);
+      navigateToTrack(navigate, item.track.id);
     } else {
       setQuery(item.query);
       setSearchMode(item.type);

@@ -50,11 +50,6 @@ export function SongSections({ sections, youtubeId, title, className }: SongSect
     }
   };
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   return (
     <div className={cn('space-y-3', className)}>

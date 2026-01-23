@@ -244,7 +244,7 @@ export default function ArtistPage() {
                         <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {track.duration_ms ? formatDuration(track.duration_ms) : '--:--'}
+                        {track.duration_ms ? formatDurationFull(track.duration_ms) : '--:--'}
                       </span>
                     </motion.div>
                   ))}

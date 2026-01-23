@@ -3,6 +3,7 @@ import { Play } from 'lucide-react';
 import { TrackSection } from '@/types';
 import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
+import { formatTime } from '@/lib/timeFormat';
 
 interface CompactSongSectionsProps {
   sections: TrackSection[];
@@ -24,13 +25,6 @@ const SECTION_COLORS: Record<string, string> = {
   breakdown: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
   drop: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
 };
-
-function formatTime(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
 
 export function CompactSongSections({ 
   sections, 
