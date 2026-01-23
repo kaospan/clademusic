@@ -16,6 +16,10 @@ import { ChevronUp, ChevronDown, LogIn, AlertCircle, Music } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { 
+  getSearchHistory, 
+  type SearchHistoryItem 
+} from '@/lib/searchHistory';
 
 export default function FeedPage() {
   const { user, loading: authLoading } = useAuth();
@@ -29,14 +33,24 @@ export default function FeedPage() {
   const feedTracks = trackResult?.tracks ?? [];
   const spotifyTracks = spotifyData?.tracks ?? [];
   
-  // Combine: Spotify recently played first, then fill with other tracks (deduped)
+  // Combine: Spotify recently played first, then fill with other tracks (deduped by ID and spotify_id)
   const tracks: Track[] = (() => {
     if (spotifyTracks.length > 0) {
-      const spotifyIds = new Set(spotifyTracks.map(t => t.spotify_id));
-      const otherTracks = feedTracks.filter(t => !spotifyIds.has(t.spotify_id));
+      const spotifyIds = new Set(spotifyTracks.map(t => t.spotify_id).filter(Boolean));
+      const seenIds = new Set(spotifyTracks.map(t => t.id).filter(Boolean));
+      const otherTracks = feedTracks.filter(t => 
+        !spotifyIds.has(t.spotify_id) && !seenIds.has(t.id)
+      );
       return [...spotifyTracks, ...otherTracks];
     }
-    return feedTracks;
+    // Deduplicate feedTracks by ID and spotify_id
+    const seen = new Set<string>();
+    return feedTracks.filter(t => {
+      const key = t.spotify_id || t.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   })();
   
   const dataSource = spotifyTracks.length > 0 ? 'spotify' : trackResult?.source;
@@ -44,6 +58,12 @@ export default function FeedPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [interactions, setInteractions] = useState<Map<string, Set<InteractionType>>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+
+  // Load search history on mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
   
   // PiP state - managed at feed level so it persists across track changes
   const [pipVideo, setPipVideo] = useState<{ videoId: string; title: string } | null>(null);
@@ -153,6 +173,15 @@ export default function FeedPage() {
     setPipVideo({ videoId, title });
   };
 
+  // Handle clicking a search history item
+  const handleHistoryClick = (item: SearchHistoryItem) => {
+    if (item.track) {
+      navigate(`/track/${encodeURIComponent(item.track.id)}`);
+    } else {
+      navigate('/search');
+    }
+  };
+
   if (authLoading || tracksLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -237,6 +266,59 @@ export default function FeedPage() {
       {/* Feed content */}
       <main className="flex-1 pt-16 pb-24">
         <ResponsiveContainer maxWidth="full" className="py-6">
+          {/* Recent search history section (shown at the top) */}
+          {searchHistory.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 max-w-lg mx-auto lg:max-w-2xl"
+            >
+              <div className="glass rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                    <Music className="w-4 h-4" />
+                    Recent Searches
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/search')}
+                    className="h-7 text-xs"
+                  >
+                    View All
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {searchHistory.slice(0, 3).map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => handleHistoryClick(item)}
+                      className="p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Music className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {item.track ? (
+                            <>
+                              <div className="font-medium text-sm truncate">{item.track.title}</div>
+                              <div className="text-xs text-muted-foreground truncate">{item.track.artist}</div>
+                            </>
+                          ) : (
+                            <div className="font-medium text-sm">{item.query}</div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.section>
+          )}
           <DesktopColumns
             left={
               <FeedSidebar

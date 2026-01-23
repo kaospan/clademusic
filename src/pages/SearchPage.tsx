@@ -37,6 +37,11 @@ export default function SearchPage() {
   const [moodFilter, setMoodFilter] = useState<'all' | 'happy' | 'sad' | 'neutral'>('all');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Load search history on mount
+  useEffect(() => {
+    setSearchHistory(getSearchHistory());
+  }, []);
+
   // Debug: Log seedTracks on mount
   useEffect(() => {
     console.log('🔍 SearchPage mounted');
