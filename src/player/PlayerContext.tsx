@@ -8,25 +8,16 @@ export interface ConnectedProviders {
 }
 
 export interface PlayerState {
-  spotifyOpen: boolean;
-  youtubeOpen: boolean;
+  provider: MusicProvider | null;
+  trackId: string | null;
   canonicalTrackId: string | null;
-  spotifyTrackId: string | null;
-  youtubeTrackId: string | null;
-  autoplaySpotify: boolean;
-  autoplayYoutube: boolean;
-  currentProvider: MusicProvider | null;
   trackTitle: string | null;
   trackArtist: string | null;
-  /** Start time in seconds for seeking (e.g., section navigation) */
-  seekToSec: number | null;
-  /** Currently active section ID */
-  currentSectionId: string | null;
-  /** Whether playback is active */
   isPlaying: boolean;
-  /** Queue of tracks */
+  isMinimized: boolean;
+  seekToSec: number | null;
+  currentSectionId: string | null;
   queue: import('@/types').Track[];
-  /** Current index in queue */
   queueIndex: number;
 }
 
@@ -43,38 +34,22 @@ type OpenPlayerPayload = {
 };
 
 interface PlayerContextValue extends PlayerState {
-  /** Combined flag for whether the drawer should be visible */
   readonly isOpen: boolean;
-  /** Currently active provider */
-  readonly currentProvider: MusicProvider | null;
   openPlayer: (payload: OpenPlayerPayload) => void;
-  closeSpotify: () => void;
-  closeYoutube: () => void;
   closePlayer: () => void;
   switchProvider: (provider: MusicProvider, providerTrackId: string | null, canonicalTrackId?: string | null) => void;
-  /** Seek to a specific time (seconds). Used for section navigation. */
   seekTo: (sec: number) => void;
-  /** Clear seekToSec after the player has performed the seek */
   clearSeek: () => void;
-  /** Set the currently active section */
   setCurrentSection: (sectionId: string | null) => void;
-  /** Set playback state */
   setIsPlaying: (playing: boolean) => void;
-  /** Add track to queue */
+  setMinimized: (value: boolean) => void;
   addToQueue: (track: import('@/types').Track) => void;
-  /** Play track from queue at index */
   playFromQueue: (index: number) => void;
-  /** Remove track from queue */
   removeFromQueue: (index: number) => void;
-  /** Reorder queue */
   reorderQueue: (newQueue: import('@/types').Track[]) => void;
-  /** Clear queue */
   clearQueue: () => void;
-  /** Shuffle queue */
   shuffleQueue: () => void;
-  /** Go to next track in queue */
   nextTrack: () => void;
-  /** Go to previous track in queue */
   previousTrack: () => void;
 }
 
@@ -89,19 +64,15 @@ const clampQueueIndex = (queueLength: number, index: number) => {
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PlayerState>({
-    spotifyOpen: false,
-    youtubeOpen: false,
+    provider: null,
+    trackId: null,
     canonicalTrackId: null,
-    spotifyTrackId: null,
-    youtubeTrackId: null,
-    autoplaySpotify: false,
-    autoplayYoutube: false,
-    currentProvider: null,
     trackTitle: null,
     trackArtist: null,
+    isPlaying: false,
+    isMinimized: false,
     seekToSec: null,
     currentSectionId: null,
-    isPlaying: false,
     queue: [],
     queueIndex: -1,
   });
@@ -151,6 +122,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isPlaying: playing }));
   }, []);
 
+  const setMinimized = useCallback((value: boolean) => {
+    setState((prev) => ({ ...prev, isMinimized: value }));
+  }, []);
+
   const addToQueue = useCallback((track: import('@/types').Track) => {
     setState((prev) => ({ ...prev, queue: [...prev.queue, track] }));
   }, []);
@@ -159,20 +134,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => {
       const track = prev.queue[index];
       if (!track) return prev;
-
-      const provider = getPreferredProvider();
-      const providerTrackId = provider === 'spotify' ? track.spotify_id : track.youtube_id;
-
       return {
         ...prev,
         queueIndex: index,
         canonicalTrackId: track.id,
-        spotifyOpen: provider === 'spotify',
-        youtubeOpen: provider === 'youtube',
-        spotifyTrackId: provider === 'spotify' ? providerTrackId : null,
-        youtubeTrackId: provider === 'youtube' ? providerTrackId : null,
-        autoplaySpotify: provider === 'spotify',
-        autoplayYoutube: provider === 'youtube',
+        provider: getPreferredProvider(),
+        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
       };
     });
   }, []);
@@ -220,17 +187,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const track = prev.queue[nextIndex];
       if (!track) return prev;
 
-      const provider = getPreferredProvider();
-      const providerTrackId = provider === 'spotify' ? track.spotify_id : track.youtube_id;
-
       return {
         ...prev,
         queueIndex: nextIndex,
         canonicalTrackId: track.id,
-        spotifyTrackId: provider === 'spotify' ? providerTrackId : null,
-        youtubeTrackId: provider === 'youtube' ? providerTrackId : null,
-        autoplaySpotify: provider === 'spotify',
-        autoplayYoutube: provider === 'youtube',
+        provider: getPreferredProvider(),
+        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
       };
     });
   }, []);
@@ -244,28 +206,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const track = prev.queue[prevIndex];
       if (!track) return prev;
 
-      const provider = getPreferredProvider();
-      const providerTrackId = provider === 'spotify' ? track.spotify_id : track.youtube_id;
-
       return {
         ...prev,
         queueIndex: prevIndex,
         canonicalTrackId: track.id,
-        spotifyTrackId: provider === 'spotify' ? providerTrackId : null,
-        youtubeTrackId: provider === 'youtube' ? providerTrackId : null,
-        autoplaySpotify: provider === 'spotify',
-        autoplayYoutube: provider === 'youtube',
+        provider: getPreferredProvider(),
+        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
       };
     });
   }, []);
 
   const value = useMemo<PlayerContextValue>(() => ({
     ...state,
-    isOpen: state.spotifyOpen || state.youtubeOpen,
+    isOpen: !!state.provider && !!state.trackId,
     seekTo,
     clearSeek,
     setCurrentSection,
     setIsPlaying,
+    setMinimized,
     addToQueue,
     playFromQueue,
     removeFromQueue,
@@ -276,26 +234,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     previousTrack,
     openPlayer: (payload) => {
       setState((prev) => {
-        const isSpotify = payload.provider === 'spotify';
-        const updates: Partial<PlayerState> = {
+        return {
+          ...prev,
+          provider: payload.provider,
+          trackId: payload.providerTrackId,
           canonicalTrackId: payload.canonicalTrackId ?? prev.canonicalTrackId,
-          currentProvider: payload.provider,
           trackTitle: payload.title ?? prev.trackTitle,
           trackArtist: payload.artist ?? prev.trackArtist,
           seekToSec: payload.startSec ?? null,
-          spotifyOpen: isSpotify,
-          youtubeOpen: !isSpotify,
-          autoplaySpotify: isSpotify ? payload.autoplay ?? true : false,
-          autoplayYoutube: !isSpotify ? payload.autoplay ?? true : false,
+          isMinimized: false,
+          isPlaying: payload.autoplay ?? true,
         };
-
-        if (isSpotify) {
-          updates.spotifyTrackId = payload.providerTrackId;
-        } else {
-          updates.youtubeTrackId = payload.providerTrackId;
-        }
-
-        return { ...prev, ...updates };
       });
 
       if (payload.canonicalTrackId) {
@@ -309,52 +258,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         });
       }
     },
-    closeSpotify: () => setState((prev) => ({
-      ...prev,
-      spotifyOpen: false,
-      autoplaySpotify: false,
-      currentProvider: prev.currentProvider === 'spotify' ? null : prev.currentProvider,
-      trackTitle: prev.currentProvider === 'spotify' ? null : prev.trackTitle,
-      trackArtist: prev.currentProvider === 'spotify' ? null : prev.trackArtist,
-    })),
-    closeYoutube: () => setState((prev) => ({
-      ...prev,
-      youtubeOpen: false,
-      autoplayYoutube: false,
-      currentProvider: prev.currentProvider === 'youtube' ? null : prev.currentProvider,
-      trackTitle: prev.currentProvider === 'youtube' ? null : prev.trackTitle,
-      trackArtist: prev.currentProvider === 'youtube' ? null : prev.trackArtist,
-    })),
     closePlayer: () => setState((prev) => ({
       ...prev,
-      spotifyOpen: false,
-      youtubeOpen: false,
-      autoplaySpotify: false,
-      autoplayYoutube: false,
-      currentProvider: null,
+      provider: null,
+      trackId: null,
+      canonicalTrackId: null,
       trackTitle: null,
       trackArtist: null,
+      isPlaying: false,
+      isMinimized: false,
     })),
     switchProvider: (provider, providerTrackId, canonicalTrackId) => {
       setState((prev) => {
-        const isSpotify = provider === 'spotify';
-        const updates: Partial<PlayerState> = {
+        return {
+          ...prev,
+          provider,
+          trackId: providerTrackId,
           canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
-          currentProvider: provider,
           seekToSec: null,
-          spotifyOpen: isSpotify,
-          youtubeOpen: !isSpotify,
-          autoplaySpotify: isSpotify,
-          autoplayYoutube: !isSpotify,
+          isPlaying: true,
+          isMinimized: false,
         };
-
-        if (isSpotify) {
-          updates.spotifyTrackId = providerTrackId;
-        } else {
-          updates.youtubeTrackId = providerTrackId;
-        }
-
-        return { ...prev, ...updates };
       });
 
       const trackIdToLog = canonicalTrackId ?? state.canonicalTrackId;
@@ -375,7 +299,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // the player never ends up visually behind other UI. We toggle a body class
   // and set a CSS variable with the player's height to let global styles
   // push content above the player (no content is covered).
-  const isOpen = state.spotifyOpen || state.youtubeOpen;
+  const isOpen = !!state.provider && !!state.trackId;
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
