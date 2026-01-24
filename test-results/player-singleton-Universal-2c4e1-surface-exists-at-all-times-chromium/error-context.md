@@ -1,0 +1,336 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - button "Clade" [ref=e7] [cursor=pointer]:
+          - img [ref=e9]
+          - generic [ref=e13]: Clade
+        - generic [ref=e14]:
+          - button "Features" [ref=e15] [cursor=pointer]
+          - button "Demo" [ref=e16] [cursor=pointer]
+          - button "Testimonials" [ref=e17] [cursor=pointer]
+          - button "Pricing" [ref=e18] [cursor=pointer]
+          - button "Sign In" [ref=e19] [cursor=pointer]:
+            - img
+            - text: Sign In
+    - generic [ref=e20]:
+      - generic: C
+      - generic: D
+      - generic: E
+      - generic: F
+      - generic: G
+      - generic: A
+      - generic: B
+      - img [ref=e22]
+      - generic [ref=e24]:
+        - generic [ref=e26]:
+          - img [ref=e28]
+          - heading "Clade" [level=1] [ref=e32]
+        - heading "Find Your Harmony" [level=2] [ref=e33]
+        - paragraph [ref=e34]:
+          - text: Discover perfect musical harmony through intelligent tonic comparisons.
+          - text: Compare famous tracks, explore chord progressions, and find your sound.
+        - generic [ref=e35]:
+          - button "Start Exploring" [ref=e36] [cursor=pointer]:
+            - img
+            - text: Start Exploring
+            - img
+          - button "Learn More" [ref=e37] [cursor=pointer]:
+            - img
+            - text: Learn More
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - img [ref=e40]
+            - generic [ref=e44]: 10M+
+            - generic [ref=e45]: Tracks Analyzed
+          - generic [ref=e46]:
+            - img [ref=e47]
+            - generic [ref=e49]: 50K+
+            - generic [ref=e50]: Active Users
+          - generic [ref=e51]:
+            - img [ref=e52]
+            - generic [ref=e56]: 100K+
+            - generic [ref=e57]: Chord Progressions
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - heading "Explore Music Like Never Before" [level=2] [ref=e65]
+        - paragraph [ref=e66]: Interactive chord analysis and harmony comparison in real-time
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - heading "Select a Track to Analyze" [level=3] [ref=e69]
+          - generic [ref=e71] [cursor=pointer]:
+            - generic [ref=e72]:
+              - img [ref=e74]
+              - generic [ref=e77]:
+                - generic [ref=e78]: Bohemian Rhapsody
+                - generic [ref=e79]: Queen
+            - generic [ref=e80]:
+              - generic [ref=e81]: Key
+              - generic [ref=e82]: Bb Major
+          - generic [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]:
+              - img [ref=e87]
+              - generic [ref=e90]:
+                - generic [ref=e91]: Let It Be
+                - generic [ref=e92]: The Beatles
+            - generic [ref=e93]:
+              - generic [ref=e94]: Key
+              - generic [ref=e95]: C Major
+          - generic [ref=e97] [cursor=pointer]:
+            - generic [ref=e98]:
+              - img [ref=e100]
+              - generic [ref=e103]:
+                - generic [ref=e104]: Someone Like You
+                - generic [ref=e105]: Adele
+            - generic [ref=e106]:
+              - generic [ref=e107]: Key
+              - generic [ref=e108]: A Major
+        - generic [ref=e110]:
+          - heading "Chord Progression Analysis" [level=3] [ref=e111]
+          - img [ref=e113]
+          - generic [ref=e118]:
+            - button "I" [ref=e119] [cursor=pointer]
+            - button "vi" [ref=e120] [cursor=pointer]
+            - button "IV" [ref=e121] [cursor=pointer]
+            - button "V" [ref=e122] [cursor=pointer]
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]: "Progression Pattern:"
+              - generic [ref=e126]: I → vi → IV → V
+            - generic [ref=e127]:
+              - generic [ref=e128]: "Harmonic Complexity:"
+              - img [ref=e136]
+    - generic [ref=e143]:
+      - generic [ref=e144]:
+        - heading "Powerful Features for Music Lovers" [level=2] [ref=e145]
+        - paragraph [ref=e146]: Everything you need to explore, understand, and enjoy music on a deeper level
+      - generic [ref=e147]:
+        - generic [ref=e149]:
+          - img [ref=e153]
+          - heading "AI-Powered Analysis" [level=3] [ref=e163]
+          - paragraph [ref=e164]: Advanced algorithms detect chord progressions and harmonic patterns instantly
+        - generic [ref=e166]:
+          - img [ref=e170]
+          - heading "Tonic Comparisons" [level=3] [ref=e175]
+          - paragraph [ref=e176]: Compare famous tracks and discover similar harmonic structures
+        - generic [ref=e178]:
+          - img [ref=e182]
+          - heading "Visual Harmony" [level=3] [ref=e184]
+          - paragraph [ref=e185]: Beautiful visualizations make understanding music theory effortless
+        - generic [ref=e187]:
+          - img [ref=e191]
+          - heading "Social Discovery" [level=3] [ref=e196]
+          - paragraph [ref=e197]: Share your findings and explore harmonies discovered by the community
+        - generic [ref=e199]:
+          - img [ref=e203]
+          - heading "Real-Time Processing" [level=3] [ref=e205]
+          - paragraph [ref=e206]: Lightning-fast analysis of any track from Spotify or YouTube
+        - generic [ref=e208]:
+          - img [ref=e212]
+          - heading "Custom Playlists" [level=3] [ref=e214]
+          - paragraph [ref=e215]: Create playlists based on harmonic similarity and mood
+    - generic [ref=e218]:
+      - generic [ref=e219]:
+        - heading "Loved by Musicians Worldwide" [level=2] [ref=e220]
+        - paragraph [ref=e221]: See what our community has to say about their Clade experience
+      - generic [ref=e222]:
+        - generic [ref=e224]:
+          - img [ref=e225]
+          - generic [ref=e228]:
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+          - paragraph [ref=e229]: "\"Clade completely changed how I approach chord progressions. The tonic comparison feature is a game-changer for finding inspiration.\""
+          - generic [ref=e230]:
+            - generic [ref=e231]: 🎵
+            - generic [ref=e232]:
+              - generic [ref=e233]: Sarah Mitchell
+              - generic [ref=e234]: Music Producer
+        - generic [ref=e236]:
+          - img [ref=e237]
+          - generic [ref=e240]:
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+          - paragraph [ref=e241]: "\"As a DJ, understanding harmonic mixing is crucial. Clade makes it effortless to find tracks that blend perfectly together.\""
+          - generic [ref=e242]:
+            - generic [ref=e243]: 🎧
+            - generic [ref=e244]:
+              - generic [ref=e245]: James Rodriguez
+              - generic [ref=e246]: DJ & Composer
+        - generic [ref=e248]:
+          - img [ref=e249]
+          - generic [ref=e252]:
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+          - paragraph [ref=e253]: "\"Learning music theory has never been this fun! The visualizations help me understand complex concepts instantly.\""
+          - generic [ref=e254]:
+            - generic [ref=e255]: 🎹
+            - generic [ref=e256]:
+              - generic [ref=e257]: Emily Chen
+              - generic [ref=e258]: Music Student
+        - generic [ref=e260]:
+          - img [ref=e261]
+          - generic [ref=e264]:
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+            - generic:
+              - img
+          - paragraph [ref=e265]: "\"I've discovered so many new progressions and harmonic patterns. My songwriting has improved dramatically in just weeks.\""
+          - generic [ref=e266]:
+            - generic [ref=e267]: 🎸
+            - generic [ref=e268]:
+              - generic [ref=e269]: Marcus Williams
+              - generic [ref=e270]: Songwriter
+      - generic [ref=e272]:
+        - img [ref=e273]
+        - generic [ref=e275]: 4.9/5 average rating from 2,500+ reviews
+    - generic [ref=e299]:
+      - generic [ref=e300]:
+        - img [ref=e301]
+        - generic [ref=e303]: Join 50,000+ music enthusiasts
+      - heading "Ready to Find Your Perfect Harmony?" [level=2] [ref=e304]
+      - paragraph [ref=e305]:
+        - text: Start exploring musical patterns, compare famous tracks, and discover new sounds today.
+        - text: Free for 7 days. No credit card required.
+      - button "Start Your Free Trial Start Your Free Trial" [ref=e307] [cursor=pointer]:
+        - img
+        - text: Start Your Free Trial
+        - generic [ref=e308]:
+          - img
+        - generic [ref=e311]:
+          - img
+          - text: Start Your Free Trial
+          - generic [ref=e312]:
+            - img
+      - generic [ref=e313]:
+        - generic [ref=e316]: No credit card required
+        - generic [ref=e319]: Cancel anytime
+        - generic [ref=e322]: Full access during trial
+    - contentinfo [ref=e323]:
+      - generic [ref=e325]:
+        - generic [ref=e326]:
+          - generic [ref=e327]:
+            - link "Clade" [ref=e328] [cursor=pointer]:
+              - /url: /cladeai
+              - img [ref=e329]
+              - generic [ref=e333]: Clade
+            - paragraph [ref=e334]: Find Your Harmony
+            - generic [ref=e335]:
+              - link [ref=e336] [cursor=pointer]:
+                - /url: https://twitter.com/clade
+                - img [ref=e337]
+              - link [ref=e339] [cursor=pointer]:
+                - /url: https://instagram.com/clade
+                - img [ref=e340]
+              - link [ref=e343] [cursor=pointer]:
+                - /url: https://github.com/clade
+                - img [ref=e344]
+              - link [ref=e347] [cursor=pointer]:
+                - /url: mailto:hello@clade.app
+                - img [ref=e348]
+          - generic [ref=e351]:
+            - heading "Product" [level=3] [ref=e352]
+            - list [ref=e353]:
+              - listitem [ref=e354]:
+                - link "Features" [ref=e355] [cursor=pointer]:
+                  - /url: /cladeai#features
+              - listitem [ref=e356]:
+                - link "Pricing" [ref=e357] [cursor=pointer]:
+                  - /url: /cladeai/pricing
+              - listitem [ref=e358]:
+                - link "Demo" [ref=e359] [cursor=pointer]:
+                  - /url: /cladeai#demo
+              - listitem [ref=e360]:
+                - link "FAQ" [ref=e361] [cursor=pointer]:
+                  - /url: /cladeai/faq
+          - generic [ref=e362]:
+            - heading "Company" [level=3] [ref=e363]
+            - list [ref=e364]:
+              - listitem [ref=e365]:
+                - link "About" [ref=e366] [cursor=pointer]:
+                  - /url: /cladeai/about
+              - listitem [ref=e367]:
+                - link "Blog" [ref=e368] [cursor=pointer]:
+                  - /url: /cladeai/blog
+              - listitem [ref=e369]:
+                - link "Careers" [ref=e370] [cursor=pointer]:
+                  - /url: /cladeai/careers
+              - listitem [ref=e371]:
+                - link "Contact" [ref=e372] [cursor=pointer]:
+                  - /url: /cladeai/contact
+          - generic [ref=e373]:
+            - heading "Resources" [level=3] [ref=e374]
+            - list [ref=e375]:
+              - listitem [ref=e376]:
+                - link "Documentation" [ref=e377] [cursor=pointer]:
+                  - /url: /cladeai/docs
+              - listitem [ref=e378]:
+                - link "Music Theory Guide" [ref=e379] [cursor=pointer]:
+                  - /url: /cladeai/guide
+              - listitem [ref=e380]:
+                - link "Community" [ref=e381] [cursor=pointer]:
+                  - /url: /cladeai/community
+              - listitem [ref=e382]:
+                - link "Support" [ref=e383] [cursor=pointer]:
+                  - /url: /cladeai/support
+          - generic [ref=e384]:
+            - heading "Legal" [level=3] [ref=e385]
+            - list [ref=e386]:
+              - listitem [ref=e387]:
+                - link "Privacy Policy" [ref=e388] [cursor=pointer]:
+                  - /url: /cladeai/privacy
+              - listitem [ref=e389]:
+                - link "Terms of Service" [ref=e390] [cursor=pointer]:
+                  - /url: /cladeai/terms
+              - listitem [ref=e391]:
+                - link "Cookie Policy" [ref=e392] [cursor=pointer]:
+                  - /url: /cladeai/cookies
+              - listitem [ref=e393]:
+                - link "Licenses" [ref=e394] [cursor=pointer]:
+                  - /url: /cladeai/licenses
+        - generic [ref=e396]:
+          - heading "Stay in Harmony" [level=3] [ref=e397]
+          - paragraph [ref=e398]: Get the latest features, music theory tips, and harmony insights delivered to your inbox.
+          - generic [ref=e399]:
+            - textbox "Enter your email" [ref=e400]
+            - button "Subscribe" [ref=e401] [cursor=pointer]
+        - generic [ref=e402]:
+          - paragraph [ref=e403]: © 2026 Clade. All rights reserved.
+          - paragraph [ref=e404]: Made with ♥ for music lovers everywhere
+      - img [ref=e406]
+```
