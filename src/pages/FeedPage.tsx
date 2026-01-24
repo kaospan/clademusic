@@ -68,13 +68,20 @@ export default function FeedPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [interactions, setInteractions] = useState<Map<string, Set<InteractionType>>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(!user);
+
+  useEffect(() => {
+    if (user) {
+      setShowAuthPrompt(false);
+    }
+  }, [user]);
   
   // PiP state - managed at feed level so it persists across track changes
   const [pipVideo, setPipVideo] = useState<{ videoId: string; title: string } | null>(null);
 
   const handleInteraction = (type: InteractionType) => {
     if (!user) {
-      navigate('/auth');
+      setShowAuthPrompt(true);
       return;
     }
 
@@ -235,6 +242,24 @@ export default function FeedPage() {
         </div>
         </ResponsiveContainer>
       </header>
+
+      {/* Guest demo CTA */}
+      {showAuthPrompt && !user && (
+        <div className="pt-16 px-4">
+          <div className="mx-auto max-w-3xl rounded-xl border border-border/60 bg-background/70 px-4 py-3 text-sm text-muted-foreground shadow-lg backdrop-blur">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-foreground">You’re exploring in guest mode.</p>
+                <p className="text-xs text-muted-foreground">Sign in to like, comment, follow, and save tracks. Playback and browsing stay open.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => navigate('/auth')}>Sign in</Button>
+                <Button size="sm" variant="outline" onClick={() => setShowAuthPrompt(false)}>Maybe later</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation arrows (desktop) */}
       <div className="hidden md:flex fixed left-4 top-1/2 -translate-y-1/2 z-30 flex-col gap-2">

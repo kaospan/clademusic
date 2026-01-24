@@ -4,14 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface AuthState {
   user: User | null;
+  session: Session | null;
   accessToken: string | null;
   loading: boolean;
+  guestMode: boolean;
 }
 
 interface AuthContextType extends AuthState {
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  enterGuestMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [guestMode, setGuestMode] = useState<boolean>(() => {
+    return localStorage.getItem('clade-guest-mode') === 'true';
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -35,6 +41,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(nextSession);
         setUser(userRes.user ?? nextSession?.user ?? null);
         setAccessToken(nextSession?.access_token ?? null);
+
+        // If no authenticated session exists, preserve guest mode for demo access
+        if (!nextSession) {
+          setGuestMode((prev) => {
+            const persisted = localStorage.getItem('clade-guest-mode') === 'true';
+            return prev || persisted;
+          });
+        } else {
+          // Clear guest flag when a real session is present
+          localStorage.removeItem('clade-guest-mode');
+          setGuestMode(false);
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -49,8 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === 'SIGNED_OUT') {
         localStorage.removeItem('lastAuthTime');
+        // Keep guest mode available after sign-out so users can continue exploring
+        setGuestMode(true);
+        localStorage.setItem('clade-guest-mode', 'true');
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         localStorage.setItem('lastAuthTime', Date.now().toString());
+        localStorage.removeItem('clade-guest-mode');
+        setGuestMode(false);
       }
     });
 
@@ -83,6 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.session.user);
       setAccessToken(data.session.access_token);
       localStorage.setItem('lastAuthTime', Date.now().toString());
+      localStorage.removeItem('clade-guest-mode');
+      setGuestMode(false);
     }
     return { error: error as Error | null };
   };
@@ -93,11 +118,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setAccessToken(null);
     localStorage.removeItem('lastAuthTime');
+    // Continue offering demo access after sign-out
+    setGuestMode(true);
+    localStorage.setItem('clade-guest-mode', 'true');
+  };
+
+  const enterGuestMode = () => {
+    setGuestMode(true);
+    setUser(null);
+    setSession(null);
+    setAccessToken(null);
+    localStorage.setItem('clade-guest-mode', 'true');
+    setLoading(false);
   };
 
   const value = useMemo(
-    () => ({ user, session, loading, accessToken, signUp, signIn, signOut }),
-    [user, session, loading, accessToken]
+    () => ({ user, session, loading, accessToken, guestMode, signUp, signIn, signOut, enterGuestMode }),
+    [user, session, loading, accessToken, guestMode]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

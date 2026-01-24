@@ -18,7 +18,7 @@ const authSchema = z.object({
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signUp, user, loading, enterGuestMode, guestMode } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,6 +102,15 @@ export default function LoginPage() {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
+        {!guestMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-xl border border-border/50 bg-background/60 px-4 py-3 text-sm text-muted-foreground backdrop-blur"
+          >
+            Explore first, sign up when you’re ready. You can browse the feed and play previews without an account.
+          </motion.div>
+        )}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -170,6 +179,19 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                enterGuestMode();
+                toast.info('Guest mode enabled — explore the feed freely.');
+                navigate('/feed');
+              }}
+            >
+              Continue as guest
+            </Button>
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
