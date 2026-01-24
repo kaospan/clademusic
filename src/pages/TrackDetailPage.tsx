@@ -46,7 +46,7 @@ export default function TrackDetailPage() {
   const navigate = useNavigate();
   const { data: track, isLoading } = useTrack(decodeURIComponent(trackId || ''));
   const { playVideo, currentVideo, currentTime, seekTo } = useYouTubePlayer();
-  const { openPlayer, spotifyOpen, spotifyTrackId, autoplaySpotify } = usePlayer();
+  const { openPlayer, provider, trackId: activeTrackId, isPlaying } = usePlayer();
   
   const [sections, setSections] = useState<TrackSection[]>([]);
   const [hooktheoryData, setHooktheoryData] = useState<any>(null);
@@ -501,7 +501,7 @@ export default function TrackDetailPage() {
                       const params = new URLSearchParams({ utm_source: 'generator', theme: '0' });
                       // If the global player has requested autoplay for this spotify track,
                       // add the autoplay flag to the embed URL so the embed knows the intent.
-                      if (spotifyOpen && spotifyTrackId === track.spotify_id && autoplaySpotify) {
+                      if (provider === 'spotify' && activeTrackId === track.spotify_id && isPlaying) {
                         params.set('autoplay', '1');
                       }
                       return `https://open.spotify.com/embed/track/${track.spotify_id}?${params.toString()}`;
