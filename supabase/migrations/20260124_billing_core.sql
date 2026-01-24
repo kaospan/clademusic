@@ -2,7 +2,7 @@
 -- Creates subscriptions, credits, billing_events
 
 -- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Subscriptions table
 CREATE TABLE IF NOT EXISTS public.subscriptions (

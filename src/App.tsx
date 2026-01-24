@@ -23,6 +23,7 @@ const ConnectionsPage = lazy(() => import("./pages/ConnectionsPage"));
 const FollowingPage = lazy(() => import("./pages/FollowingPage"));
 const SpotifyCallbackPage = lazy(() => import("./pages/SpotifyCallbackPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
+const BillingPage = lazy(() => import("./pages/BillingPage"));
 const AlbumPage = lazy(() => import("./pages/AlbumPage"));
 const ArtistPage = lazy(() => import("./pages/ArtistPage"));
 const TrackDetailPage = lazy(() => import("./pages/TrackDetailPage"));
@@ -59,6 +60,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/pricing" element={<PricingPage />} />
+                    <Route path="/billing" element={<BillingPage />} />
                     <Route path="/feed" element={<FeedPage />} />
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/search" element={<SearchPage />} />
