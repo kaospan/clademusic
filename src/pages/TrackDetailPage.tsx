@@ -9,7 +9,7 @@
  * - Auto-start from intro timestamp
  */
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTrack } from '@/hooks/api/useTracks';
@@ -22,7 +22,7 @@ import { TikTokStyleButtons } from '@/components/TikTokStyleButtons';
 import { QuickStreamButtons } from '@/components/QuickStreamButtons';
 import { ScrollingComments } from '@/components/ScrollingComments';
 import { getTrackSections } from '@/api/trackSections';
-import { searchYouTubeVideos, VideoResult } from '@/services/youtubeSearchService';
+import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 import { TrackSection, Track } from '@/types';
 import { ArrowLeft, Play, Music2, Link as LinkIcon, ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -646,7 +646,7 @@ export default function TrackDetailPage() {
                             {video.type}
                           </div>
                         </div>
-                        {activeVideoId === video.videoId && (
+                        {provider === 'youtube' && activeTrackId === video.videoId && (
                           <span className="text-xs text-primary">Playing</span>
                         )}
                       </button>
