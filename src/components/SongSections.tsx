@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Music2, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { YouTubeEmbed } from './YouTubeEmbed';
 import { SongSection, SongSectionType } from '@/types';
 import { cn } from '@/lib/utils';
+import { usePlayer } from '@/player/PlayerContext';
 
 interface SongSectionsProps {
   sections: SongSection[];
@@ -37,16 +36,27 @@ const sectionIcons: Record<SongSectionType, string> = {
 
 export function SongSections({ sections, youtubeId, title, className }: SongSectionsProps) {
   const [expandedSection, setExpandedSection] = useState<number | null>(null);
+  const { openPlayer } = usePlayer();
 
   if (!sections || sections.length === 0) {
     return null;
   }
 
   const handleSectionClick = (index: number) => {
-    if (expandedSection === index) {
-      setExpandedSection(null);
-    } else {
-      setExpandedSection(index);
+    const section = sections[index];
+    setExpandedSection(index === expandedSection ? null : index);
+
+    if (youtubeId) {
+      // IMPORTANT: All playback must go through the universal player; no inline embeds.
+      openPlayer({
+        canonicalTrackId: undefined,
+        provider: 'youtube',
+        providerTrackId: youtubeId,
+        autoplay: true,
+        startSec: section.start_time,
+        context: 'song-sections',
+        title,
+      });
     }
   };
 
@@ -93,27 +103,7 @@ export function SongSections({ sections, youtubeId, title, className }: SongSect
           ))}
         </div>
 
-        <AnimatePresence>
-          {expandedSection !== null && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="overflow-hidden"
-            >
-              <div className="rounded-lg overflow-hidden">
-                <YouTubeEmbed
-                  videoId={youtubeId}
-                  title={`${title} - ${sections[expandedSection].label || sections[expandedSection].type}`}
-                  startTime={sections[expandedSection].start_time}
-                  endTime={sections[expandedSection].end_time}
-                  onClose={() => setExpandedSection(null)}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* IMPORTANT: No inline YouTube iframes; universal player is the only playback surface. */}
       </div>
     </div>
   );
