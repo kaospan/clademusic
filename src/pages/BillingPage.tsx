@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ type PlanKey = keyof typeof PLAN_COPY;
 
 export default function BillingPage() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [subscription, setSubscription] = useState<SubscriptionRow | null>(null);
   const [credits, setCredits] = useState<CreditsRow | null>(null);
   const [busyPlan, setBusyPlan] = useState<PlanKey | null>(null);
@@ -75,8 +77,8 @@ export default function BillingPage() {
     try {
       setError(null);
       setBusyPlan(plan);
-      const successUrl = `${window.location.origin}/cladeai/billing?success=1`;
-      const cancelUrl = `${window.location.origin}/cladeai/billing?canceled=1`;
+      const successUrl = `${window.location.origin}/billing?success=1`;
+      const cancelUrl = `${window.location.origin}/billing?canceled=1`;
       const { data, error: fnError } = await supabase.functions.invoke('billing-checkout', {
         body: { plan, successUrl, cancelUrl },
       });
@@ -102,7 +104,7 @@ export default function BillingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center text-white flex-col gap-4">
         <p className="text-xl">Please sign in to manage billing.</p>
-        <Button onClick={() => (window.location.href = '/cladeai/auth')}>Go to Sign In</Button>
+        <Button onClick={() => navigate('/auth')}>Go to Sign In</Button>
       </div>
     );
   }
