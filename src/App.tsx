@@ -53,8 +53,7 @@ const App = () => (
       <AuthProvider>
         <YouTubePlayerProvider>
           <PlayerProvider>
-            <FloatingPlayersProvider>
-              <QueueProvider>
+            <QueueProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -97,7 +96,6 @@ const App = () => (
                 <EmbeddedPlayerDrawer />
               </BrowserRouter>
             </QueueProvider>
-          </FloatingPlayersProvider>
         </PlayerProvider>
       </YouTubePlayerProvider>
     </AuthProvider>
