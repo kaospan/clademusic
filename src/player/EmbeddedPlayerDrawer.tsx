@@ -26,20 +26,18 @@ export function EmbeddedPlayerDrawer() {
     playFromQueue,
     removeFromQueue,
     reorderQueue,
-    clearQueue,
-    shuffleQueue,
-    isPlaying,
-    seekToSec,
-  } = usePlayer();
-
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(70);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const autoplay = isPlaying;
-
-  const meta = useMemo(() => {
+      provider,
+      trackId,
+      trackTitle,
+      trackArtist,
+      isOpen,
+      isMinimized,
+      setMinimized,
+      setIsPlaying,
+      isOpen,
+      isMinimized,
+      setMinimized,
+      setIsPlaying,
     return provider ? providerMeta[provider as keyof typeof providerMeta] ?? { label: 'Now Playing', badge: '♪', color: 'bg-neutral-900/90' } : { label: 'Now Playing', badge: '♪', color: 'bg-neutral-900/90' };
   }, [provider]);
 
