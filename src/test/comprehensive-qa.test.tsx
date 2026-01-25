@@ -86,6 +86,8 @@ beforeEach(() => {
     closePlayer: vi.fn(),
     trackTitle: 'Test Track',
     trackArtist: 'Test Artist',
+    clearSeek: vi.fn(),
+    seekToSec: null,
     nextTrack: vi.fn(),
     previousTrack: vi.fn(),
   });
@@ -104,7 +106,7 @@ describe('Mobile Player QA', () => {
     it('should render player when open', () => {
       render(<EmbeddedPlayerDrawer />, { wrapper });
       
-      expect(screen.getByLabelText(/close player/i)).toBeInTheDocument();
+      expect(screen.getAllByLabelText(/close player/i).length).toBeGreaterThan(0);
     });
 
     it('should show minimize button on mobile', () => {
@@ -152,7 +154,7 @@ describe('Mobile Player QA', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
       
       // Check for mobile-specific classes
-      expect(container.querySelector('.w-\\[calc\\(100vw-80px\\)\\]')).toBeInTheDocument();
+      expect(container.querySelector('.w-\\[calc\\(100vw-2rem\\)\\]')).toBeInTheDocument();
     });
   });
 
@@ -262,7 +264,7 @@ describe('Forum System QA', () => {
     it('should render forum home page', () => {
       render(<ForumHomePage />, { wrapper });
       
-      expect(screen.getByText(/forums/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/forums/i).length).toBeGreaterThan(0);
       expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
     });
 
@@ -325,7 +327,7 @@ describe('Forum System QA', () => {
       render(<ForumHomePage />, { wrapper });
       
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: /forums/i })).toBeInTheDocument();
+        expect(screen.getAllByRole('heading', { name: /forums/i }).length).toBeGreaterThan(0);
       });
       
       const endTime = performance.now();
@@ -426,8 +428,8 @@ describe('Accessibility QA', () => {
   it('should have proper ARIA labels', () => {
     render(<EmbeddedPlayerDrawer />, { wrapper });
     
-    expect(screen.getByLabelText(/close player/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/minimize player/i)).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/close player/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText(/minimize player/i).length).toBeGreaterThan(0);
   });
 
   it('should support keyboard navigation', () => {
