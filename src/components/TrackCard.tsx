@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Bookmark, X, Sparkles, Waves, Play, Pause, Music, Youtube } from 'lucide-react';
+import { Heart, Bookmark, X, Sparkles, Waves, Play, Pause, Music, Youtube, MessageSquare } from 'lucide-react';
 import { HarmonyCard } from './HarmonyCard';
 import { CommentsSheet } from './CommentsSheet';
+import { TrackComments } from './TrackComments';
 import { NearbyListenersSheet } from './NearbyListenersSheet';
 import { ShareSheet } from './ShareSheet';
 import { AudioPreview } from './AudioPreview';
@@ -18,6 +19,7 @@ import { useRecordListeningActivity } from '@/hooks/api/useNearbyListeners';
 import { useRecordPlay } from '@/hooks/api/useFollowing';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayer } from '@/player/PlayerContext';
+import { useTrackComments } from '@/hooks/api/useComments';
 
 interface TrackCardProps {
   track: Track;
@@ -36,13 +38,16 @@ export function TrackCard({
   onPipModeActivate,
   isPipActive = false,
 }: TrackCardProps) {
-  const { user } = useAuth();
+  const { user, guestMode } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const playStartTimeRef = useRef<number | null>(null);
   const recordActivity = useRecordListeningActivity();
   const recordPlay = useRecordPlay();
   const { openPlayer } = usePlayer();
+  const { data: comments } = useTrackComments(track.id);
+  const commentCount = comments?.length || 0;
 
   // Convert SongSection to TrackSection format
   const convertSections = useCallback((sections: SongSection[]): TrackSection[] => {
