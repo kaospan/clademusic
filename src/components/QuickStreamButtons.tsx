@@ -52,7 +52,6 @@ export function QuickStreamButtons({
   const youtubeLink = links.find(l => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
   const { openPlayer } = usePlayer();
-  const { openPlayer } = usePlayer();
 
   const handleSpotifyClick = useCallback(() => {
     if (track.spotifyId) {
