@@ -18,7 +18,7 @@ import { ChevronUp, ChevronDown, LogIn, AlertCircle, Music } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useFloatingPlayers } from '@/contexts/FloatingPlayersContext';
+import { usePlayer } from '@/player/PlayerContext';
 
 export default function FeedPage() {
   const { user, loading: authLoading } = useAuth();

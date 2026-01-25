@@ -48,327 +48,311 @@ interface PlayerContextValue extends PlayerState {
   removeFromQueue: (index: number) => void;
   reorderQueue: (newQueue: import('@/types').Track[]) => void;
   clearQueue: () => void;
-//   shuffleQueue: () => void;
-//   nextTrack: () => void;
-//   previousTrack: () => void;
-// }
+  shuffleQueue: () => void;
+  nextTrack: () => void;
+  previousTrack: () => void;
+}
 
-// const PlayerContext = createContext<PlayerContextValue | null>(null);
+const PlayerContext = createContext<PlayerContextValue | null>(null);
 
-// const QUEUE_STORAGE_KEY = 'clade_queue_v1';
+const QUEUE_STORAGE_KEY = 'clade_queue_v1';
 
-// const clampQueueIndex = (queueLength: number, index: number) => {
-//   if (queueLength === 0) return -1;
-//   return Math.max(0, Math.min(index, queueLength - 1));
-// };
+const clampQueueIndex = (queueLength: number, index: number) => {
+  if (queueLength === 0) return -1;
+  return Math.max(0, Math.min(index, queueLength - 1));
+};
 
-// export function PlayerProvider({ children }: { children: ReactNode }) {
-//   const [state, setState] = useState<PlayerState>({
-//     provider: null,
-//     trackId: null,
-//     canonicalTrackId: null,
-//     trackTitle: null,
-//     trackArtist: null,
-//     isPlaying: false,
-//     isMinimized: false,
-//     seekToSec: null,
-//     currentSectionId: null,
-//     queue: [],
-//     queueIndex: -1,
-//   });
+export function PlayerProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<PlayerState>({
+    provider: null,
+    trackId: null,
+    canonicalTrackId: null,
+    trackTitle: null,
+    trackArtist: null,
+    isPlaying: false,
+    isMinimized: false,
+    seekToSec: null,
+    currentSectionId: null,
+    queue: [],
+    queueIndex: -1,
+  });
 
-//   // Hydrate queue from localStorage on mount
-//   useEffect(() => {
-//     if (typeof window === 'undefined') return;
-//     try {
-//       const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
-//       if (!raw) return;
-//       const parsed = JSON.parse(raw) as { queue?: import('@/types').Track[]; queueIndex?: number };
-//       const queue = Array.isArray(parsed?.queue) ? parsed.queue : [];
-//       const queueIndex = clampQueueIndex(queue.length, typeof parsed?.queueIndex === 'number' ? parsed.queueIndex : -1);
-//       setState((prev) => ({ ...prev, queue, queueIndex }));
-//     } catch (err) {
-//       console.error('Failed to hydrate queue from storage', err);
-//     }
-//   }, []);
+  // Hydrate queue from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { queue?: import('@/types').Track[]; queueIndex?: number };
+      const queue = Array.isArray(parsed?.queue) ? parsed.queue : [];
+      const queueIndex = clampQueueIndex(queue.length, typeof parsed?.queueIndex === 'number' ? parsed.queueIndex : -1);
+      setState((prev) => ({ ...prev, queue, queueIndex }));
+    } catch (err) {
+      console.error('Failed to hydrate queue from storage', err);
+    }
+  }, []);
 
-//   // Persist queue to localStorage when it changes
-//   useEffect(() => {
-//     if (typeof window === 'undefined') return;
-//     try {
-//       const payload = JSON.stringify({
-//         queue: state.queue,
-//         queueIndex: clampQueueIndex(state.queue.length, state.queueIndex),
-//       });
-//       localStorage.setItem(QUEUE_STORAGE_KEY, payload);
-//     } catch (err) {
-//       console.error('Failed to persist queue to storage', err);
-//     }
-//   }, [state.queue, state.queueIndex]);
+  // Persist queue to localStorage when it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const payload = JSON.stringify({
+        queue: state.queue,
+        queueIndex: clampQueueIndex(state.queue.length, state.queueIndex),
+      });
+      localStorage.setItem(QUEUE_STORAGE_KEY, payload);
+    } catch (err) {
+      console.error('Failed to persist queue to storage', err);
+    }
+  }, [state.queue, state.queueIndex]);
 
-//   const seekTo = useCallback((sec: number) => {
-//     setState((prev) => ({ ...prev, seekToSec: sec }));
-//   }, []);
+  const seekTo = useCallback((sec: number) => {
+    setState((prev) => ({ ...prev, seekToSec: sec }));
+  }, []);
 
-//   const clearSeek = useCallback(() => {
-//     setState((prev) => ({ ...prev, seekToSec: null }));
-//   }, []);
+  const clearSeek = useCallback(() => {
+    setState((prev) => ({ ...prev, seekToSec: null }));
+  }, []);
 
-//   const setCurrentSection = useCallback((sectionId: string | null) => {
-//     setState((prev) => ({ ...prev, currentSectionId: sectionId }));
-//   }, []);
+  const setCurrentSection = useCallback((sectionId: string | null) => {
+    setState((prev) => ({ ...prev, currentSectionId: sectionId }));
+  }, []);
 
-//   const setIsPlaying = useCallback((playing: boolean) => {
-//     setState((prev) => ({ ...prev, isPlaying: playing }));
-//   }, []);
+  const setIsPlaying = useCallback((playing: boolean) => {
+    setState((prev) => ({ ...prev, isPlaying: playing }));
+  }, []);
 
-//   const setMinimized = useCallback((value: boolean) => {
-//     setState((prev) => ({ ...prev, isMinimized: value }));
-//   }, []);
+  const setMinimized = useCallback((value: boolean) => {
+    setState((prev) => ({ ...prev, isMinimized: value }));
+  }, []);
 
-//   const addToQueue = useCallback((track: import('@/types').Track) => {
-//     setState((prev) => ({ ...prev, queue: [...prev.queue, track] }));
-//   }, []);
+  const addToQueue = useCallback((track: import('@/types').Track) => {
+    setState((prev) => ({ ...prev, queue: [...prev.queue, track] }));
+  }, []);
 
-//   const playFromQueue = useCallback((index: number) => {
-//     setState((prev) => {
-//       const track = prev.queue[index];
-//       if (!track) return prev;
-//       return {
-//         ...prev,
-//         queueIndex: index,
-//         canonicalTrackId: track.id,
-//         provider: getPreferredProvider(),
-//         trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
-//       };
-//     });
-//   }, []);
+  const playFromQueue = useCallback((index: number) => {
+    setState((prev) => {
+      const track = prev.queue[index];
+      if (!track) return prev;
+      return {
+        ...prev,
+        queueIndex: index,
+        canonicalTrackId: track.id,
+        provider: getPreferredProvider(),
+        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
+      };
+    });
+  }, []);
 
-//   const removeFromQueue = useCallback((index: number) => {
-//     setState((prev) => {
-//       const newQueue = prev.queue.filter((_, i) => i !== index);
-//       const adjustedIndex = index < prev.queueIndex ? prev.queueIndex - 1 : prev.queueIndex;
-//       const queueIndex = clampQueueIndex(newQueue.length, adjustedIndex);
-//       return { ...prev, queue: newQueue, queueIndex };
-//     });
-//   }, []);
+  const removeFromQueue = useCallback((index: number) => {
+    setState((prev) => {
+      const newQueue = prev.queue.filter((_, i) => i !== index);
+      const adjustedIndex = index < prev.queueIndex ? prev.queueIndex - 1 : prev.queueIndex;
+      const queueIndex = clampQueueIndex(newQueue.length, adjustedIndex);
+      return { ...prev, queue: newQueue, queueIndex };
+    });
+  }, []);
 
-//   const reorderQueue = useCallback((newQueue: import('@/types').Track[]) => {
-//     setState((prev) => ({
-//       ...prev,
-//       queue: newQueue,
-//       queueIndex: clampQueueIndex(newQueue.length, prev.queueIndex),
-//     }));
-//   }, []);
+  const reorderQueue = useCallback((newQueue: import('@/types').Track[]) => {
+    setState((prev) => ({
+      ...prev,
+      queue: newQueue,
+      queueIndex: clampQueueIndex(newQueue.length, prev.queueIndex),
+    }));
+  }, []);
 
-//   const clearQueue = useCallback(() => {
-//     setState((prev) => ({ ...prev, queue: [], queueIndex: -1 }));
-//   }, []);
+  const clearQueue = useCallback(() => {
+    setState((prev) => ({ ...prev, queue: [], queueIndex: -1 }));
+  }, []);
 
-//   const shuffleQueue = useCallback(() => {
-//     setState((prev) => {
-//       const currentTrack = prev.queue[prev.queueIndex];
-//       const remainingTracks = prev.queue.slice(prev.queueIndex + 1);
-//       const shuffled = [...remainingTracks].sort(() => Math.random() - 0.5);
-//       const newQueue = [
-//         ...prev.queue.slice(0, prev.queueIndex + 1),
-//         ...shuffled
-//       ];
-//       return { ...prev, queue: newQueue, queueIndex: clampQueueIndex(newQueue.length, prev.queueIndex) };
-//     });
-//   }, []);
+  const shuffleQueue = useCallback(() => {
+    setState((prev) => {
+      const currentTrack = prev.queue[prev.queueIndex];
+      const remainingTracks = prev.queue.slice(prev.queueIndex + 1);
+      const shuffled = [...remainingTracks].sort(() => Math.random() - 0.5);
+      const newQueue = [
+        ...prev.queue.slice(0, prev.queueIndex + 1),
+        ...shuffled
+      ];
+      return { ...prev, queue: newQueue, queueIndex: clampQueueIndex(newQueue.length, prev.queueIndex) };
+    });
+  }, []);
 
-//   const nextTrack = useCallback(() => {
-//     setState((prev) => {
-//       if (prev.queue.length === 0) return prev;
+  const nextTrack = useCallback(() => {
+    setState((prev) => {
+      if (prev.queue.length === 0) return prev;
       
-//       // Loop to first track if at the end
-//       const nextIndex = prev.queueIndex >= prev.queue.length - 1 ? 0 : prev.queueIndex + 1;
-//       const track = prev.queue[nextIndex];
-//       if (!track) return prev;
+      // Loop to first track if at the end
+      const nextIndex = prev.queueIndex >= prev.queue.length - 1 ? 0 : prev.queueIndex + 1;
+      const track = prev.queue[nextIndex];
+      if (!track) return prev;
 
-//       return {
-//         ...prev,
-//         queueIndex: nextIndex,
-//         canonicalTrackId: track.id,
-//         provider: getPreferredProvider(),
-//         trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
-//       };
-//     });
-//   }, []);
+      return {
+        ...prev,
+        queueIndex: nextIndex,
+        canonicalTrackId: track.id,
+        provider: getPreferredProvider(),
+        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
+      };
+    });
+  }, []);
 
-//   const previousTrack = useCallback(() => {
-//     setState((prev) => {
-//       if (prev.queue.length === 0) return prev;
+  const previousTrack = useCallback(() => {
+    setState((prev) => {
+      if (prev.queue.length === 0) return prev;
       
-//       // Loop to last track if at the beginning
-//       const prevIndex = prev.queueIndex <= 0 ? prev.queue.length - 1 : prev.queueIndex - 1;
-//       const track = prev.queue[prevIndex];
-//       if (!track) return prev;
+      // Loop to last track if at the beginning
+      const prevIndex = prev.queueIndex <= 0 ? prev.queue.length - 1 : prev.queueIndex - 1;
+      const track = prev.queue[prevIndex];
+      if (!track) return prev;
 
-//       return {
-//         ...prev,
-//         queueIndex: prevIndex,
-//         canonicalTrackId: track.id,
-//         provider: getPreferredProvider(),
-//         trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
-//       };
-//     });
-//   }, []);
+      return {
+        ...prev,
+        queueIndex: prevIndex,
+        canonicalTrackId: track.id,
+        provider: getPreferredProvider(),
+        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
+      };
+    });
+  }, []);
 
-//   const value = useMemo<PlayerContextValue>(() => ({
-//     ...state,
-//     isOpen: !!state.provider && !!state.trackId,
-//     seekTo,
-//     clearSeek,
-//     setCurrentSection,
-//     setIsPlaying,
-//     setMinimized,
-//     addToQueue,
-//     playFromQueue,
-//     removeFromQueue,
-//     reorderQueue,
-//     clearQueue,
-//     shuffleQueue,
-//     nextTrack,
-//     previousTrack,
-//     openPlayer: (payload) => {
-//       setState((prev) => {
-//         return {
-//           ...prev,
-//           provider: payload.provider,
-//           trackId: payload.providerTrackId,
-//           canonicalTrackId: payload.canonicalTrackId ?? prev.canonicalTrackId,
-//           trackTitle: payload.title ?? prev.trackTitle,
-//           trackArtist: payload.artist ?? prev.trackArtist,
-//           seekToSec: payload.startSec ?? null,
-//         };
+  const openPlayer = useCallback((payload: OpenPlayerPayload) => {
+    setState((prev) => ({
+      ...prev,
+      provider: payload.provider,
+      trackId: payload.providerTrackId,
+      canonicalTrackId: payload.canonicalTrackId ?? prev.canonicalTrackId,
+      trackTitle: payload.title ?? prev.trackTitle,
+      trackArtist: payload.artist ?? prev.trackArtist,
+      seekToSec: payload.startSec ?? null,
+    }));
 
-//         if (payload.provider === 'spotify') {
-//           updates.spotifyOpen = true;
-//           updates.spotifyTrackId = payload.providerTrackId;
-//           updates.autoplaySpotify = payload.autoplay ?? true;
-//         } else {
-//           updates.youtubeOpen = true;
-//           updates.youtubeTrackId = payload.providerTrackId;
-//           updates.autoplayYoutube = payload.autoplay ?? true;
-//         }
+    if (payload.canonicalTrackId) {
+      recordPlayEvent({
+        track_id: payload.canonicalTrackId,
+        provider: payload.provider,
+        action: 'preview',
+        context: payload.context ?? 'player',
+      }).catch((err) => {
+        console.error('Failed to record play event', err);
+      });
+    }
+  }, []);
 
-//         return { ...prev, ...updates };
-//       });
+  const closePlayer = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      provider: null,
+      trackId: null,
+      isPlaying: false,
+    }));
+  }, []);
 
-//       if (payload.canonicalTrackId) {
-//         recordPlayEvent({
-//           track_id: payload.canonicalTrackId,
-//           provider: payload.provider,
-//           action: 'preview',
-//           context: payload.context ?? 'player',
-//         }).catch((err) => {
-//           console.error('Failed to record play event', err);
-//         });
-//       }
-//     },
-//     closeSpotify: () => setState((prev) => ({ ...prev, spotifyOpen: false, autoplaySpotify: false })),
-//     closeYoutube: () => setState((prev) => ({ ...prev, youtubeOpen: false, autoplayYoutube: false })),
-//     switchProvider: (provider, providerTrackId, canonicalTrackId) => {
-//       setState((prev) => {
-//         return {
-//           ...prev,
-//           provider,
-//           trackId: providerTrackId,
-//           canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
-//           seekToSec: null,
-//         };
+  const switchProvider = useCallback((provider: MusicProvider, providerTrackId: string | null, canonicalTrackId?: string | null) => {
+    setState((prev) => ({
+      ...prev,
+      provider,
+      trackId: providerTrackId,
+      canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
+      seekToSec: null,
+    }));
 
-//         if (provider === 'spotify') {
-//           updates.spotifyOpen = true;
-//           updates.spotifyTrackId = providerTrackId;
-//           updates.autoplaySpotify = true;
-//         } else {
-//           updates.youtubeOpen = true;
-//           updates.youtubeTrackId = providerTrackId;
-//           updates.autoplayYoutube = true;
-//         }
+    const trackIdToLog = canonicalTrackId ?? state.canonicalTrackId;
+    if (trackIdToLog) {
+      recordPlayEvent({
+        track_id: trackIdToLog,
+        provider,
+        action: 'preview',
+        context: 'provider-switch',
+      }).catch((err) => {
+        console.error('Failed to record provider switch event', err);
+      });
+    }
+  }, [state.canonicalTrackId]);
 
-//         return { ...prev, ...updates };
-//       });
+  const value = useMemo<PlayerContextValue>(() => ({
+    ...state,
+    isOpen: !!state.provider && !!state.trackId,
+    openPlayer,
+    closePlayer,
+    switchProvider,
+    seekTo,
+    clearSeek,
+    setCurrentSection,
+    setIsPlaying,
+    setMinimized,
+    addToQueue,
+    playFromQueue,
+    removeFromQueue,
+    reorderQueue,
+    clearQueue,
+    shuffleQueue,
+    nextTrack,
+    previousTrack,
+  }), [state, openPlayer, closePlayer, switchProvider, seekTo, clearSeek, setCurrentSection, setIsPlaying, setMinimized, addToQueue, playFromQueue, removeFromQueue, reorderQueue, clearQueue, shuffleQueue, nextTrack, previousTrack]);
 
-//       const trackIdToLog = canonicalTrackId ?? state.canonicalTrackId;
-//       if (trackIdToLog) {
-//         recordPlayEvent({
-//           track_id: trackIdToLog,
-//           provider,
-//           action: 'preview',
-//           context: 'provider-switch',
-//         }).catch((err) => {
-//           console.error('Failed to record provider switch event', err);
-//         });
-//       }
-//     },
-//   }), [state, seekTo, clearSeek, setCurrentSection, setIsPlaying, addToQueue, playFromQueue, removeFromQueue, reorderQueue, clearQueue, shuffleQueue, nextTrack, previousTrack]);
+  // Expose debug state in dev/test only for Playwright provider-atomicity assertions
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (import.meta.env.MODE === 'production') return;
+    (window as any).__PLAYER_DEBUG_STATE__ = {
+      activeProvider: state.provider,
+      isPlaying: state.isPlaying,
+      providers: {
+        spotify: { isPlaying: state.provider === 'spotify' && state.isPlaying },
+        youtube: { isPlaying: state.provider === 'youtube' && state.isPlaying },
+      },
+    };
+  }, [state.provider, state.isPlaying]);
 
-//   // Expose debug state in dev/test only for Playwright provider-atomicity assertions
-//   useEffect(() => {
-//     if (typeof window === 'undefined') return;
-//     if (import.meta.env.MODE === 'production') return;
-//     (window as any).__PLAYER_DEBUG_STATE__ = {
-//       activeProvider: state.provider,
-//       isPlaying: state.isPlaying,
-//       providers: {
-//         spotify: { isPlaying: state.provider === 'spotify' && state.isPlaying },
-//         youtube: { isPlaying: state.provider === 'youtube' && state.isPlaying },
-//       },
-//     };
-//   }, [state.provider, state.isPlaying]);
+  // Ensure the page layout reserves space for the floating player when open so
+  // the player never ends up visually behind other UI. We toggle a body class
+  // and set a CSS variable with the player's height to let global styles
+  // push content above the player (no content is covered).
+  const isOpen = !!state.provider && !!state.trackId;
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const el = document.body;
+      if (isOpen) {
+        el.classList.add('clade-player-open');
+        // Keep this in sync with EmbeddedPlayerDrawer's height
+        el.style.setProperty('--clade-player-height', '52px');
+      } else {
+        el.classList.remove('clade-player-open');
+        el.style.removeProperty('--clade-player-height');
+      }
+    } catch (err) {
+      console.error('Failed to toggle player body class', err);
+    }
+  }, [isOpen]);
 
-//   // Ensure the page layout reserves space for the floating player when open so
-//   // the player never ends up visually behind other UI. We toggle a body class
-//   // and set a CSS variable with the player's height to let global styles
-//   // push content above the player (no content is covered).
-//   const isOpen = !!state.provider && !!state.trackId;
-//   useEffect(() => {
-//     if (typeof window === 'undefined') return;
-//     try {
-//       const el = document.body;
-//       if (isOpen) {
-//         el.classList.add('clade-player-open');
-//         // Keep this in sync with EmbeddedPlayerDrawer's height
-//         el.style.setProperty('--clade-player-height', '52px');
-//       } else {
-//         el.classList.remove('clade-player-open');
-//         el.style.removeProperty('--clade-player-height');
-//       }
-//     } catch (err) {
-//       console.error('Failed to toggle player body class', err);
-//     }
-//   }, [isOpen]);
+  return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
+}
 
-//   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
-// }
+export function usePlayer() {
+  const ctx = useContext(PlayerContext);
+  if (!ctx) throw new Error('usePlayer must be used within PlayerProvider');
+  return ctx;
+}
 
-// export function usePlayer() {
-//   const ctx = useContext(PlayerContext);
-//   if (!ctx) throw new Error('usePlayer must be used within PlayerProvider');
-//   return ctx;
-// }
-
-// export function resolveDefaultProvider(connected: ConnectedProviders): MusicProvider {
-//   // First check user's preferred provider from localStorage
-//   const preferred = getPreferredProvider();
-//   if (preferred) {
-//     // If user prefers Spotify, check if it's connected
-//     if (preferred === 'spotify' && connected?.spotify?.connected) {
-//       return 'spotify';
-//     }
-//     // For other providers, use the preference if it's valid
-//     if (preferred === 'youtube' || preferred === 'apple_music') {
-//       return preferred;
-//     }
-//   }
+export function resolveDefaultProvider(connected: ConnectedProviders): MusicProvider {
+  // First check user's preferred provider from localStorage
+  const preferred = getPreferredProvider();
+  if (preferred) {
+    // If user prefers Spotify, check if it's connected
+    if (preferred === 'spotify' && connected?.spotify?.connected) {
+      return 'spotify';
+    }
+    // For other providers, use the preference if it's valid
+    if (preferred === 'youtube' || preferred === 'apple_music') {
+      return preferred;
+    }
+  }
   
-//   // Fallback: if Spotify is connected, use it
-//   if (connected?.spotify?.connected) return 'spotify';
+  // Fallback: if Spotify is connected, use it
+  if (connected?.spotify?.connected) return 'spotify';
   
-//   // Default to YouTube
-//   return 'youtube';
-// }
+  // Default to YouTube
+  return 'youtube';
+}

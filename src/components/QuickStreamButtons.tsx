@@ -4,7 +4,6 @@ import { useCallback } from 'react';
 import { TrackProviderInfo, getProviderLinks } from '@/lib/providers';
 import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
 import { usePlayer } from '@/player/PlayerContext';
-import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
 
 interface QuickStreamButtonsProps {
