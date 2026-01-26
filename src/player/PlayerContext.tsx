@@ -14,6 +14,9 @@ export interface PlayerState {
   trackTitle: string | null;
   trackArtist: string | null;
   trackAlbum: string | null;
+  lastKnownTitle: string | null;
+  lastKnownArtist: string | null;
+  lastKnownAlbum: string | null;
   spotifyOpen: boolean;
   youtubeOpen: boolean;
   spotifyTrackId: string | null;
@@ -22,6 +25,9 @@ export interface PlayerState {
   autoplayYoutube: boolean;
   isPlaying: boolean;
   isMinimized: boolean;
+  isMini: boolean;
+  isCinema: boolean;
+  miniPosition: { x: number; y: number };
   seekToSec: number | null;
   currentSectionId: string | null;
   queue: import('@/types').Track[];
@@ -57,6 +63,11 @@ interface PlayerContextValue extends PlayerState {
   setCurrentSection: (sectionId: string | null) => void;
   setIsPlaying: (playing: boolean) => void;
   setMinimized: (value: boolean) => void;
+  collapseToMini: () => void;
+  restoreFromMini: () => void;
+  setMiniPosition: (pos: { x: number; y: number }) => void;
+  enterCinema: () => void;
+  exitCinema: () => void;
   addToQueue: (track: import('@/types').Track) => void;
   playFromQueue: (index: number) => void;
   removeFromQueue: (index: number) => void;
@@ -84,6 +95,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     trackTitle: null,
     trackArtist: null,
     trackAlbum: null,
+    lastKnownTitle: null,
+    lastKnownArtist: null,
+    lastKnownAlbum: null,
     spotifyOpen: false,
     youtubeOpen: false,
     spotifyTrackId: null,
@@ -92,6 +106,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     autoplayYoutube: false,
     isPlaying: false,
     isMinimized: false,
+    isMini: false,
+    isCinema: false,
+    miniPosition: { x: 0, y: 0 },
     seekToSec: null,
     currentSectionId: null,
     queue: [],
@@ -145,6 +162,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const setMinimized = useCallback((value: boolean) => {
     setState((prev) => ({ ...prev, isMinimized: value }));
+  }, []);
+
+  const collapseToMini = useCallback(() => {
+    setState((prev) => ({ ...prev, isMini: true, isMinimized: true }));
+  }, []);
+
+  const restoreFromMini = useCallback(() => {
+    setState((prev) => ({ ...prev, isMini: false, isMinimized: false }));
+  }, []);
+
+  const setMiniPosition = useCallback((pos: { x: number; y: number }) => {
+    setState((prev) => ({ ...prev, miniPosition: pos }));
+  }, []);
+
+  const enterCinema = useCallback(() => {
+    setState((prev) => ({ ...prev, isCinema: true }));
+  }, []);
+
+  const exitCinema = useCallback(() => {
+    setState((prev) => ({ ...prev, isCinema: false }));
   }, []);
 
   const addToQueue = useCallback((track: import('@/types').Track) => {
@@ -245,7 +282,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         seekToSec: startSec ?? null,
         provider,
         trackId: providerTrackId ?? prev.trackId,
+        trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
+        trackArtist: prev.trackArtist ?? prev.lastKnownArtist,
+        trackAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
         isMinimized: false,
+        isMini: false,
+        isCinema: false,
       };
 
       if (provider === 'spotify') {
@@ -287,9 +329,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       canonicalTrackId: null,
       trackId: null,
       provider: null,
+       lastKnownTitle: prev.trackTitle ?? prev.lastKnownTitle,
+       lastKnownArtist: prev.trackArtist ?? prev.lastKnownArtist,
+       lastKnownAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
       autoplaySpotify: false,
       autoplayYoutube: false,
       seekToSec: null,
+      isMini: false,
+      isCinema: false,
     }));
   }, []);
 
@@ -299,11 +346,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         provider: payload.provider,
         trackId: payload.providerTrackId,
         canonicalTrackId: payload.canonicalTrackId ?? prev.canonicalTrackId,
-        trackTitle: payload.title ?? prev.trackTitle,
-        trackArtist: payload.artist ?? prev.trackArtist,
-        trackAlbum: payload.album ?? prev.trackAlbum,
+        trackTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
+        trackArtist: payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist,
+        trackAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
+        lastKnownTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
+        lastKnownArtist: payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist,
+        lastKnownAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
         seekToSec: payload.startSec ?? null,
         isMinimized: false,
+        isMini: false,
+        isCinema: false,
         isPlaying: payload.autoplay ?? true,
         spotifyOpen: payload.provider === 'spotify',
         youtubeOpen: payload.provider === 'youtube',
@@ -333,10 +385,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       provider: null,
       trackId: null,
       canonicalTrackId: null,
-      trackTitle: null,
-      trackArtist: null,
+      trackTitle: prev.trackTitle,
+      trackArtist: prev.trackArtist,
       isPlaying: false,
       isMinimized: false,
+      isMini: false,
+      isCinema: false,
       seekToSec: null,
       spotifyOpen: false,
       youtubeOpen: false,
@@ -362,7 +416,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         seekToSec: null,
         provider,
         trackId: providerTrackId ?? prev.trackId,
+        trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
+        trackArtist: prev.trackArtist ?? prev.lastKnownArtist,
+        trackAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
         isMinimized: false,
+        isMini: false,
+        isCinema: false,
         isPlaying: true,
       };
 
@@ -397,6 +456,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [state.canonicalTrackId]);
 
   const isOpen = !!state.provider && !!state.trackId;
+
+  // Dev-only invariants: single provider and metadata presence
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (process.env.NODE_ENV === 'production') return;
+
+    if (state.spotifyOpen && state.youtubeOpen) {
+      throw new Error('Invariant violated: both providers open; only one provider may be active.');
+    }
+
+    if (isOpen && (!state.trackTitle && !state.lastKnownTitle)) {
+      throw new Error('Invariant violated: player open without title; metadata must be resolved before render.');
+    }
+  }, [isOpen, state.spotifyOpen, state.youtubeOpen, state.trackTitle, state.lastKnownTitle]);
 
   // Expose debug state in dev/test only for Playwright provider-atomicity assertions
   useEffect(() => {
@@ -449,6 +522,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentSection,
     setIsPlaying,
     setMinimized,
+    collapseToMini,
+    restoreFromMini,
+    setMiniPosition,
+    enterCinema,
+    exitCinema,
     addToQueue,
     playFromQueue,
     removeFromQueue,
