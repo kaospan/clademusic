@@ -20,7 +20,7 @@ export function EmbeddedPlayerDrawer() {
     trackArtist,
     trackAlbum,
     lastKnownTitle,
-    lastKnownArtist,
+      {isMini && (
     lastKnownAlbum,
     positionMs,
     durationMs,
@@ -137,7 +137,7 @@ export function EmbeddedPlayerDrawer() {
           exit={{ y: 48, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           data-player="universal"
-          className="pointer-events-auto fixed top-4 right-4 left-4 md:top-auto md:bottom-[calc(env(safe-area-inset-bottom)+24px)] md:left-1/2 md:right-auto z-[60] transform md:-translate-x-1/2 w-[calc(100vw-2rem)] md:w-[640px] md:max-w-[640px] px-2 md:px-0"
+          className="pointer-events-auto fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[calc(100vw-2rem)] max-w-3xl px-2 md:px-0"
         >
         <div className={`overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
@@ -165,25 +165,17 @@ export function EmbeddedPlayerDrawer() {
               </button>
               <button
                 type="button"
-                onClick={closePlayer}
-                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label="Close player"
-              >
-                <X className="h-3 w-3 md:h-4 md:w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setMinimized(!isMinimized)}
-                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label={isMinimized ? 'Expand player' : 'Minimize player'}
-              >
-                {isMinimized ? <ChevronUp className="h-3 w-3 md:h-4 md:w-4" /> : <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />}
-              </button>
-              <button
-                type="button"
                 onClick={collapseToMini}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                 aria-label="Collapse to mini player"
+              >
+                <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={closePlayer}
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                aria-label="Close player"
               >
                 <X className="h-3 w-3 md:h-4 md:w-4" />
               </button>
