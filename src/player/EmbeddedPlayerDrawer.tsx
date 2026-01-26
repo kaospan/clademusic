@@ -127,7 +127,6 @@ export function EmbeddedPlayerDrawer() {
               <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Now Playing</span>
               <span className="text-xs md:text-sm font-bold text-foreground truncate" aria-label="Track title">{trackTitle ?? 'Unknown title'}</span>
               <span className="text-[11px] md:text-xs text-muted-foreground truncate" aria-label="Artist name">{trackArtist ?? 'Unknown artist'}</span>
-              <span className="text-[10px] md:text-[11px] text-muted-foreground/80 truncate" aria-label="Album name">{trackAlbum ?? 'Unknown album'}</span>
             </div>
             <div className="flex items-center gap-1">
               <button
