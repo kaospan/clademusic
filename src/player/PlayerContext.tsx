@@ -425,53 +425,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  // High-level play/pause/stop helpers
-  const play = useCallback((canonicalTrackId: string | null, provider: MusicProvider, providerTrackId?: string | null, startSec?: number) => {
-    setState((prev) => {
-      const updates: Partial<PlayerState> = {
-        canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
-        seekToSec: startSec ?? null,
-      };
-
-      if (provider === 'spotify') {
-        updates.spotifyOpen = true;
-        updates.spotifyTrackId = providerTrackId ?? prev.spotifyTrackId;
-        updates.autoplaySpotify = true;
-        updates.youtubeOpen = false;
-        updates.autoplayYoutube = false;
-      } else {
-        updates.youtubeOpen = true;
-        updates.youtubeTrackId = providerTrackId ?? prev.youtubeTrackId;
-        updates.autoplayYoutube = true;
-        updates.spotifyOpen = false;
-        updates.autoplaySpotify = false;
-      }
-
-      updates.isPlaying = true;
-
-      return { ...prev, ...updates };
-    });
-
-    if (canonicalTrackId) {
-      recordPlayEvent({ track_id: canonicalTrackId, provider, action: 'preview', context: 'player' }).catch((err) => console.error('Failed to record play event', err));
-    }
-  }, []);
-
-  const pause = useCallback(() => {
-    setState((prev) => ({ ...prev, isPlaying: false, autoplaySpotify: false, autoplayYoutube: false }));
-  }, []);
-
-  const stop = useCallback(() => {
-    setState((prev) => ({ ...prev, isPlaying: false, spotifyOpen: false, youtubeOpen: false, spotifyTrackId: null, youtubeTrackId: null, canonicalTrackId: null, autoplaySpotify: false, autoplayYoutube: false, seekToSec: null }));
-  }, []);
-
-  // High-level play/pause/stop helpers
+  // High-level play/pause/stop helpers (single definitions)
   const play = useCallback((canonicalTrackId: string | null, provider: MusicProvider, providerTrackId?: string | null, startSec?: number) => {
     const prevProvider = state.provider;
     if (prevProvider && prevProvider !== provider) {
-      providerControlsRef.current[prevProvider]?.pause?.();
-      providerControlsRef.current[prevProvider]?.setMute?.(true);
-      providerControlsRef.current[prevProvider]?.teardown?.();
+      void stopActiveProvider(prevProvider, providerControlsRef);
     }
 
     setState((prev) => {
