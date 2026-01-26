@@ -277,7 +277,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   if (provider !== 'spotify' || !providerTrackId) return null;
 
   return ready ? null : (
-    <div className="w-full h-14 md:h-20 bg-gradient-to-r from-green-950/80 via-black to-green-950/80 rounded-xl overflow-hidden" />
+    <div className="w-full h-14 md:h-20 bg-black rounded-xl overflow-hidden" />
   );
 }
 

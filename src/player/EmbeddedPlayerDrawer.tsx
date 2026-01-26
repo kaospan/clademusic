@@ -7,8 +7,8 @@ import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause } f
 import { cn } from '@/lib/utils';
 
 const providerMeta = {
-  spotify: { label: 'Spotify', badge: '🎧', color: 'bg-green-900/90' },
-  youtube: { label: 'YouTube', badge: '▶', color: 'bg-red-900/90' },
+  spotify: { label: 'Spotify', badge: '🎧', color: 'bg-black/90' },
+  youtube: { label: 'YouTube', badge: '▶', color: 'bg-black/90' },
   apple_music: { label: 'Apple Music', badge: '', color: 'bg-neutral-900/90' },
 } as const;
 

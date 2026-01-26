@@ -143,5 +143,5 @@ export function YouTubePlayer({ providerTrackId, autoplay }: YouTubePlayerProps)
     }
   }, [provider, volume, isMuted]);
 
-  return <div ref={containerRef} className="w-full h-14 md:h-24 bg-gradient-to-r from-red-950/80 via-black to-red-950/80 rounded-xl overflow-hidden" />;
+  return <div ref={containerRef} className="w-full h-14 md:h-24 bg-black rounded-xl overflow-hidden" />;
 }
