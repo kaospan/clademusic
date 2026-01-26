@@ -3,9 +3,11 @@ import { recordPlayEvent } from '@/api/playEvents';
 import { MusicProvider } from '@/types';
 import { getPreferredProvider } from '@/lib/preferences';
 
-export interface ConnectedProviders {
-  spotify?: { connected: boolean; premium: boolean };
-}
+interface ConnectedProviders {
+  spotify?: { connected: boolean };
+  youtube?: { connected: boolean };
+  apple_music?: { connected: boolean };
+} 
 
 export interface PlayerState {
   provider: MusicProvider | null;
