@@ -166,8 +166,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             void logActiveDevice(token);
             const shouldPlay = autoplay ?? autoplaySpotify ?? true;
             const transferred = await transferPlayback(device_id, token, shouldPlay);
-            if (transferred && providerTrackId) {
-              await startPlayback(device_id, token, providerTrackId, seekToSec ?? 0);
+            if (providerTrackId) {
+              await startPlayback(device_id, token, providerTrackId, seekToSec ?? 0, transferred);
             }
           });
 
@@ -210,8 +210,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             const device = deviceIdRef.current;
             if (!tokenVal || !device) return;
             const transferred = await transferPlayback(device, tokenVal, true);
-            if (transferred && providerTrackId) {
-              await startPlayback(device, tokenVal, providerTrackId, startSec ?? 0);
+            if (providerTrackId) {
+              await startPlayback(device, tokenVal, providerTrackId, startSec ?? 0, transferred);
             }
           },
           pause: async () => {
@@ -276,9 +276,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     const shouldPlay = autoplay ?? autoplaySpotify ?? false;
     if (!shouldPlay) return;
     void transferPlayback(device, token, true).then((transferred) => {
-      if (transferred) {
-        void startPlayback(device, token, providerTrackId, seekToSec ?? 0);
-      }
+      void startPlayback(device, token, providerTrackId, seekToSec ?? 0, transferred);
     });
     
     // Ensure audible volume after transfer
@@ -306,7 +304,8 @@ async function transferPlayback(deviceId: string, token: string, play: boolean) 
       body: JSON.stringify({ device_ids: [deviceId], play }),
     });
     if (!res.ok) {
-      console.warn(`[Spotify] Transfer failed: ${res.status} ${res.statusText}`);
+      const body = await safeText(res);
+      console.warn(`[Spotify] Transfer failed: ${res.status} ${res.statusText} body=${body}`);
       return false;
     } else {
       console.log('[Spotify] Transfer successful, play:', play);
@@ -318,7 +317,7 @@ async function transferPlayback(deviceId: string, token: string, play: boolean) 
   }
 }
 
-async function startPlayback(deviceId: string, token: string, trackId: string, startSec: number) {
+async function startPlayback(deviceId: string, token: string, trackId: string, startSec: number, transferred: boolean) {
   try {
     const res = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
       method: 'PUT',
@@ -332,11 +331,20 @@ async function startPlayback(deviceId: string, token: string, trackId: string, s
       }),
     });
     if (!res.ok) {
-      console.warn(`[Spotify] Start playback failed: ${res.status} ${res.statusText}`);
+      const body = await safeText(res);
+      console.warn(`[Spotify] Start playback failed: ${res.status} ${res.statusText} transferred=${transferred} body=${body}`);
     } else {
       console.log('[Spotify] Start playback successful for track:', trackId);
     }
   } catch (err) {
     console.error('[Spotify] Failed to start playback', err);
+  }
+}
+
+async function safeText(res: Response) {
+  try {
+    return await res.text();
+  } catch {
+    return '<no-body>';
   }
 }
