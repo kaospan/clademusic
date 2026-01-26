@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePlayer } from '../PlayerContext';
 
 interface YouTubePlayerProps {
@@ -6,56 +6,142 @@ interface YouTubePlayerProps {
   autoplay?: boolean;
 }
 
-const ALLOW = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+declare global {
+  interface Window {
+    YT?: any;
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+let ytPromise: Promise<void> | null = null;
+
+const loadYouTubeApi = () => {
+  if (ytPromise) return ytPromise;
+  ytPromise = new Promise<void>((resolve) => {
+    if (window.YT && window.YT.Player) {
+      resolve();
+      return;
+    }
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    window.onYouTubeIframeAPIReady = () => resolve();
+    document.body.appendChild(tag);
+  });
+  return ytPromise;
+};
 
 /**
- * Seekable YouTube player using iframe with visual embed.
- * Supports section navigation via seekToSec from PlayerContext.
- * Now displays the video iframe instead of audio-only indicator.
+ * YouTube player with real controls (play/pause/seek/volume/mute) wired into PlayerContext.
  */
 export function YouTubePlayer({ providerTrackId, autoplay }: YouTubePlayerProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const { seekToSec, clearSeek } = usePlayer();
+  const {
+    provider,
+    seekToSec,
+    clearSeek,
+    registerProviderControls,
+    updatePlaybackState,
+    volume,
+    isMuted,
+  } = usePlayer();
 
-  const src = useMemo(() => {
-    if (!providerTrackId) return null;
-    const params = new URLSearchParams({
-      autoplay: autoplay ? '1' : '0',
-      modestbranding: '1',
-      rel: '0',
-      enablejsapi: '1',
-      origin: window.location.origin,
-    });
-    // Use the privacy-enhanced domain to reduce cookie usage
-    return `https://www.youtube-nocookie.com/embed/${providerTrackId}?${params.toString()}`;
-  }, [providerTrackId, autoplay]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<any>(null);
+  const pollRef = useRef<number | null>(null);
 
-  // Handle seek requests from context
   useEffect(() => {
-    if (seekToSec !== null && iframeRef.current?.contentWindow) {
-      // YouTube iframe API expects a JSON command via postMessage
-      const command = JSON.stringify({
-        event: 'command',
-        func: 'seekTo',
-        args: [seekToSec, true],
+    if (provider !== 'youtube' || !providerTrackId) return;
+    let destroyed = false;
+
+    const setup = async () => {
+      await loadYouTubeApi();
+      if (destroyed || !window.YT) return;
+
+      playerRef.current = new window.YT.Player(containerRef.current, {
+        videoId: providerTrackId,
+        playerVars: {
+          autoplay: autoplay ? 1 : 0,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+        },
+        events: {
+          onReady: (event: any) => {
+            event.target.setVolume(isMuted ? 0 : Math.round(volume * 100));
+            if (autoplay) event.target.playVideo();
+            updatePlaybackState({ durationMs: event.target.getDuration() * 1000 });
+          },
+          onStateChange: (event: any) => {
+            const data = event.data;
+            const ytState = window.YT?.PlayerState;
+            const isPlaying = data === ytState?.PLAYING;
+            const positionMs = event.target.getCurrentTime() * 1000;
+            const durationMs = event.target.getDuration() * 1000;
+            const info = event.target.getVideoData?.();
+            updatePlaybackState({
+              isPlaying,
+              positionMs,
+              durationMs,
+              trackTitle: info?.title ?? null,
+              trackArtist: info?.author ?? null,
+            });
+
+            if (pollRef.current) {
+              window.clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
+            if (isPlaying) {
+              pollRef.current = window.setInterval(() => {
+                if (!playerRef.current) return;
+                const pos = playerRef.current.getCurrentTime() * 1000;
+                const dur = playerRef.current.getDuration() * 1000;
+                updatePlaybackState({ positionMs: pos, durationMs: dur });
+              }, 1000);
+            }
+          },
+        },
       });
-      iframeRef.current.contentWindow.postMessage(command, '*');
-      clearSeek();
+
+      registerProviderControls('youtube', {
+        play: async () => playerRef.current?.playVideo?.(),
+        pause: async () => playerRef.current?.pauseVideo?.(),
+        seekTo: async (seconds: number) => playerRef.current?.seekTo?.(seconds, true),
+        setVolume: async (vol: number) => playerRef.current?.setVolume?.(Math.round(vol * 100)),
+        setMute: async (muted: boolean) => {
+          if (muted) playerRef.current?.mute?.();
+          else playerRef.current?.unMute?.();
+        },
+        teardown: async () => playerRef.current?.destroy?.(),
+      });
+    };
+
+    setup();
+
+    return () => {
+      destroyed = true;
+      if (pollRef.current) window.clearInterval(pollRef.current);
+      playerRef.current?.destroy?.();
+      playerRef.current = null;
+    };
+  }, [provider, providerTrackId, autoplay, registerProviderControls, updatePlaybackState, volume, isMuted]);
+
+  // External seek requests
+  useEffect(() => {
+    if (provider !== 'youtube') return;
+    if (seekToSec == null) return;
+    playerRef.current?.seekTo?.(seekToSec, true);
+    clearSeek();
+  }, [provider, seekToSec, clearSeek]);
+
+  // Sync mute/volume changes
+  useEffect(() => {
+    if (provider !== 'youtube') return;
+    if (!playerRef.current) return;
+    if (isMuted) playerRef.current.mute?.();
+    else {
+      playerRef.current.unMute?.();
+      playerRef.current.setVolume?.(Math.round(volume * 100));
     }
-  }, [seekToSec, clearSeek]);
+  }, [provider, volume, isMuted]);
 
-  if (!src) return null;
-
-  return (
-    <div className="w-full h-14 md:h-24 bg-gradient-to-r from-red-950/80 via-black to-red-950/80 rounded-xl overflow-hidden">
-      <iframe
-        ref={iframeRef}
-        className="w-full h-full border-0 relative z-[110]"
-        src={src}
-        allow={ALLOW}
-        title="YouTube player"
-        style={{ borderRadius: '12px' }}
-      />
-    </div>
-  );
+  return <div ref={containerRef} className="w-full h-14 md:h-24 bg-gradient-to-r from-red-950/80 via-black to-red-950/80 rounded-xl overflow-hidden" />;
 }
