@@ -28,12 +28,15 @@ interface SpotifyEmbedPreviewProps {
   autoplay?: boolean;
 }
 
+const SPOTIFY_EMBED_ALLOW = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+
 let sdkPromise: Promise<void> | null = null;
 let sdkReady = false;
 let spotifyPlayerSingleton: SpotifyPlayer | null = null;
 let spotifyDeviceId: string | null = null;
 let audioContextResumed = false;
 let spotifyListenersAttached = false;
+let registeredFallbackControls = false;
 
 const resetSpotifyState = () => {
   spotifyPlayerSingleton = null;
@@ -128,6 +131,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const tokenRef = useRef<string | null>(null);
   const volumeRef = useRef<number>(volume);
   const [ready, setReady] = useState(false);
+  const [useEmbedFallback, setUseEmbedFallback] = useState(false);
 
   // Sync volume ref
   useEffect(() => {
@@ -138,7 +142,24 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   }, [volume, isMuted]);
 
   useEffect(() => {
-    if (provider !== 'spotify' || !providerTrackId || !user?.id) return;
+    if (provider !== 'spotify' || !providerTrackId) return;
+
+    // Guest / no token: fall back to lightweight iframe embed
+    if (!user?.id) {
+      setUseEmbedFallback(true);
+      if (!registeredFallbackControls) {
+        registerProviderControls('spotify', {
+          play: async () => {},
+          pause: async () => {},
+          seekTo: async () => {},
+          setVolume: async () => {},
+          setMute: async () => {},
+          teardown: async () => {},
+        });
+        registeredFallbackControls = true;
+      }
+      return;
+    }
 
     let cancelled = false;
 
@@ -147,13 +168,28 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
         await loadSdk();
         if (cancelled || !window.Spotify) return;
 
-        const token = await getValidAccessToken(user.id);
+        const token = await getValidAccessToken(user.id).catch((err) => {
+          console.warn('Spotify token fetch failed, using embed fallback', err);
+          return null;
+        });
         tokenRef.current = token;
         if (!token) {
-          console.warn('Spotify token unavailable; playback disabled');
+          setUseEmbedFallback(true);
+          if (!registeredFallbackControls) {
+            registerProviderControls('spotify', {
+              play: async () => {},
+              pause: async () => {},
+              seekTo: async () => {},
+              setVolume: async () => {},
+              setMute: async () => {},
+              teardown: async () => {},
+            });
+            registeredFallbackControls = true;
+          }
           return;
         }
 
+        setUseEmbedFallback(false);
         const initialVolume = isMuted ? 0 : Math.max(volumeRef.current, MIN_AUDIBLE_VOLUME);
         const player = getOrCreatePlayer(token, initialVolume);
 
@@ -246,6 +282,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
         });
       } catch (err) {
         console.error('Spotify SDK setup failed', err);
+        setUseEmbedFallback(true);
       }
     };
 
@@ -272,6 +309,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   // Autoplay or start playback when track changes and player is ready (also covers return after provider switch)
   useEffect(() => {
     if (provider !== 'spotify') return;
+    if (useEmbedFallback) return;
     if (!providerTrackId || !ready) return;
 
     const token = tokenRef.current;
@@ -289,9 +327,21 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
       const vol = Math.max(volumeRef.current, MIN_AUDIBLE_VOLUME);
       playerRef.current.setVolume(vol).catch(() => {});
     }
-  }, [provider, providerTrackId, ready, autoplay, autoplaySpotify, seekToSec, isMuted]);
+  }, [provider, providerTrackId, ready, autoplay, autoplaySpotify, seekToSec, isMuted, useEmbedFallback]);
 
   if (provider !== 'spotify' || !providerTrackId) return null;
+
+  if (useEmbedFallback) {
+    return (
+      <iframe
+        title="Spotify preview"
+        src={`https://open.spotify.com/embed/track/${providerTrackId}?utm_source=clade&theme=0&autoplay=1`}
+        className="w-full h-20 md:h-[88px] rounded-xl border-0"
+        allow={SPOTIFY_EMBED_ALLOW}
+        loading="lazy"
+      />
+    );
+  }
 
   return ready ? null : (
     <div className="w-full h-14 md:h-20 bg-gradient-to-r from-green-950/80 via-black to-green-950/80 rounded-xl overflow-hidden" />
