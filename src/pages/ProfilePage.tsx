@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ChordBadge } from '@/components/ChordBadge';
 import { SpotifyIcon } from '@/components/QuickStreamButtons';
@@ -65,6 +65,9 @@ import { ThemeEditor } from '@/components/ThemeEditor';
 import { useUserTheme } from '@/hooks/api/useThemes';
 import { useIsAdmin } from '@/hooks/api/useAdmin';
 import type { TimeRange } from '@/services/spotifyUserService';
+import { QuickStreamButtons } from '@/components/QuickStreamButtons';
+import { usePlayer } from '@/player/PlayerContext';
+import { getPreferredProvider } from '@/lib/preferences';
 
 // Mood profile styling
 const moodColors: Record<string, string> = {
@@ -127,6 +130,7 @@ export default function ProfilePage() {
   // Theme and admin
   const { data: userTheme } = useUserTheme(user?.id);
   const { data: isAdmin } = useIsAdmin();
+  const { openPlayer } = usePlayer();
 
   const spotifyConnected = isSpotifyConnected === true;
   const lastFmConnected = !!lastFmUsername;
@@ -190,6 +194,33 @@ export default function ProfilePage() {
       console.error('Failed to set preferred provider:', error);
     }
   };
+
+  const resolveProviderForTrack = useCallback((track: any): MusicProvider | null => {
+    if (track.spotifyId || track.spotify_id) return 'spotify';
+    if (track.youtubeId || track.youtube_id) return 'youtube';
+    const preferred = getPreferredProvider();
+    return preferred ?? null;
+  }, []);
+
+  const handlePlayTrack = useCallback((track: any) => {
+    const provider = resolveProviderForTrack(track);
+    if (!provider) return;
+    const providerTrackId = provider === 'spotify'
+      ? (track.spotifyId || track.spotify_id)
+      : (track.youtubeId || track.youtube_id);
+    if (!providerTrackId) return;
+
+    openPlayer({
+      canonicalTrackId: track.id || track.track_id || null,
+      provider,
+      providerTrackId,
+      title: track.title,
+      artist: track.artist,
+      album: track.album,
+      autoplay: true,
+      context: 'profile-recent',
+    });
+  }, [openPlayer, resolveProviderForTrack]);
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
