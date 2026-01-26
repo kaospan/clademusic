@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const providerMeta = {
@@ -18,6 +18,7 @@ export function EmbeddedPlayerDrawer() {
     trackId,
     trackTitle,
     trackArtist,
+    trackAlbum,
     isOpen,
     isMinimized,
     setMinimized,
@@ -31,7 +32,7 @@ export function EmbeddedPlayerDrawer() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(70);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(180);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const autoplay = isPlaying;
 
@@ -51,6 +52,25 @@ export function EmbeddedPlayerDrawer() {
     const newTime = parseFloat(e.target.value);
     setCurrentTime(newTime);
     // TODO: Implement actual seeking in player providers
+  };
+
+  // Basic ticking to keep seeker in sync when playing
+  useEffect(() => {
+    if (!isPlaying || isIdle) return;
+    const id = window.setInterval(() => {
+      setCurrentTime((t) => (t + 1 > duration ? duration : t + 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [isPlaying, isIdle, duration]);
+
+  // Reset progress when track/provider changes
+  useEffect(() => {
+    setCurrentTime(0);
+    setDuration((prev) => (prev > 0 ? prev : 180));
+  }, [trackId, provider]);
+
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
   };
 
   const toggleFullscreen = () => {
