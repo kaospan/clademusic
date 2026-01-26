@@ -18,10 +18,8 @@ export function EmbeddedPlayerDrawer() {
     trackId,
     trackTitle,
     trackArtist,
-    trackAlbum,
     lastKnownTitle,
-      {isMini && (
-    lastKnownAlbum,
+    lastKnownArtist,
     positionMs,
     durationMs,
     volume,
@@ -30,7 +28,6 @@ export function EmbeddedPlayerDrawer() {
     isMinimized,
     isMini,
     isCinema,
-    setMinimized,
     collapseToMini,
     restoreFromMini,
     setMiniPosition,
@@ -42,8 +39,6 @@ export function EmbeddedPlayerDrawer() {
     setVolumeLevel,
     toggleMute,
     seekToMs,
-    nextTrack,
-    previousTrack,
     closePlayer,
   } = usePlayer();
   const cinemaRef = useRef<HTMLDivElement | null>(null);
@@ -51,7 +46,6 @@ export function EmbeddedPlayerDrawer() {
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
-  const resolvedAlbum = trackAlbum ?? lastKnownAlbum ?? '';
   const positionSec = Math.max(0, positionMs / 1000);
   const durationSec = Math.max(positionSec, durationMs > 0 ? durationMs / 1000 : 0);
   const volumePercent = Math.round((isMuted ? 0 : volume) * 100);
@@ -273,44 +267,6 @@ export function EmbeddedPlayerDrawer() {
           </div>
         </motion.div>
       )}
-
-      {/* Desktop Player - Bottom bar */}
-      <div
-        className={cn(
-          'hidden md:flex',
-          'sticky top-0 left-1/2 -translate-x-1/2 z-[120] w-full items-center justify-center pointer-events-auto',
-          meta.color
-        )}
-        style={{
-          aspectRatio: '12/1',
-          minHeight: 0,
-          height: 'var(--clade-player-height,52px)',
-          maxHeight: '52px',
-          boxShadow: '0 2px 16px rgba(0,0,0,0.18)'
-        }}
-        role="region"
-        aria-label="Now Playing Desktop"
-      >
-        <div className="flex flex-row items-center w-full max-w-lg mx-auto px-2 gap-2">
-          <span className="text-xl select-none" aria-label={meta.label}>{meta.badge}</span>
-          <span className="flex-1 truncate text-sm font-semibold text-white" title={resolvedTitle || 'Now Playing'}>
-            {resolvedTitle || (isIdle ? 'Player ready — pick a track' : 'Now Playing')}
-          </span>
-          {resolvedArtist && !isIdle && (
-            <span className="text-xs text-white/70 truncate" title={resolvedArtist}>
-              {resolvedArtist}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={collapseToMini}
-            className="ml-2 text-white/80 hover:text-white text-lg px-2 py-1 rounded"
-            aria-label="Collapse player"
-          >
-            ×
-          </button>
-        </div>
-      </div>
 
       {/* Single shared embed container to guarantee exactly one iframe */}
       <div
