@@ -32,14 +32,19 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
 }
 
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
+// Web Playback requires the "streaming" scope and the ability to control playback
+// Add modify/app-remote scopes to avoid 401/403 on transfer/play.
 const SPOTIFY_SCOPES = [
   'user-read-email',
   'user-read-private',
+  'streaming',
+  'user-modify-playback-state',
   'user-read-playback-state',
   'user-read-currently-playing',
   'user-read-recently-played',
   'user-library-read',
   'playlist-read-private',
+  'app-remote-control',
 ].join(' ');
 
 /**
