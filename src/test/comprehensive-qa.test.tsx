@@ -106,27 +106,27 @@ describe('Mobile Player QA', () => {
     it('should render player when open', () => {
       render(<EmbeddedPlayerDrawer />, { wrapper });
       
-      expect(screen.getAllByLabelText(/close player/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByLabelText(/stop playback/i).length).toBeGreaterThan(0);
     });
 
     it('should show minimize button on mobile', () => {
       render(<EmbeddedPlayerDrawer />, { wrapper });
       
-      const minimizeButton = screen.queryByLabelText(/minimize player/i);
+      const minimizeButton = screen.queryByLabelText(/minimize to mini player/i);
       expect(minimizeButton).toBeInTheDocument();
     });
 
     it('should not overlap with TikTok buttons on mobile', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
       const player = container.querySelector('.fixed');
-      expect(player).toHaveClass('top-4');
-      expect(player).toHaveClass('right-4');
+      expect(player).toHaveClass('top-14');
+      expect(player).toHaveClass('left-1/2');
     });
 
     it('should allow dragging when minimized', () => {
       render(<EmbeddedPlayerDrawer />, { wrapper });
       
-      const minimizeButton = screen.getByLabelText(/minimize player/i);
+      const minimizeButton = screen.getByLabelText(/minimize to mini player/i);
       fireEvent.click(minimizeButton);
 
       expect(mockPlayerContext.setMinimized).toHaveBeenCalledWith(true);
@@ -146,7 +146,7 @@ describe('Mobile Player QA', () => {
 
     it('should have proper z-index hierarchy', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
-      const player = container.querySelector('.z-\\[60\\]');
+      const player = container.querySelector('.z-\\[70\\]');
       
       expect(player).toBeInTheDocument();
     });
@@ -155,7 +155,7 @@ describe('Mobile Player QA', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
       
       // Check for mobile-specific classes
-      expect(container.querySelector('.w-\\[calc\\(100vw-2rem\\)\\]')).toBeInTheDocument();
+      expect(container.querySelector('.w-\\[90vw\\]')).toBeInTheDocument();
     });
   });
 
