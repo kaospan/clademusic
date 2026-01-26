@@ -41,6 +41,8 @@ export function EmbeddedPlayerDrawer() {
     return provider ? providerMeta[provider as keyof typeof providerMeta] ?? fallback : fallback;
   }, [provider]);
 
+  const isIdle = !isOpen || !provider || !trackId;
+
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -101,8 +103,6 @@ export function EmbeddedPlayerDrawer() {
     }
   }, []);
 
-  const isIdle = !isOpen || !provider || !trackId;
-
   return (
     <>
       {/* Single Interchangeable Player - EXACT same position for Spotify & YouTube */}
@@ -119,15 +119,25 @@ export function EmbeddedPlayerDrawer() {
       >
         <div className={`overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
-          <div className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 bg-background/80 backdrop-blur">
+          <div className="flex items-center gap-3 px-3 py-2 md:px-4 md:py-2.5 bg-background/80 backdrop-blur">
             <span className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-background/80 text-lg md:text-xl shadow-inner">
               {meta.badge}
             </span>
             <div className="flex flex-col leading-tight flex-1 min-w-0">
               <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Now Playing</span>
-              <span className="text-xs md:text-sm font-bold text-foreground truncate">{meta.label}</span>
+              <span className="text-xs md:text-sm font-bold text-foreground truncate" aria-label="Track title">{trackTitle ?? 'Unknown title'}</span>
+              <span className="text-[11px] md:text-xs text-muted-foreground truncate" aria-label="Artist name">{trackArtist ?? 'Unknown artist'}</span>
+              <span className="text-[10px] md:text-[11px] text-muted-foreground/80 truncate" aria-label="Album name">{trackAlbum ?? 'Unknown album'}</span>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? <Pause className="h-3 w-3 md:h-4 md:w-4" /> : <Play className="h-3 w-3 md:h-4 md:w-4" />}
+              </button>
               <button
                 type="button"
                 onClick={() => setMinimized(!isMinimized)}
@@ -147,7 +157,32 @@ export function EmbeddedPlayerDrawer() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-3 px-3 pb-2 md:px-4 md:pb-3">
+            <div className="flex flex-col flex-1 min-w-0 text-white/90" aria-live="polite">
+              <span className="text-sm md:text-base font-semibold truncate">{trackTitle ?? 'Unknown title'}</span>
+              <span className="text-xs md:text-sm text-white/80 truncate">{trackArtist ?? 'Unknown artist'}</span>
+              <span className="text-[11px] md:text-xs text-white/70 truncate">{trackAlbum ?? 'Unknown album'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-white">
+              <span className="text-[11px] md:text-xs tabular-nums" aria-label="Elapsed time">{formatTime(currentTime)}</span>
+              <input
+                type="range"
+                min="0"
+                max={duration}
+                value={Math.min(currentTime, duration)}
+                onChange={handleSeek}
+                disabled={isIdle}
+                className="w-32 md:w-48 h-1 bg-white/20 rounded-full appearance-none cursor-pointer
+                         [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
+                         [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
+                         [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                aria-label="Seek"
+              />
+              <span className="text-[11px] md:text-xs tabular-nums" aria-label="Total duration">{formatTime(duration)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 px-3 pb-3 md:px-4 md:pb-4">
             {/* Volume control */}
             <button
               onClick={() => setIsMuted(!isMuted)}
