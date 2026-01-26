@@ -29,6 +29,7 @@ interface SpotifyEmbedPreviewProps {
 }
 
 let sdkPromise: Promise<void> | null = null;
+let sdkReady = false;
 let spotifyPlayerSingleton: SpotifyPlayer | null = null;
 let spotifyDeviceId: string | null = null;
 let audioContextResumed = false;
@@ -43,15 +44,23 @@ const resetSpotifyState = () => {
 const MIN_AUDIBLE_VOLUME = 0.05; // avoid accidental zeros when unmuted
 
 const loadSdk = () => {
+  if (sdkReady) return Promise.resolve();
   if (sdkPromise) return sdkPromise;
   sdkPromise = new Promise<void>((resolve, reject) => {
     if (window.Spotify) {
+      sdkReady = true;
       resolve();
       return;
     }
 
     // Define the global hook BEFORE the SDK loads; the SDK will invoke it immediately after execution.
-    window.onSpotifyWebPlaybackSDKReady = () => resolve();
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      sdkReady = true;
+      resolve();
+    };
+
+    const existing = document.querySelector('script[src="https://sdk.scdn.co/spotify-player.js"]');
+    if (existing) return;
 
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
