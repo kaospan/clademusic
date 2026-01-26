@@ -16,6 +16,7 @@ import { searchSpotify } from '@/services/spotifySearchService';
 import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
 import { ResponsiveContainer, ResponsiveGrid } from '@/components/layout/ResponsiveLayout';
+import { QuickStreamButtons } from '@/components/QuickStreamButtons';
 import { 
   getSearchHistory, 
   addToSearchHistory, 
@@ -662,7 +663,17 @@ export default function SearchPage() {
                       )}
                     </div>
                     <div className="flex items-center">
-                      <Play className="w-4 h-4 text-muted-foreground" />
+                      <QuickStreamButtons
+                        track={{
+                          spotifyId: track.spotify_id ?? track.id,
+                          youtubeId: track.youtube_id,
+                          urlSpotifyWeb: track.external_url,
+                        }}
+                        canonicalTrackId={track.id}
+                        trackTitle={track.title}
+                        trackArtist={track.artist}
+                        size="md"
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -705,7 +716,17 @@ export default function SearchPage() {
                       </p>
                     </div>
                     <div className="flex items-center">
-                      <Play className="w-4 h-4 text-muted-foreground" />
+                      <QuickStreamButtons
+                        track={{
+                          youtubeId: track.youtube_id,
+                          spotifyId: track.spotify_id,
+                          urlYoutube: track.url_youtube,
+                        }}
+                        canonicalTrackId={track.id}
+                        trackTitle={track.title}
+                        trackArtist={track.artist}
+                        size="md"
+                      />
                     </div>
                   </div>
                 </motion.div>
@@ -747,26 +768,19 @@ export default function SearchPage() {
                       )}
                     </div>
                     <div className="flex flex-col gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handlePlayOnProvider(track)}
-                        title="Play on streaming service"
-                      >
-                        <Play className="w-4 h-4" />
-                      </Button>
-                      {track.url_youtube && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => window.open(track.url_youtube!, '_blank')}
-                          title="Open on YouTube"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
+                        <QuickStreamButtons
+                          track={{
+                            spotifyId: track.spotify_id,
+                            youtubeId: track.youtube_id,
+                            urlYoutube: track.url_youtube,
+                            urlSpotifyWeb: track.url_spotify_web,
+                          }}
+                          canonicalTrackId={track.id}
+                          trackTitle={track.title}
+                          trackArtist={track.artist}
+                          size="md"
+                          className="justify-end"
+                        />
                     </div>
                   </div>
                 </motion.div>
@@ -817,15 +831,18 @@ export default function SearchPage() {
                         {track.artist}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 flex-shrink-0"
-                      onClick={() => handlePlayOnProvider(track)}
-                      title="Play on streaming service"
-                    >
-                      <Play className="w-4 h-4" />
-                    </Button>
+                    <QuickStreamButtons
+                      track={{
+                        spotifyId: track.spotify_id,
+                        youtubeId: track.youtube_id,
+                        urlYoutube: track.url_youtube,
+                        urlSpotifyWeb: track.url_spotify_web,
+                      }}
+                      canonicalTrackId={track.id}
+                      trackTitle={track.title}
+                      trackArtist={track.artist}
+                      size="sm"
+                    />
                   </div>
                 </motion.div>
               ))}
