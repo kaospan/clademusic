@@ -187,12 +187,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [state.queue, state.queueIndex]);
 
   const seekTo = useCallback((sec: number) => {
-    setState((prev) => ({ ...prev, seekToSec: sec }));
+    setState((prev) => ({ ...prev, seekToSec: sec, positionMs: sec * 1000 }));
   }, []);
 
   const clearSeek = useCallback(() => {
     setState((prev) => ({ ...prev, seekToSec: null }));
   }, []);
+
+  const seekToMs = useCallback((ms: number) => {
+    const sec = Math.max(0, ms / 1000);
+    setState((prev) => ({ ...prev, positionMs: ms }));
+    seekTo(sec);
+  }, [seekTo]);
 
   const setCurrentSection = useCallback((sectionId: string | null) => {
     setState((prev) => ({ ...prev, currentSectionId: sectionId }));
@@ -200,6 +206,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const setIsPlaying = useCallback((playing: boolean) => {
     setState((prev) => ({ ...prev, isPlaying: playing }));
+  }, []);
+
+  const setVolumeLevel = useCallback((volume: number) => {
+    const clamped = clamp01(volume);
+    setState((prev) => ({ ...prev, volume: clamped, isMuted: clamped === 0 ? true : prev.isMuted && clamped === 0 }));
+    const activeProvider = state.provider;
+    if (activeProvider) {
+      providerControlsRef.current[activeProvider]?.setVolume?.(clamped);
+      if (clamped > 0) {
+        providerControlsRef.current[activeProvider]?.setMute?.(false);
+      }
+    }
+  }, [state.provider]);
+
+  const toggleMute = useCallback(() => {
+    setState((prev) => {
+      const nextMuted = !prev.isMuted;
+      const activeProvider = prev.provider;
+      if (activeProvider) {
+        providerControlsRef.current[activeProvider]?.setMute?.(nextMuted);
+      }
+      return { ...prev, isMuted: nextMuted };
+    });
   }, []);
 
   const setMinimized = useCallback((value: boolean) => {
