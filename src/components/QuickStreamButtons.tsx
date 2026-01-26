@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Music } from 'lucide-react';
 import { useCallback } from 'react';
-import { TrackProviderInfo, getProviderLinks } from '@/lib/providers';
+import { TrackProviderInfo, getProviderLinks, openProviderLink } from '@/lib/providers';
 import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
 import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
@@ -64,8 +64,13 @@ export function QuickStreamButtons({
         title: trackTitle,
         artist: trackArtist,
       });
+      return;
     }
-  }, [canonicalTrackId, track.spotifyId, trackTitle, trackArtist, openPlayer]);
+
+    if (spotifyLink) {
+      openProviderLink(spotifyLink);
+    }
+  }, [canonicalTrackId, track.spotifyId, trackTitle, trackArtist, openPlayer, spotifyLink]);
 
   const handleYouTubeClick = useCallback(() => {
     if (track.youtubeId) {
@@ -79,8 +84,13 @@ export function QuickStreamButtons({
         title: trackTitle,
         artist: trackArtist,
       });
+      return;
     }
-  }, [canonicalTrackId, track.youtubeId, trackTitle, trackArtist, openPlayer]);
+
+    if (youtubeLink) {
+      openProviderLink(youtubeLink);
+    }
+  }, [canonicalTrackId, track.youtubeId, trackTitle, trackArtist, openPlayer, youtubeLink]);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -106,7 +116,7 @@ export function QuickStreamButtons({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {/* Spotify button */}
-      {spotifyLink && track.spotifyId && (
+      {spotifyLink && (
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
@@ -126,7 +136,7 @@ export function QuickStreamButtons({
       )}
 
       {/* YouTube button */}
-      {youtubeLink && track.youtubeId && (
+      {youtubeLink && (
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
