@@ -9,12 +9,9 @@ import { BottomNav } from '@/components/BottomNav';
 import { GuestBanner } from '@/components/GuestBanner';
 import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
 import { useFeedTracks } from '@/hooks/api/useTracks';
-import { useSpotifyRecentlyPlayed } from '@/hooks/api/useSpotifyUser';
-import { useTasteDNA } from '@/hooks/api/useTasteDNA';
-import { getRecommendedTracks } from '@/services/recommendationService';
 import { useAuth } from '@/hooks/useAuth';
 import { InteractionType, Track } from '@/types';
-import { ChevronUp, ChevronDown, LogIn, AlertCircle, Music } from 'lucide-react';
+import { ChevronUp, ChevronDown, LogIn, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -26,45 +23,18 @@ export default function FeedPage() {
   
   // Fetch from multiple sources
   const { data: trackResult, isLoading: tracksLoading, error: tracksError } = useFeedTracks(50);
-  const { data: spotifyData, isLoading: spotifyLoading } = useSpotifyRecentlyPlayed(20);
-  const { data: tasteDNA } = useTasteDNA();
-  
-  // Merge Spotify recently played with feed tracks, preferring Spotify when available
+
+  // Single guest-mode feed for all users (logged in or guest)
   const feedTracks = trackResult?.tracks ?? [];
-  const spotifyTracks = spotifyData?.tracks ?? [];
-  
-  // Combine: Spotify recently played first, then fill with other tracks (deduped by ID and spotify_id)
   const tracks: Track[] = (() => {
-    let combinedTracks: Track[];
-    
-    if (spotifyTracks.length > 0) {
-      const spotifyIds = new Set(spotifyTracks.map(t => t.spotify_id).filter(Boolean));
-      const seenIds = new Set(spotifyTracks.map(t => t.id).filter(Boolean));
-      const otherTracks = feedTracks.filter(t => 
-        !spotifyIds.has(t.spotify_id) && !seenIds.has(t.id)
-      );
-      combinedTracks = [...spotifyTracks, ...otherTracks];
-    } else {
-      // Deduplicate feedTracks by ID and spotify_id
-      const seen = new Set<string>();
-      combinedTracks = feedTracks.filter(t => {
-        const key = t.spotify_id || t.id;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    }
-    
-    // Apply taste-based recommendations if user has taste data
-    if (user && tasteDNA) {
-      return getRecommendedTracks(combinedTracks, tasteDNA);
-    }
-    
-    // Otherwise return as-is
-    return combinedTracks;
+    const seen = new Set<string>();
+    return feedTracks.filter((t) => {
+      const key = t.spotify_id || t.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   })();
-  
-  const dataSource = spotifyTracks.length > 0 ? 'spotify' : trackResult?.source;
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [interactions, setInteractions] = useState<Map<string, Set<InteractionType>>>(new Map());
@@ -212,14 +182,6 @@ export default function FeedPage() {
             <div className="flex items-center gap-3 lg:gap-4">
               <span className="text-xs lg:text-sm text-muted-foreground flex items-center gap-1">
               {currentIndex + 1} / {tracks.length}
-              {dataSource === 'spotify' && (
-                <span className="ml-1 text-[#1DB954] flex items-center gap-0.5" title="Your Spotify history">
-                  <Music className="w-3 h-3" />
-                </span>
-              )}
-              {dataSource === 'seed' && (
-                <span className="ml-1 text-amber-500" title="Using demo data">•</span>
-              )}
             </span>
             {!user && (
               <Button
