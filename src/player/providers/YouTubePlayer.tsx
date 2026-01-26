@@ -76,13 +76,10 @@ export function YouTubePlayer({ providerTrackId, autoplay }: YouTubePlayerProps)
             const isPlaying = data === ytState?.PLAYING;
             const positionMs = event.target.getCurrentTime() * 1000;
             const durationMs = event.target.getDuration() * 1000;
-            const info = event.target.getVideoData?.();
             updatePlaybackState({
               isPlaying,
               positionMs,
               durationMs,
-              trackTitle: info?.title ?? null,
-              trackArtist: info?.author ?? null,
             });
 
             if (pollRef.current) {
