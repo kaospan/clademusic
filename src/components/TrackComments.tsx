@@ -40,6 +40,7 @@ interface TrackCommentsProps {
 export function TrackComments({ trackId, className = '' }: TrackCommentsProps) {
   const { user, guestMode } = useAuth();
   const navigate = useNavigate();
+  const supabaseDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
   const [comments, setComments] = useState<TrackComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isPosting, setIsPosting] = useState(false);
@@ -51,13 +52,24 @@ export function TrackComments({ trackId, className = '' }: TrackCommentsProps) {
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    if (supabaseDisabled) {
+      setIsLoading(false);
+      return;
+    }
+
     if (trackId) {
       loadComments();
       subscribeToComments();
     }
-  }, [trackId]);
+  }, [trackId, supabaseDisabled]);
 
   const loadComments = async () => {
+    if (supabaseDisabled) {
+      setComments([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.rpc('get_track_comments', {

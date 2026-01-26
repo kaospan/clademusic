@@ -42,6 +42,7 @@ export function LiveChat({
   trackId,
   className = '' 
 }: LiveChatProps) {
+  const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -50,6 +51,10 @@ export function LiveChat({
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  if (chatDisabled) {
+    return null;
+  }
 
   // Get or create room
   useEffect(() => {
