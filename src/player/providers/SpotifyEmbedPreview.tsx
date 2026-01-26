@@ -34,6 +34,12 @@ let spotifyDeviceId: string | null = null;
 let audioContextResumed = false;
 let spotifyListenersAttached = false;
 
+const resetSpotifyState = () => {
+  spotifyPlayerSingleton = null;
+  spotifyDeviceId = null;
+  spotifyListenersAttached = false;
+};
+
 const MIN_AUDIBLE_VOLUME = 0.05; // avoid accidental zeros when unmuted
 
 const loadSdk = () => {
@@ -212,8 +218,15 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             await player.setVolume(muted ? 0 : Math.max(volumeRef.current, MIN_AUDIBLE_VOLUME));
           },
           teardown: async () => {
-            await player.disconnect();
-            spotifyPlayerSingleton = null;
+            try {
+              await player.disconnect();
+            } catch (err) {
+              console.warn('Spotify teardown disconnect failed', err);
+            }
+            playerRef.current = null;
+            deviceIdRef.current = null;
+            setReady(false);
+            resetSpotifyState();
           },
         });
       } catch (err) {
@@ -240,6 +253,19 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     }
     clearSeek();
   }, [seekToSec, provider, clearSeek]);
+
+  // Autoplay or start playback when track changes and player is ready (also covers return after provider switch)
+  useEffect(() => {
+    if (provider !== 'spotify') return;
+    if (!providerTrackId || !ready) return;
+
+    const token = tokenRef.current;
+    const device = deviceIdRef.current || spotifyDeviceId;
+    if (!token || !device) return;
+
+    void transferPlayback(device, token, autoplay ?? autoplaySpotify ?? false);
+    void startPlayback(device, token, providerTrackId, seekToSec ?? 0);
+  }, [provider, providerTrackId, ready, autoplay, autoplaySpotify, seekToSec]);
 
   if (provider !== 'spotify' || !providerTrackId) return null;
 
