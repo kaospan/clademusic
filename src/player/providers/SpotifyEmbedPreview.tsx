@@ -50,12 +50,12 @@ const loadSdk = () => {
       return;
     }
 
+    // Define the global hook BEFORE the SDK loads; the SDK will invoke it immediately after execution.
+    window.onSpotifyWebPlaybackSDKReady = () => resolve();
+
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
     script.async = true;
-    script.onload = () => {
-      window.onSpotifyWebPlaybackSDKReady = () => resolve();
-    };
     script.onerror = () => reject(new Error('Failed to load Spotify SDK'));
     document.body.appendChild(script);
   });
