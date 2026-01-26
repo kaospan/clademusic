@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { Music } from 'lucide-react';
 import { useCallback } from 'react';
-import { TrackProviderInfo, getProviderLinks, openProviderLink } from '@/lib/providers';
-import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
+import { TrackProviderInfo, getProviderLinks } from '@/lib/providers';
+import { setPreferredProvider } from '@/lib/preferences';
 import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
 
@@ -36,27 +36,60 @@ const YouTubeIcon = ({ className }: { className?: string }) => (
 
 /**
  * Provider buttons for Spotify and YouTube.
- * Always renders both icons side-by-side; disables when unavailable.
+ * Triggers the universal player with autoplay for the selected provider.
  */
 export function QuickStreamButtons({
   track,
   canonicalTrackId = null,
   trackTitle = 'Track',
-  trackArtist,
+  trackArtist = 'Unknown artist',
   className,
   size = 'md',
 }: QuickStreamButtonsProps) {
+  const { openPlayer } = usePlayer();
   const links = getProviderLinks(track);
-  const spotifyLink = links.find((l) => l.provider === 'spotify');
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
   const { openPlayer } = usePlayer();
-
   const hasSpotify = Boolean(track.spotifyId || spotifyLink);
   const hasYouTube = Boolean(track.youtubeId || youtubeLink);
   const unavailable = !hasSpotify && !hasYouTube;
 
-  const handleSpotifyClick = useCallback(() => {
+  const spotifyTrackId = track.spotifyId ?? null;
+  const youtubeTrackId = track.youtubeId ?? null;
+  const normalizedCanonicalId = canonicalTrackId ?? null;
+
+  const handleProviderPlay = useCallback(
+    (provider: 'spotify' | 'youtube') => {
+      const providerTrackId = provider === 'spotify' ? spotifyTrackId : youtubeTrackId;
+
+      if (!providerTrackId) {
+        return;
+      }
+
+      openPlayer({
+        canonicalTrackId: normalizedCanonicalId ?? providerTrackId,
+        provider,
+        providerTrackId,
+        autoplay: true,
+        context: 'quick-stream-buttons',
+        title: trackTitle,
+        artist: trackArtist,
+      });
+
+      setPreferredProvider(provider);
+    },
+    [
+      normalizedCanonicalId,
+      openPlayer,
+      spotifyTrackId,
+      trackArtist,
+      trackTitle,
+      youtubeTrackId,
+    ]
+  );
+
+  const sizeClasses = {
     if (!hasSpotify) return;
     if (track.spotifyId) {
       setPreferredProvider('spotify');
@@ -78,37 +111,43 @@ export function QuickStreamButtons({
   }, [hasSpotify, canonicalTrackId, track.spotifyId, trackTitle, trackArtist, openPlayer, spotifyLink]);
 
   const handleYouTubeClick = useCallback(() => {
-    if (!hasYouTube) return;
-    if (track.youtubeId) {
-      setPreferredProvider('youtube');
-      openPlayer({
-        canonicalTrackId,
-        provider: 'youtube',
-        providerTrackId: track.youtubeId,
-        autoplay: true,
-        context: 'quick-stream',
-        title: trackTitle,
-        artist: trackArtist,
-      });
-      return;
-    }
+    <div className={cn('flex items-center gap-2', className)}>
+      <motion.button
+        type="button"
+        data-provider="spotify"
+        disabled={!hasSpotify}
+        whileTap={hasSpotify ? { scale: 0.92 } : undefined}
+        className={cn(
+          sizeClasses[size],
+          'rounded-full flex items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary',
+          hasSpotify ? 'text-white cursor-pointer' : 'text-muted-foreground opacity-30 cursor-not-allowed',
+          'disabled:cursor-not-allowed disabled:opacity-30'
+        )}
+        title={hasSpotify ? 'Play on Spotify' : 'Spotify unavailable'}
+        aria-label={hasSpotify ? 'Play on Spotify' : 'Spotify unavailable'}
+        onClick={() => handleProviderPlay('spotify')}
+      >
+        <SpotifyIcon className={iconSizes[size]} />
+      </motion.button>
 
-    if (youtubeLink) {
-      openProviderLink(youtubeLink);
-    }
-  }, [hasYouTube, canonicalTrackId, track.youtubeId, trackTitle, trackArtist, openPlayer, youtubeLink]);
-
-  const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12',
-  } as const;
-
-  const iconSizes = {
-    sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6',
-  } as const;
+      <motion.button
+        type="button'
+        data-provider="youtube"
+        disabled={!hasYouTube}
+        whileTap={hasYouTube ? { scale: 0.92 } : undefined}
+        className={cn(
+          sizeClasses[size],
+          'rounded-full flex items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary',
+          hasYouTube ? 'text-foreground cursor-pointer' : 'text-muted-foreground opacity-30 cursor-not-allowed',
+          'disabled:cursor-not-allowed disabled:opacity-30'
+        )}
+        title={hasYouTube ? 'Play on YouTube' : 'YouTube unavailable'}
+        aria-label={hasYouTube ? 'Play on YouTube' : 'YouTube unavailable'}
+        onClick={() => handleProviderPlay('youtube')}
+      >
+        <YouTubeIcon className={iconSizes[size]} />
+      </motion.button>
+    </div>
 
   if (unavailable) {
     return (
