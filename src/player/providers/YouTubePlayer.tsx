@@ -44,6 +44,8 @@ export function YouTubePlayer({ providerTrackId, autoplay }: YouTubePlayerProps)
     isMuted,
   } = usePlayer();
 
+  const iframeOrigin = typeof window !== 'undefined' ? window.location.origin : undefined;
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
   const pollRef = useRef<number | null>(null);
@@ -60,14 +62,24 @@ export function YouTubePlayer({ providerTrackId, autoplay }: YouTubePlayerProps)
         videoId: providerTrackId,
         playerVars: {
           autoplay: autoplay ? 1 : 0,
+          mute: 1, // satisfy autoplay policy, we will unmute if allowed
           controls: 0,
           modestbranding: 1,
           rel: 0,
+          playsinline: 1,
+          origin: iframeOrigin,
         },
         events: {
           onReady: (event: any) => {
-            event.target.setVolume(isMuted ? 0 : Math.round(volume * 100));
-            if (autoplay) event.target.playVideo();
+            event.target.mute();
+            event.target.setVolume(Math.round(volume * 100));
+            if (autoplay) {
+              event.target.playVideo();
+            }
+            // Unmute only if global state is not muted to avoid user gesture issues
+            if (!isMuted) {
+              event.target.unMute();
+            }
             updatePlaybackState({ durationMs: event.target.getDuration() * 1000 });
           },
           onStateChange: (event: any) => {
@@ -99,7 +111,12 @@ export function YouTubePlayer({ providerTrackId, autoplay }: YouTubePlayerProps)
       });
 
       registerProviderControls('youtube', {
-        play: async () => playerRef.current?.playVideo?.(),
+        play: async () => {
+          if (!playerRef.current) return;
+          playerRef.current.mute?.();
+          await playerRef.current.playVideo?.();
+          if (!isMuted) playerRef.current.unMute?.();
+        },
         pause: async () => playerRef.current?.pauseVideo?.(),
         seekTo: async (seconds: number) => playerRef.current?.seekTo?.(seconds, true),
         setVolume: async (vol: number) => playerRef.current?.setVolume?.(Math.round(vol * 100)),
