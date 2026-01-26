@@ -6,6 +6,23 @@
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
+function extractYouTubeId(input: string): string | null {
+  if (!input) return null;
+  // Direct 11-char ID
+  const directId = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(directId)) return directId;
+
+  // youtu.be short links
+  const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch?.[1]) return shortMatch[1];
+
+  // youtube.com/watch?v=VIDEOID
+  const paramMatch = input.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (paramMatch?.[1]) return paramMatch[1];
+
+  return null;
+}
+
 interface YouTubeSearchResult {
   items: Array<{
     id: { videoId: string };
@@ -102,19 +119,28 @@ export async function searchYouTubeVideos(
 
   try {
     const results: VideoResult[] = [];
-    
+
+    // If user typed/pasted a YouTube URL or direct video ID, short-circuit to a single fetch
+    const directId = extractYouTubeId(title ? `${artist} ${title}` : artist);
+    if (directId) {
+      const directMeta = await fetchYouTubeVideoSnippet(directId, apiKey);
+      if (directMeta) {
+        return [{ videoId: directId, title: directMeta.title, channel: directMeta.channel, type: 'official' }];
+      }
+    }
+
     // Search 1: Official video/audio
-    const officialQuery = `${artist} ${title} official`;
+    const officialQuery = `${artist} ${title} official`.trim();
     const officialResults = await searchYouTube(officialQuery, apiKey, 3);
     results.push(...officialResults.map(r => ({ ...r, type: 'official' as const })));
     
     // Search 2: Live performances
-    const liveQuery = `${artist} ${title} live`;
+    const liveQuery = `${artist} ${title} live`.trim();
     const liveResults = await searchYouTube(liveQuery, apiKey, 2);
     results.push(...liveResults.map(r => ({ ...r, type: 'live' as const })));
     
     // Search 3: Covers
-    const coverQuery = `${title} cover`;
+    const coverQuery = `${title || artist} cover`.trim();
     const coverResults = await searchYouTube(coverQuery, apiKey, 2);
     results.push(...coverResults.map(r => ({ ...r, type: 'cover' as const })));
     
@@ -161,4 +187,22 @@ async function searchYouTube(
     title: item.snippet.title,
     channel: item.snippet.channelTitle,
   }));
+}
+
+async function fetchYouTubeVideoSnippet(videoId: string, apiKey: string): Promise<{ title: string; channel: string } | null> {
+  const params = new URLSearchParams({
+    part: 'snippet',
+    id: videoId,
+    key: apiKey,
+  });
+
+  const res = await fetch(`${YOUTUBE_API_BASE}/videos?${params}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const item = data.items?.[0];
+  if (!item) return null;
+  return {
+    title: item.snippet?.title || 'YouTube video',
+    channel: item.snippet?.channelTitle || 'YouTube',
+  };
 }
