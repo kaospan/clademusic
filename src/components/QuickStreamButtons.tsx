@@ -6,6 +6,7 @@ import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
 import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 
 interface QuickStreamButtonsProps {
   track: TrackProviderInfo;
@@ -98,21 +99,36 @@ export function QuickStreamButtons({
     });
   }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId]);
 
-  const handleYouTubeClick = useCallback(() => {
-    if (!hasYouTube || !track.youtubeId) return;
-    
+  const handleYouTubeClick = useCallback(async () => {
     setPreferredProvider('youtube');
+
+    // If we already have a YouTube ID, use it; otherwise, search for a best match.
+    let resolvedId = youtubeTrackId;
+    if (!resolvedId) {
+      try {
+        const results = await searchYouTubeVideos(trackArtist || '', trackTitle || '');
+        resolvedId = results[0]?.videoId;
+      } catch (err) {
+        console.warn('YouTube search failed; falling back to no-op', err);
+      }
+    }
+
+    if (!resolvedId) {
+      console.warn('No YouTube result found for track; cannot play');
+      return;
+    }
+
     openPlayer({
       canonicalTrackId,
       provider: 'youtube',
-      providerTrackId: youtubeTrackId,
+      providerTrackId: resolvedId,
       autoplay: true,
       context: 'quick-stream',
       title: trackTitle,
       artist: trackArtist,
       startSec: currentPositionSec,
     });
-  }, [hasYouTube, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, youtubeTrackId]);
+  }, [canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, youtubeTrackId]);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -160,19 +176,16 @@ export function QuickStreamButtons({
       <motion.button
         whileHover={{ scale: hasYouTube ? 1.05 : 1 }}
         whileTap={{ scale: hasYouTube ? 0.97 : 1 }}
-        onClick={hasYouTube ? handleYouTubeClick : undefined}
+        onClick={handleYouTubeClick}
         data-provider="youtube"
-        disabled={!hasYouTube}
         className={cn(
           sizeClasses[size],
           'rounded-full flex items-center justify-center transition-all',
-          hasYouTube
-            ? 'bg-gradient-to-br from-[#FF0000] to-[#CC0000] text-white shadow-lg hover:shadow-xl hover:from-[#FF0000] hover:to-[#EE0000] cursor-pointer'
-            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60',
+          'bg-gradient-to-br from-[#FF0000] to-[#CC0000] text-white shadow-lg hover:shadow-xl hover:from-[#FF0000] hover:to-[#EE0000] cursor-pointer',
           currentProvider === 'youtube' && isCurrentTrack && 'ring-2 ring-white ring-offset-2 ring-offset-background'
         )}
-        title={hasYouTube ? 'Play on YouTube' : 'YouTube unavailable'}
-        aria-label={hasYouTube ? `Play ${trackTitle} on YouTube` : 'YouTube unavailable'}
+        title={hasYouTube ? 'Play on YouTube' : 'Find on YouTube'}
+        aria-label={hasYouTube ? `Play ${trackTitle} on YouTube` : `Find ${trackTitle} on YouTube`}
       >
         <YouTubeIcon className={iconSizes[size]} />
       </motion.button>
