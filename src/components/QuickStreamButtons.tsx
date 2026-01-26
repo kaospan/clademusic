@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Music } from 'lucide-react';
 import { useCallback } from 'react';
 import { TrackProviderInfo, getProviderLinks } from '@/lib/providers';
-import { setPreferredProvider } from '@/lib/preferences';
+import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
 import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
 
@@ -36,118 +36,67 @@ const YouTubeIcon = ({ className }: { className?: string }) => (
 
 /**
  * Provider buttons for Spotify and YouTube.
- * Triggers the universal player with autoplay for the selected provider.
+ * Clickable buttons that trigger autoplay in the universal player.
  */
 export function QuickStreamButtons({
   track,
   canonicalTrackId = null,
   trackTitle = 'Track',
-  trackArtist = 'Unknown artist',
+  trackArtist,
   className,
   size = 'md',
 }: QuickStreamButtonsProps) {
-  const { openPlayer } = usePlayer();
   const links = getProviderLinks(track);
+  const spotifyLink = links.find((l) => l.provider === 'spotify');
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
   const { openPlayer } = usePlayer();
+
   const hasSpotify = Boolean(track.spotifyId || spotifyLink);
   const hasYouTube = Boolean(track.youtubeId || youtubeLink);
   const unavailable = !hasSpotify && !hasYouTube;
 
-  const spotifyTrackId = track.spotifyId ?? null;
-  const youtubeTrackId = track.youtubeId ?? null;
-  const normalizedCanonicalId = canonicalTrackId ?? null;
-
-  const handleProviderPlay = useCallback(
-    (provider: 'spotify' | 'youtube') => {
-      const providerTrackId = provider === 'spotify' ? spotifyTrackId : youtubeTrackId;
-
-      if (!providerTrackId) {
-        return;
-      }
-
-      openPlayer({
-        canonicalTrackId: normalizedCanonicalId ?? providerTrackId,
-        provider,
-        providerTrackId,
-        autoplay: true,
-        context: 'quick-stream-buttons',
-        title: trackTitle,
-        artist: trackArtist,
-      });
-
-      setPreferredProvider(provider);
-    },
-    [
-      normalizedCanonicalId,
-      openPlayer,
-      spotifyTrackId,
-      trackArtist,
-      trackTitle,
-      youtubeTrackId,
-    ]
-  );
-
-  const sizeClasses = {
-    if (!hasSpotify) return;
-    if (track.spotifyId) {
-      setPreferredProvider('spotify');
-      openPlayer({
-        canonicalTrackId,
-        provider: 'spotify',
-        providerTrackId: track.spotifyId,
-        autoplay: true,
-        context: 'quick-stream',
-        title: trackTitle,
-        artist: trackArtist,
-      });
-      return;
-    }
-
-    if (spotifyLink) {
-      openProviderLink(spotifyLink);
-    }
-  }, [hasSpotify, canonicalTrackId, track.spotifyId, trackTitle, trackArtist, openPlayer, spotifyLink]);
+  const handleSpotifyClick = useCallback(() => {
+    if (!hasSpotify || !track.spotifyId) return;
+    
+    setPreferredProvider('spotify');
+    openPlayer({
+      canonicalTrackId,
+      provider: 'spotify',
+      providerTrackId: track.spotifyId,
+      autoplay: true,
+      context: 'quick-stream',
+      title: trackTitle,
+      artist: trackArtist,
+    });
+  }, [hasSpotify, canonicalTrackId, track.spotifyId, trackTitle, trackArtist, openPlayer]);
 
   const handleYouTubeClick = useCallback(() => {
-    <div className={cn('flex items-center gap-2', className)}>
-      <motion.button
-        type="button"
-        data-provider="spotify"
-        disabled={!hasSpotify}
-        whileTap={hasSpotify ? { scale: 0.92 } : undefined}
-        className={cn(
-          sizeClasses[size],
-          'rounded-full flex items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary',
-          hasSpotify ? 'text-white cursor-pointer' : 'text-muted-foreground opacity-30 cursor-not-allowed',
-          'disabled:cursor-not-allowed disabled:opacity-30'
-        )}
-        title={hasSpotify ? 'Play on Spotify' : 'Spotify unavailable'}
-        aria-label={hasSpotify ? 'Play on Spotify' : 'Spotify unavailable'}
-        onClick={() => handleProviderPlay('spotify')}
-      >
-        <SpotifyIcon className={iconSizes[size]} />
-      </motion.button>
+    if (!hasYouTube || !track.youtubeId) return;
+    
+    setPreferredProvider('youtube');
+    openPlayer({
+      canonicalTrackId,
+      provider: 'youtube',
+      providerTrackId: track.youtubeId,
+      autoplay: true,
+      context: 'quick-stream',
+      title: trackTitle,
+      artist: trackArtist,
+    });
+  }, [hasYouTube, canonicalTrackId, track.youtubeId, trackTitle, trackArtist, openPlayer]);
 
-      <motion.button
-        type="button'
-        data-provider="youtube"
-        disabled={!hasYouTube}
-        whileTap={hasYouTube ? { scale: 0.92 } : undefined}
-        className={cn(
-          sizeClasses[size],
-          'rounded-full flex items-center justify-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary',
-          hasYouTube ? 'text-foreground cursor-pointer' : 'text-muted-foreground opacity-30 cursor-not-allowed',
-          'disabled:cursor-not-allowed disabled:opacity-30'
-        )}
-        title={hasYouTube ? 'Play on YouTube' : 'YouTube unavailable'}
-        aria-label={hasYouTube ? 'Play on YouTube' : 'YouTube unavailable'}
-        onClick={() => handleProviderPlay('youtube')}
-      >
-        <YouTubeIcon className={iconSizes[size]} />
-      </motion.button>
-    </div>
+  const sizeClasses = {
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12',
+  } as const;
+
+  const iconSizes = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6',
+  } as const;
 
   if (unavailable) {
     return (
@@ -170,7 +119,7 @@ export function QuickStreamButtons({
           sizeClasses[size],
           'rounded-full flex items-center justify-center transition-all',
           hasSpotify
-            ? 'bg-black text-white shadow-lg'
+            ? 'bg-black text-white shadow-lg cursor-pointer'
             : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60',
           preferredProvider === 'spotify' && hasSpotify && 'ring-2 ring-white ring-offset-2 ring-offset-background'
         )}
@@ -190,7 +139,7 @@ export function QuickStreamButtons({
           sizeClasses[size],
           'rounded-full flex items-center justify-center transition-all',
           hasYouTube
-            ? 'bg-black text-white shadow-lg'
+            ? 'bg-black text-white shadow-lg cursor-pointer'
             : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60',
           preferredProvider === 'youtube' && hasYouTube && 'ring-2 ring-white ring-offset-2 ring-offset-background'
         )}
