@@ -30,6 +30,8 @@ export default function SearchPage() {
   const [query, setQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'song' | 'chord'>('song');
   const [spotifyResults, setSpotifyResults] = useState<Track[]>([]);
+  const [spotifyTotal, setSpotifyTotal] = useState(0);
+  const [spotifyOffset, setSpotifyOffset] = useState(0);
   const [youtubeResults, setYoutubeResults] = useState<Track[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
@@ -54,17 +56,24 @@ export default function SearchPage() {
   useEffect(() => {
     if (searchMode !== 'song' || !query.trim() || !user || !isSpotifyConnected) {
       setSpotifyResults([]);
+      setSpotifyTotal(0);
+      setSpotifyOffset(0);
       return;
     }
 
+    setSpotifyOffset(0);
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const results = await searchSpotify(user.id, query, 20);
-        setSpotifyResults(results);
+        const { tracks, total } = await searchSpotify(user.id, query, 50, 0);
+        setSpotifyResults(tracks);
+        setSpotifyTotal(total);
+        setSpotifyOffset(tracks.length);
       } catch (error) {
         console.error('Spotify search error:', error);
         setSpotifyResults([]);
+        setSpotifyTotal(0);
+        setSpotifyOffset(0);
       } finally {
         setIsSearching(false);
       }
@@ -72,6 +81,21 @@ export default function SearchPage() {
 
     return () => clearTimeout(timer);
   }, [query, searchMode, user, isSpotifyConnected]);
+
+  const loadMoreSpotify = useCallback(async () => {
+    if (!user) return;
+    setIsSearching(true);
+    try {
+      const { tracks, total } = await searchSpotify(user.id, query, 50, spotifyOffset);
+      setSpotifyResults((prev) => [...prev, ...tracks]);
+      setSpotifyTotal(total);
+      setSpotifyOffset((prev) => prev + tracks.length);
+    } catch (error) {
+      console.error('Spotify load-more error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [user, query, spotifyOffset]);
 
   // YouTube search fallback when Spotify is not connected
   useEffect(() => {
@@ -643,6 +667,19 @@ export default function SearchPage() {
                   </div>
                 </motion.div>
               ))}
+
+              {spotifyResults.length < spotifyTotal && (
+                <div className="flex justify-center py-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMoreSpotify}
+                    disabled={isSearching}
+                  >
+                    {isSearching ? 'Loading…' : 'Load more Spotify results'}
+                  </Button>
+                </div>
+              )}
               {/* YouTube search results (fallback when Spotify not connected) */}
               {youtubeResults.map((track, index) => (
                 <motion.div
