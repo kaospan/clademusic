@@ -163,6 +163,11 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             deviceIdRef.current = device_id;
             setReady(true);
             console.log('[Spotify] READY device:', device_id);
+            try {
+              await player.setVolume(Math.max(0.8, MIN_AUDIBLE_VOLUME));
+            } catch (err) {
+              console.warn('[Spotify] Failed to set initial volume', err);
+            }
             void logActiveDevice(token);
             const shouldPlay = autoplay ?? autoplaySpotify ?? true;
             const transferred = await transferPlayback(device_id, token, shouldPlay);

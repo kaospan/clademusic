@@ -591,7 +591,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => {
       const updates: Partial<PlayerState> = {
         canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
-        seekToSec: null,
         provider,
         trackId: providerTrackId ?? prev.trackId,
         trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
