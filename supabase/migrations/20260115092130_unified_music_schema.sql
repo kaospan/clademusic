@@ -164,7 +164,7 @@ DROP CONSTRAINT IF EXISTS user_providers_provider_check;
 
 ALTER TABLE public.user_providers
 ADD CONSTRAINT user_providers_provider_check
-CHECK (provider IN ('spotify', 'apple_music', 'deezer', 'soundcloud', 'youtube', 'amazon_music'));
+CHECK (provider IN ('spotify', 'apple_music', 'deezer', 'soundcloud', 'youtube', 'amazon_music', 'lastfm'));
 
 -- Add indices for better query performance
 CREATE INDEX IF NOT EXISTS idx_tracks_isrc_artists ON public.tracks(isrc, artists) WHERE isrc IS NOT NULL;
