@@ -64,34 +64,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const autoplay = isPlaying;
   const [showVideo, setShowVideo] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
-  const [displayPositionSec, setDisplayPositionSec] = useState(0);
-
-  // Smooth seekbar progress even if provider doesn't emit frequent ticks
-  useEffect(() => {
-    const next = Math.max(0, safeMs(positionMs) / 1000);
-    setDisplayPositionSec(next);
-  }, [positionMs, trackId]);
-
-  useEffect(() => {
-    if (!isPlaying || durationMs === undefined || durationMs === null) return;
-    const start = performance.now();
-    const startPos = displayPositionSec;
-    const tick = () => {
-      const elapsed = (performance.now() - start) / 1000;
-      setDisplayPositionSec((prev) => {
-        const candidate = (startPos || prev) + elapsed;
-        const limit = Math.max(candidate, safeMs(durationMs) / 1000);
-        return Math.min(candidate, limit);
-      });
-    };
-    const id = window.setInterval(tick, 500);
-    return () => window.clearInterval(id);
-  }, [isPlaying, durationMs, displayPositionSec]);
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
   const safeMs = (value: number) => (Number.isFinite(value) ? Math.max(0, value) : 0);
-  const positionSec = displayPositionSec;
+  const positionSec = Math.max(0, safeMs(positionMs) / 1000);
   const durationSec = Math.max(positionSec, safeMs(durationMs) / 1000);
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
   const effectiveCanNext = canNext ?? queue.length > 1;
