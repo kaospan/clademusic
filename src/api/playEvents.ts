@@ -9,10 +9,6 @@ import { MusicProvider } from '@/types';
 type PlayAction = 'open_app' | 'open_web' | 'preview';
 
 interface RecordPlayEventParams {
-// Only allow interaction types that the user_interactions check constraint accepts.
-// Known enum (see types/index.ts): like | save | skip | more_harmonic | more_vibe | share
-// Play events are tracked elsewhere; avoid writing incompatible play_* rows that 400.
-const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', 'more_vibe', 'share']);
   track_id: string;
   provider: MusicProvider;
   action: PlayAction;
@@ -20,6 +16,11 @@ const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', '
   device?: string;
   metadata?: Record<string, unknown>;
 }
+
+// Only allow interaction types that the user_interactions check constraint accepts.
+// Known enum (see types/index.ts): like | save | skip | more_harmonic | more_vibe | share
+// Play events are tracked elsewhere; avoid writing incompatible play_* rows that 400.
+const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', 'more_vibe', 'share']);
 
 let interactionsDisabled = false;
 let interactionsDisabledReason: string | null = null;
@@ -37,6 +38,13 @@ function disableInteractions(reason: string) {
 /**
  * Record a play event (non-hook version for use outside React components)
  */
+export async function recordPlayEvent(params: RecordPlayEventParams): Promise<void> {
+  if (interactionsDisabled) return;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
       // If the table enforces a strict interaction_type enum, skip incompatible play_* values to avoid 400s
       const interaction_type = `play_${params.action}`;
       if (!ALLOWED_INTERACTIONS.has(interaction_type)) {
@@ -48,13 +56,6 @@ function disableInteractions(reason: string) {
         user_id: user.id,
         track_id: params.track_id,
         interaction_type,
-      });
-    
-    if (user) {
-      const { error } = await supabase.from('user_interactions').insert({
-        user_id: user.id,
-        track_id: params.track_id,
-        interaction_type: `play_${params.action}`,
       });
 
       if (error) {
