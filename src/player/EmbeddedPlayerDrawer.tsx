@@ -161,10 +161,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
   const dragBounds = useMemo(() => {
     if (typeof window === 'undefined') {
-      return { left: -200, right: 200, top: -60, bottom: 400 };
+      return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
     }
-    const halfWidth = window.innerWidth / 2;
-    return { left: -halfWidth, right: halfWidth, top: -60, bottom: window.innerHeight };
+    return {
+      left: -window.innerWidth,
+      right: window.innerWidth,
+      top: -window.innerHeight,
+      bottom: window.innerHeight,
+    };
   }, []);
 
   return (
@@ -180,7 +184,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           exit={{ y: -20, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           data-player="universal"
-          className="pointer-events-auto fixed bottom-4 left-0 -translate-x-0 z-[9999] w-full rounded-none md:top-3 md:left-1/2 md:-translate-x-1/2 md:w-[min(720px,calc(100vw-32px))] md:bottom-auto"
+          className="pointer-events-auto fixed top-3 left-1/2 -translate-x-1/2 z-[9999] w-[min(100vw-16px,780px)] rounded-none md:w-[min(720px,calc(100vw-32px))]"
         >
           <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
@@ -349,7 +353,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         <motion.div
           drag
           dragElastic={0.2}
-          dragConstraints={{ left: -80, right: 80, top: -80, bottom: 200 }}
+          dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
           onDragEnd={(_, info) => {
             setMiniPosition({ x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y });
           }}
