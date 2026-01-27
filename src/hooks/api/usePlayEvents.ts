@@ -31,6 +31,23 @@ interface PlayEventData {
   context?: string;
 }
 
+// Only allow interaction types that the user_interactions check constraint accepts.
+// Known enum (see supabase): like | save | skip | more_harmonic | more_vibe | share
+const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', 'more_vibe', 'share']);
+
+let interactionsDisabled = false;
+let interactionsWarned = false;
+let interactionsDisabledReason: string | null = null;
+
+function disableInteractions(reason: string) {
+  interactionsDisabled = true;
+  interactionsDisabledReason = reason;
+  if (!interactionsWarned) {
+    console.warn('[PlayEvents] disabled user_interactions:', reason);
+    interactionsWarned = true;
+  }
+}
+
 /**
  * Hook to record a play event
  * Uses user_interactions table as a stand-in until play_events table exists
@@ -41,17 +58,48 @@ export function useRecordPlayEvent() {
 
   return useMutation({
     mutationFn: async (params: RecordPlayEventParams): Promise<PlayEventData> => {
+      if (interactionsDisabled) {
+        return {
+          id: crypto.randomUUID(),
+          user_id: user?.id,
+          track_id: params.track_id,
+          provider: params.provider,
+          action: params.action,
+          played_at: new Date().toISOString(),
+          context: params.context,
+        };
+      }
+
       // Record as interaction instead until play_events table exists
       if (user) {
+        const interaction_type = `play_${params.action}`;
+
+        // If the enum/check constraint doesn't allow this interaction, skip insert to avoid 400s
+        if (!ALLOWED_INTERACTIONS.has(interaction_type)) {
+          disableInteractions(`unsupported interaction_type ${interaction_type}`);
+          return {
+            id: crypto.randomUUID(),
+            user_id: user.id,
+            track_id: params.track_id,
+            provider: params.provider,
+            action: params.action,
+            played_at: new Date().toISOString(),
+            context: params.context,
+          };
+        }
+
         const { error } = await supabase
           .from('user_interactions')
           .insert({
             user_id: user.id,
             track_id: params.track_id,
-            interaction_type: `play_${params.action}`,
+            interaction_type,
           });
         
-        if (error) console.warn('Failed to record play interaction:', error);
+        if (error) {
+          const reason = error.message || error.code || 'unknown';
+          disableInteractions(`insert failed (${reason})`);
+        }
       }
 
       // Return mock play event data
