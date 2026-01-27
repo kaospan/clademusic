@@ -186,6 +186,12 @@ export function useHarmonicAnalysis(
             setConfidence(updatedJob.result.confidence_score);
           }
 
+          // Cached reuse path still delivers a result
+          if (updatedJob.status === 'cached' && updatedJob.result) {
+            setFingerprint(updatedJob.result as HarmonicFingerprint);
+            setConfidence(updatedJob.result.confidence_score);
+          }
+
           // If failed, set error
           if (updatedJob.status === 'failed') {
             setError(new Error(updatedJob.error_message || 'Analysis failed'));

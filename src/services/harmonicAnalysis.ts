@@ -179,6 +179,7 @@ export async function queueAnalysis(request: AnalysisJobRequest): Promise<Analys
         audio_hash: request.audio_hash,
         isrc: request.isrc,
         priority: request.priority ?? 'normal',
+        job_id: jobId,
       },
     })
     .then(({ data, error }) => {
@@ -542,6 +543,15 @@ async function waitForJob(jobId: string): Promise<AnalysisResult | null> {
         fingerprint: job.result,
         confidence: extractConfidence(job.result),
         method: 'ml_audio',
+        processing_time_ms: 0,
+      };
+    }
+
+    if (job.status === 'cached' && job.result) {
+      return {
+        fingerprint: job.result,
+        confidence: extractConfidence(job.result),
+        method: 'cached',
         processing_time_ms: 0,
       };
     }
