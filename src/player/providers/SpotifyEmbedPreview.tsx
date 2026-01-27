@@ -133,6 +133,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const deviceIdRef = useRef<string | null>(null);
   const tokenRef = useRef<string | null>(null);
   const volumeRef = useRef<number>(volume);
+  const lastPositionRef = useRef<number>(0);
   const [ready, setReady] = useState(false);
   const [useEmbedFallback, setUseEmbedFallback] = useState(false);
 
@@ -225,6 +226,13 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
                 : [];
               const artistNames = artistsArr.map((a) => a?.name).filter(Boolean).join(', ') || null;
 
+              const pos = typeof state.position === 'number' ? state.position : 0;
+              const lastPos = lastPositionRef.current;
+              const isGlitchyBackward = pos < lastPos - 1500 && !state.paused;
+              if (!isGlitchyBackward) {
+                lastPositionRef.current = pos;
+              }
+
               console.log('[Spotify] state:', {
                 paused: state.paused,
                 position: state.position,
@@ -236,7 +244,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
                 setDuration(state.duration);
               }
               updatePlaybackState({
-                positionMs: state.position,
+                positionMs: isGlitchyBackward ? lastPos : pos,
                 durationMs: state.duration,
                 isPlaying: !state.paused,
                 volume: state.volume ?? volumeRef.current,
