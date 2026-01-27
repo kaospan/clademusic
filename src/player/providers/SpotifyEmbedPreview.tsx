@@ -137,6 +137,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const [ready, setReady] = useState(false);
   const [useEmbedFallback, setUseEmbedFallback] = useState(false);
   const lastTrackIdRef = useRef<string | null>(null);
+  const lastEmitTsRef = useRef<number>(0);
 
   // Sync volume ref
   useEffect(() => {
@@ -253,19 +254,24 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
               if (typeof state.duration === 'number' && Number.isFinite(state.duration)) {
                 setDuration(state.duration);
               }
-              try {
-                updatePlaybackState({
-                  positionMs: isGlitchyBackward ? lastPos : pos,
-                  durationMs: Number.isFinite(state.duration) ? state.duration : undefined,
-                  isPlaying: !state.paused,
-                  volume: typeof state.volume === 'number' ? state.volume : volumeRef.current,
-                  isMuted: state.volume === 0,
-                  trackTitle: state.track_window?.current_track?.name ?? null,
-                  trackArtist: artistNames,
-                  trackAlbum: state.track_window?.current_track?.album?.name ?? null,
-                });
-              } catch (err) {
-                console.warn('[Spotify] updatePlaybackState failed', err);
+              // Throttle state emissions to reduce jitter (max ~10Hz)
+              const now = performance.now();
+              if (now - lastEmitTsRef.current >= 90) {
+                lastEmitTsRef.current = now;
+                try {
+                  updatePlaybackState({
+                    positionMs: pos,
+                    durationMs: Number.isFinite(state.duration) ? state.duration : undefined,
+                    isPlaying: !state.paused,
+                    volume: typeof state.volume === 'number' ? state.volume : volumeRef.current,
+                    isMuted: state.volume === 0,
+                    trackTitle: state.track_window?.current_track?.name ?? null,
+                    trackArtist: artistNames,
+                    trackAlbum: state.track_window?.current_track?.album?.name ?? null,
+                  });
+                } catch (err) {
+                  console.warn('[Spotify] updatePlaybackState failed', err);
+                }
               }
               if (state.track_window?.current_track?.id) {
                 lastTrackStarted.id = state.track_window.current_track.id;

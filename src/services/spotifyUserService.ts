@@ -243,7 +243,13 @@ export async function getTopTracks(
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        console.warn('[Spotify] top tracks forbidden/unauthorized; treating as disconnected');
+        return [];
+      }
+      return [];
+    }
 
     const data = await response.json();
     return data.items.map((track: SpotifyTopTrack) => ({
@@ -287,7 +293,13 @@ export async function getTopArtists(
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        console.warn('[Spotify] top artists forbidden/unauthorized; treating as disconnected');
+        return [];
+      }
+      return [];
+    }
 
     const data = await response.json();
     return data.items;
