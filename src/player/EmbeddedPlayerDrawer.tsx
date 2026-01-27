@@ -1,10 +1,11 @@
-import { useMemo, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, Square, SkipBack, SkipForward } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, Square, SkipBack, SkipForward, ListMusic } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { QueueSheet } from './QueueSheet';
 
 const providerMeta = {
   spotify: { label: 'Spotify', badge: '🎧', color: 'bg-black/90' },
@@ -55,11 +56,36 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   } = usePlayer();
   const cinemaRef = useRef<HTMLDivElement | null>(null);
   const autoplay = isPlaying;
+  const [showVideo, setShowVideo] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const [displayPositionSec, setDisplayPositionSec] = useState(0);
+
+  // Smooth seekbar progress even if provider doesn't emit frequent ticks
+  useEffect(() => {
+    const next = Math.max(0, safeMs(positionMs) / 1000);
+    setDisplayPositionSec(next);
+  }, [positionMs, trackId]);
+
+  useEffect(() => {
+    if (!isPlaying || durationMs === undefined || durationMs === null) return;
+    const start = performance.now();
+    const startPos = displayPositionSec;
+    const tick = () => {
+      const elapsed = (performance.now() - start) / 1000;
+      setDisplayPositionSec((prev) => {
+        const candidate = (startPos || prev) + elapsed;
+        const limit = Math.max(candidate, safeMs(durationMs) / 1000);
+        return Math.min(candidate, limit);
+      });
+    };
+    const id = window.setInterval(tick, 500);
+    return () => window.clearInterval(id);
+  }, [isPlaying, durationMs, displayPositionSec]);
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
   const safeMs = (value: number) => (Number.isFinite(value) ? Math.max(0, value) : 0);
-  const positionSec = safeMs(positionMs) / 1000;
+  const positionSec = displayPositionSec;
   const durationSec = Math.max(positionSec, safeMs(durationMs) / 1000);
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
   const effectiveCanNext = canNext ?? queue.length > 1;
@@ -174,6 +200,24 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
+                onClick={() => setQueueOpen(true)}
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                aria-label="Show queue"
+                title="Show queue"
+              >
+                <ListMusic className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowVideo((v) => !v)}
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                aria-label={showVideo ? 'Hide video' : 'Show video'}
+                title={showVideo ? 'Hide video' : 'Show video'}
+              >
+                {showVideo ? <ChevronUp className="h-3 w-3 md:h-4 md:w-4" /> : <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />}
+              </button>
+              <button
+                type="button"
                 onClick={() => (effectiveCanPrev ? (onPrev ? onPrev() : previousTrack()) : null)}
                 disabled={!effectiveCanPrev}
                 className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
@@ -231,6 +275,28 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             </div>
           </div>
 
+          {/* Video area slides from top of player */}
+          <AnimatePresence initial={false}>
+            {showVideo && provider && trackId && (
+              <motion.div
+                key="video-pane"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="overflow-hidden bg-black/80"
+              >
+                <div className="relative">
+                  {provider === 'spotify' ? (
+                    <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
+                  ) : (
+                    <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Compact Controls Row: Seekbar + Volume inline */}
           <div className="flex items-center gap-2 px-3 pb-3 md:px-4 md:pb-4 text-white">
             <span className="text-[10px] md:text-xs tabular-nums" aria-label="Elapsed time">{formatTime(positionSec)}</span>
@@ -281,7 +347,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           </div>
         </div>
 
-        {/* Embeds are rendered once at the root to avoid duplicates; see shared container below */}
         </motion.div>
       )}
 
@@ -323,43 +388,18 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         </motion.div>
       )}
 
-      {/* Single shared embed container to guarantee exactly one iframe */}
-      <div
-        ref={isCinema && provider === 'youtube' ? cinemaRef : undefined}
-        className={cn(
-          'fixed bottom-0 left-0 right-0 pointer-events-auto',
-          isCinema && provider === 'youtube'
-            ? 'inset-0 z-[140] bg-black/80 flex items-center justify-center'
-            : 'z-[120] h-[1px] overflow-hidden md:h-[52px]'
-        )}
-        aria-hidden
-      >
-        {isCinema && provider === 'youtube' && (
-          <>
-            <div className="absolute inset-0 bg-black/60 pointer-events-none" />
-            <div className="absolute top-4 right-4 z-20">
-              <button
-                type="button"
-                onClick={() => {
-                  document.exitFullscreen?.();
-                  exitCinema();
-                }}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
-                aria-label="Exit cinema mode"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          </>
-        )}
-        {provider && trackId ? (
-          provider === 'spotify' ? (
-            <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
-          ) : (
-            <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
-          )
-        ) : null}
-      </div>
+      {/* Queue sheet */}
+      <QueueSheet
+        open={queueOpen}
+        onOpenChange={setQueueOpen}
+        queue={queue}
+        currentIndex={queueIndex}
+        onPlayTrack={(idx) => playFromQueue(idx)}
+        onRemoveTrack={(idx) => removeFromQueue(idx)}
+        onReorderQueue={reorderQueue}
+        onClearQueue={clearQueue}
+        onShuffleQueue={shuffleQueue}
+      />
     </>
   );
 }
