@@ -1482,6 +1482,24 @@ const rawSeedTracks: SeedTrack[] = [
   ...additionalHistoricalTracks,
 ];
 
+// Deterministic UUID mapping for legacy seed-* ids to satisfy UUID-only track_id
+const canonicalSeedId = (id: string): string => {
+  const match = /^seed-(\d+)$/.exec(id);
+  if (!match) return id;
+  const numeric = match[1].padStart(12, '0').slice(-12);
+  return `00000000-0000-4000-8000-${numeric}`;
+};
+
+export const seedTracks: SeedTrack[] = rawSeedTracks.map((track) => {
+  const id = canonicalSeedId(track.id);
+  const externalId = track.external_id && track.external_id.startsWith('spotify:track:seed')
+    ? id
+    : track.external_id ?? id;
+  return { ...track, id, external_id: externalId };
+});
+
+export { canonicalSeedId };
+
 // Progression archetypes for cold start / search
 export const progressionArchetypes = [
   // Pop & Rock Classics
