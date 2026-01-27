@@ -6,6 +6,20 @@
 
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
+// If we encounter auth/quota errors, disable further YouTube API calls for this session
+let youtubeSearchDisabled = false;
+let youtubeSearchDisabledReason: string | null = null;
+let youtubeWarningLogged = false;
+
+function disableYouTubeSearch(reason: string) {
+  youtubeSearchDisabled = true;
+  youtubeSearchDisabledReason = reason;
+  if (!youtubeWarningLogged) {
+    console.warn('[YouTubeSearch] disabled:', reason);
+    youtubeWarningLogged = true;
+  }
+}
+
 function extractYouTubeId(input: string): string | null {
   if (!input) return null;
   // Direct 11-char ID
@@ -45,10 +59,14 @@ export interface VideoResult {
  * Fetch a single YouTube video by ID and return minimal metadata as a Track-like object
  */
 export async function getYouTubeVideo(videoId: string) {
+  if (youtubeSearchDisabled) {
+    return null;
+  }
+
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
 
   if (!apiKey) {
-    console.warn('YouTube API key not configured');
+    disableYouTubeSearch('YouTube API key not configured');
     return null;
   }
 
@@ -60,7 +78,12 @@ export async function getYouTubeVideo(videoId: string) {
 
   try {
     const res = await fetch(`${YOUTUBE_API_BASE}/videos?${params}`);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        disableYouTubeSearch(`YouTube API returned ${res.status} for video lookup`);
+      }
+      return null;
+    }
     const data = await res.json();
     const item = data.items?.[0];
     if (!item) return null;
@@ -110,10 +133,18 @@ export async function searchYouTubeVideos(
   artist: string,
   title: string
 ): Promise<VideoResult[]> {
+  if (youtubeSearchDisabled) {
+    if (!youtubeWarningLogged && youtubeSearchDisabledReason) {
+      console.warn('[YouTubeSearch] skipped because disabled:', youtubeSearchDisabledReason);
+      youtubeWarningLogged = true;
+    }
+    return [];
+  }
+
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
   
   if (!apiKey) {
-    console.warn('YouTube API key not configured');
+    disableYouTubeSearch('YouTube API key not configured');
     return [];
   }
 
@@ -164,6 +195,8 @@ async function searchYouTube(
   apiKey: string,
   maxResults: number
 ): Promise<Omit<VideoResult, 'type'>[]> {
+  if (youtubeSearchDisabled) return [];
+
   const params = new URLSearchParams({
     part: 'snippet',
     q: query,
@@ -177,6 +210,9 @@ async function searchYouTube(
   
   if (!response.ok) {
     console.error('YouTube API error:', response.status);
+    if (response.status === 401 || response.status === 403) {
+      disableYouTubeSearch(`YouTube API returned ${response.status} for search`);
+    }
     return [];
   }
 
@@ -190,6 +226,8 @@ async function searchYouTube(
 }
 
 async function fetchYouTubeVideoSnippet(videoId: string, apiKey: string): Promise<{ title: string; channel: string } | null> {
+  if (youtubeSearchDisabled) return null;
+
   const params = new URLSearchParams({
     part: 'snippet',
     id: videoId,
@@ -197,7 +235,12 @@ async function fetchYouTubeVideoSnippet(videoId: string, apiKey: string): Promis
   });
 
   const res = await fetch(`${YOUTUBE_API_BASE}/videos?${params}`);
-  if (!res.ok) return null;
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      disableYouTubeSearch(`YouTube API returned ${res.status} for snippet fetch`);
+    }
+    return null;
+  }
   const data = await res.json();
   const item = data.items?.[0];
   if (!item) return null;
