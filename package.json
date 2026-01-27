@@ -19,7 +19,7 @@
     "cypress:run": "cypress run",
     "test:e2e": "cypress run",
     "test:e2e:smoke": "cypress run --config-file cypress.config.mjs --spec 'cypress/e2e/smoke.cy.ts'",
-    "test:e2e:smoke:auto": "start-server-and-test \"npm run dev -- --host --port 8081\" http://localhost:8081/cladeai \"cypress run --config-file cypress.config.mjs --config baseUrl=http://localhost:8081/cladeai --spec 'cypress/e2e/smoke.cy.ts'\"",
+    "test:e2e:smoke:auto": "start-server-and-test --wait-on-timeout 120000 \"npm run dev -- --host 127.0.0.1 --port 8090\" http://127.0.0.1:8090/cladeai \"cypress run --config-file cypress.config.mjs --config baseUrl=http://127.0.0.1:8090/cladeai --spec 'cypress/e2e/smoke.cy.ts'\"",
     "test:e2e:sanity": "cypress run --spec 'cypress/e2e/sanity/**/*.cy.ts'",
     "seed": "node scripts/seed.js",
     "seed:reset": "node scripts/seed.js --reset"
