@@ -51,6 +51,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     setMiniPosition,
     queue,
     queueIndex,
+    playFromQueue,
+    removeFromQueue,
+    reorderQueue,
+    clearQueue,
+    shuffleQueue,
     nextTrack,
     previousTrack,
   } = usePlayer();
