@@ -10,6 +10,7 @@ import { GuestBanner } from '@/components/GuestBanner';
 import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
 import { useFeedTracks } from '@/hooks/api/useTracks';
 import { useAuth } from '@/hooks/useAuth';
+import { useSpotifyRecommendations } from '@/hooks/api/useSpotifyUser';
 import { InteractionType, Track } from '@/types';
 import { ChevronUp, ChevronDown, LogIn, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,13 +24,15 @@ export default function FeedPage() {
   
   // Fetch from multiple sources
   const { data: trackResult, isLoading: tracksLoading, error: tracksError } = useFeedTracks(50);
+  const { data: recommendations = [], isLoading: recommendationsLoading } = useSpotifyRecommendations([], [], 50);
 
-  // Single guest-mode feed for all users (logged in or guest)
-  const feedTracks = trackResult?.tracks ?? [];
+  // Prefer personalized Spotify recommendations when available for signed-in users; fall back to feed tracks
+  const feedTracks = (user && recommendations.length > 0 ? recommendations : trackResult?.tracks) ?? [];
   const tracks: Track[] = (() => {
     const seen = new Set<string>();
     return feedTracks.filter((t) => {
       const key = t.spotify_id || t.id;
+      if (!key) return false;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -148,7 +151,7 @@ export default function FeedPage() {
     };
   }, [goToNext, goToPrevious]);
 
-  if (authLoading || tracksLoading) {
+  if (authLoading || tracksLoading || recommendationsLoading) {
     return (
       <div className="min-h-screen bg-background">
         <FeedSkeleton />
