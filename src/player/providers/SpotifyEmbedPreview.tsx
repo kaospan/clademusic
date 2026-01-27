@@ -243,16 +243,20 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
               if (state.duration) {
                 setDuration(state.duration);
               }
-              updatePlaybackState({
-                positionMs: isGlitchyBackward ? lastPos : pos,
-                durationMs: state.duration,
-                isPlaying: !state.paused,
-                volume: state.volume ?? volumeRef.current,
-                isMuted: state.volume === 0,
-                trackTitle: state.track_window?.current_track?.name ?? null,
-                trackArtist: artistNames,
-                trackAlbum: state.track_window?.current_track?.album?.name ?? null,
-              });
+              try {
+                updatePlaybackState({
+                  positionMs: isGlitchyBackward ? lastPos : pos,
+                  durationMs: state.duration,
+                  isPlaying: !state.paused,
+                  volume: typeof state.volume === 'number' ? state.volume : volumeRef.current,
+                  isMuted: state.volume === 0,
+                  trackTitle: state.track_window?.current_track?.name ?? null,
+                  trackArtist: artistNames,
+                  trackAlbum: state.track_window?.current_track?.album?.name ?? null,
+                });
+              } catch (err) {
+                console.warn('[Spotify] updatePlaybackState failed', err);
+              }
               if (state.track_window?.current_track?.id) {
                 lastTrackStarted.id = state.track_window.current_track.id;
               }
