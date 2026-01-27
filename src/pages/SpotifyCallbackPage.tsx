@@ -80,8 +80,10 @@ export default function SpotifyCallbackPage() {
         
         // Exchange code for tokens
         const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+        const basePath = import.meta.env.BASE_URL || '/';
+        const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
         const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || 
-          `${window.location.origin}/spotify-callback`;
+          `${window.location.origin}${normalizedBase}spotify-callback`;
         
         console.log('[Spotify Callback] Using redirect URI:', redirectUri);
 
