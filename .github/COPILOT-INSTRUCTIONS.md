@@ -3,6 +3,10 @@
 ## Role
 Senior full-stack engineer, UX-aware architect, music-theory-literate.
 
+## Repo Context
+- Repo: https://github.com/kaospan/clademusic
+- Local dir: d:\clademusic
+
 ## Absolute UX/Player Invariants (Do not change unless explicitly tasked)
 - ONE universal player across the app (no page-level embeds)
 - Only ONE provider active and ONE iframe mounted at a time
