@@ -68,12 +68,20 @@ export default function AdminPerformanceDashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   const safeTrends = trends.filter(
-    (t) => Number.isFinite(t.avg_duration) && Number.isFinite(t.max_duration)
+    (t) =>
+      Number.isFinite(t.avg_duration) &&
+      Number.isFinite(t.max_duration) &&
+      typeof t.test_name === 'string' &&
+      t.test_name.trim().length > 0
   );
   const hasTrends = safeTrends.length > 0;
 
   const safeHistory = featureHistory.filter(
-    (h) => Number.isFinite(h.duration_ms) && Number.isFinite(h.threshold_ms)
+    (h) =>
+      Number.isFinite(h.duration_ms) &&
+      Number.isFinite(h.threshold_ms) &&
+      typeof h.tested_at === 'string' &&
+      h.tested_at.trim().length > 0
   );
 
   useEffect(() => {
@@ -88,6 +96,7 @@ export default function AdminPerformanceDashboard() {
   const sanitizeTrends = (rows: PerformanceTrend[] | null | undefined): PerformanceTrend[] => {
     if (!rows) return [];
     return rows
+      .filter((row) => row && typeof row.test_name === 'string' && row.test_name.trim().length > 0)
       .map((row) => ({
         ...row,
         avg_duration: toNumber(row.avg_duration),
@@ -102,12 +111,13 @@ export default function AdminPerformanceDashboard() {
   const sanitizeHistory = (rows: TestHistory[] | null | undefined): TestHistory[] => {
     if (!rows) return [];
     return rows
+      .filter((row) => row && typeof row.tested_at === 'string' && row.tested_at.trim().length > 0)
       .map((row) => ({
         ...row,
         duration_ms: toNumber(row.duration_ms),
         threshold_ms: toNumber(row.threshold_ms),
       }))
-      .filter((row) => Number.isFinite(row.duration_ms));
+      .filter((row) => Number.isFinite(row.duration_ms) && Number.isFinite(row.threshold_ms));
   };
 
   const loadPerformanceData = async () => {
