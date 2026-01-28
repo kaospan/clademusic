@@ -137,8 +137,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const durationSec = Math.max(0, safeMs(durationMs) / 1000);
   
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
-  const effectiveCanNext = canNext ?? queue.length > 1;
-  const effectiveCanPrev = canPrev ?? queue.length > 1;
+  const effectiveCanNext = canNext ?? (queue.length > 1 || Boolean(onNext));
+  const effectiveCanPrev = canPrev ?? !isIdle;
 
   const meta = useMemo(() => {
     const fallback = { label: 'Now Playing', badge: '♪', color: 'bg-neutral-900/90', Icon: null as React.ComponentType<{ className?: string }> | null };
@@ -220,6 +220,29 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
   }, []);
 
+  const handlePrev = useCallback(() => {
+    if (isIdle) return;
+    if (positionMs > 3000) {
+      seekToMs(0);
+      return;
+    }
+    if (queueIndex > 0) {
+      playFromQueue(queueIndex - 1);
+      return;
+    }
+    seekToMs(0);
+  }, [isIdle, positionMs, queueIndex, playFromQueue, seekToMs]);
+
+  const handleNext = useCallback(() => {
+    if (queueIndex >= 0 && queueIndex < queue.length - 1) {
+      playFromQueue(queueIndex + 1);
+      return;
+    }
+    if (onNext) {
+      onNext();
+    }
+  }, [queueIndex, queue.length, playFromQueue, onNext]);
+
   return (
     <>
       {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
@@ -277,7 +300,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={() => (effectiveCanPrev ? (onPrev ? onPrev() : previousTrack()) : null)}
+                onClick={() => (effectiveCanPrev ? (onPrev ? onPrev() : handlePrev()) : null)}
                 disabled={!effectiveCanPrev}
                 className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Previous track"
@@ -296,7 +319,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={() => (effectiveCanNext ? (onNext ? onNext() : nextTrack()) : null)}
+                onClick={() => (effectiveCanNext ? handleNext() : null)}
                 disabled={!effectiveCanNext}
                 className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Next track"
