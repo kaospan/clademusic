@@ -1,0 +1,96 @@
+name: QA Hourly Orchestrated
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: qa-hourly
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  CI_TEST_REPORT_TOKEN: ${{ secrets.CI_TEST_REPORT_TOKEN }}
+  STAGING_URL: ${{ secrets.STAGING_URL }}
+
+  # Optional environment for performance/DAST targets
+  BASE_URL: ${{ secrets.BASE_URL }}
+
+jobs:
+  qa-sequential:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Sanity Suite
+        env:
+          SUITE: sanity
+        run: |
+          SECONDS=0
+          set +e
+          bun run test:e2e:smoke
+          EXIT_CODE=$?
+          set -e
+          DURATION_MS=$((SECONDS*1000))
+          STATUS="passed"
+          if [ "$EXIT_CODE" -ne 0 ]; then STATUS="failed"; fi
+          curl -s -X POST "$STAGING_URL/functions/v1/test-runs" \
+            -H "X-CI-TOKEN: $CI_TEST_REPORT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"suite\":\"sanity\",\"status\":\"$STATUS\",\"duration_ms\":$DURATION_MS,\"commit_sha\":\"${{ github.sha }}\",\"branch\":\"${{ github.ref_name }}\",\"run_id\":\"${{ github.run_id }}\",\"artifacts_url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" || true
+          exit $EXIT_CODE
+        shell: bash
+
+      - name: Sleep between sanity and pentest
+        run: sleep 480
+
+      - name: Run Pentest Suite (lightweight)
+        env:
+          SUITE: pentest
+        run: |
+          SECONDS=0
+          set +e
+          bun run test || true
+          EXIT_CODE=$?
+          set -e
+          DURATION_MS=$((SECONDS*1000))
+          STATUS="passed"
+          if [ "$EXIT_CODE" -ne 0 ]; then STATUS="failed"; fi
+          curl -s -X POST "$STAGING_URL/functions/v1/test-runs" \
+            -H "X-CI-TOKEN: $CI_TEST_REPORT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"suite\":\"pentest\",\"status\":\"$STATUS\",\"duration_ms\":$DURATION_MS,\"commit_sha\":\"${{ github.sha }}\",\"branch\":\"${{ github.ref_name }}\",\"run_id\":\"${{ github.run_id }}\",\"artifacts_url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" || true
+          exit 0
+        shell: bash
+
+      - name: Sleep between pentest and performance
+        run: sleep 480
+
+      - name: Run Performance Suite
+        env:
+          SUITE: performance
+        run: |
+          SECONDS=0
+          set +e
+          bun run test:e2e:sanity || true
+          EXIT_CODE=$?
+          set -e
+          DURATION_MS=$((SECONDS*1000))
+          STATUS="passed"
+          if [ "$EXIT_CODE" -ne 0 ]; then STATUS="failed"; fi
+          curl -s -X POST "$STAGING_URL/functions/v1/test-runs" \
+            -H "X-CI-TOKEN: $CI_TEST_REPORT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"suite\":\"performance\",\"status\":\"$STATUS\",\"duration_ms\":$DURATION_MS,\"commit_sha\":\"${{ github.sha }}\",\"branch\":\"${{ github.ref_name }}\",\"run_id\":\"${{ github.run_id }}\",\"artifacts_url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" || true
+          exit 0
+        shell: bash

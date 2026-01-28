@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clade - Find Your Harmony</title>
+    <meta name="description" content="Clade – Discover music by chord progressions, not genre. Find your harmony." />
+    <meta name="author" content="repoisrael" />
+    <link rel="icon" href="/clademusic/favicon.ico" />
+
+    <meta property="og:title" content="Clade - Find Your Harmony" />
+    <meta property="og:description" content="TikTok-style music discovery by harmonic structure. Find songs through chord progressions on Clade." />
+    <meta property="og:type" content="website" />
+    <!-- You can update the image below to your own opengraph image -->
+    <meta property="og:image" content="https://raw.githubusercontent.com/repoisrael/clade/main/public/og-image.png" />
+
+    <!-- Reduce stale caches on gh-pages -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@repoisrael" />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/repoisrael/clade/main/public/og-image.png" />
+    
+    <!-- Single Page Apps for GitHub Pages -->
+    <script>
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          const decoded = l.search.slice(1).split('&').map(s => 
+            s.replace(/~and~/g, '&')
+          ).join('?');
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location));
+
+      // Auto-recover from missing hashed chunks by forcing a one-time cache-busting reload
+      (function () {
+        if (sessionStorage.getItem('clade-chunk-reloaded')) return;
+        window.addEventListener('error', function (e) {
+          const msg = e?.message || '';
+          const target = e?.target;
+          const isScript = target && target.tagName === 'SCRIPT' && target.src && target.src.includes('/assets/');
+          const chunkFailed = msg.includes('Failed to fetch dynamically imported module');
+          if (chunkFailed || isScript) {
+            sessionStorage.setItem('clade-chunk-reloaded', '1');
+            const url = new URL(window.location.href);
+            url.searchParams.set('v', Date.now().toString());
+            window.location.replace(url.toString());
+          }
+        }, true);
+      })();
+    </script>
+    <script type="module" crossorigin src="/clademusic/assets/index-GNu0OiLQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/clademusic/assets/index-DYu0Vaec.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
