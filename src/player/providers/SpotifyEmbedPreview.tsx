@@ -126,7 +126,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     isMuted,
     registerProviderControls,
     updatePlaybackState,
-    setDuration,
   } = usePlayer();
 
   const playerRef = useRef<SpotifyPlayer | null>(null);
@@ -251,9 +250,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
                 track: state.track_window?.current_track?.name,
                 volume: state.device?.volume_percent ?? state.volume,
               });
-              if (typeof state.duration === 'number' && Number.isFinite(state.duration)) {
-                setDuration(state.duration);
-              }
               // Throttle state emissions to reduce jitter (max ~10Hz)
               const now = performance.now();
               if (now - lastEmitTsRef.current >= 90) {
