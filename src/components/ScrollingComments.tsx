@@ -28,20 +28,23 @@ export function ScrollingComments({
   maxVisible = 5,
   scrollSpeed = 5000,
 }: ScrollingCommentsProps) {
+  const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
   const [comments, setComments] = useState<Comment[]>([]);
   const [visibleComments, setVisibleComments] = useState<Comment[]>([]);
+
+  if (chatDisabled) {
+    return null;
+  }
+
+  if (!trackId && chatSchemaMissing) {
+    return null;
+  }
 
   // Subscribe to real-time comments
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const setupSubscription = async () => {
-      if (!trackId && chatSchemaMissing) {
-        // Avoid repeated 404s when chat_messages table is absent in the environment
-        setComments([]);
-        return;
-      }
-
       let disableRealtime = false;
       try {
         // Fetch recent comments
@@ -61,12 +64,14 @@ export function ScrollingComments({
 
         const { data, error } = await query;
         if (error) {
-          console.warn('[ScrollingComments] skipping due to schema error', error);
+          if ((error as any)?.code === 'PGRST205' || (error as any)?.message?.includes("Could not find the table 'public.chat_messages'")) {
+            console.warn('[ScrollingComments] chat_messages table missing; disabling global comments');
+            chatSchemaMissing = true;
+          } else {
+            console.warn('[ScrollingComments] skipping due to schema error', error);
+          }
           setComments([]);
           disableRealtime = true;
-          if (!trackId) {
-            chatSchemaMissing = true;
-          }
         }
 
         if (data) {
@@ -127,13 +132,16 @@ export function ScrollingComments({
     setupSubscription();
 
     return () => {
-      channel?.unsubscribe();
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [trackId, roomId]);
 
   // Manage visible comments with auto-scroll
   useEffect(() => {
     if (comments.length === 0) return;
+    if (maxVisible <= 0 || scrollSpeed <= 0) return;
 
     const interval = setInterval(() => {
       setComments((prev) => {
