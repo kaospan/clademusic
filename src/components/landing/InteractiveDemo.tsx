@@ -111,22 +111,23 @@ export function InteractiveDemo() {
 
               {/* Waveform visualization */}
               <div className="mb-8 h-32 relative">
-                <svg className="w-full h-full" preserveAspectRatio="none">
+                <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
                   {selectedTrackData.progression.map((_, index) => {
-                    const x = `${index * 25}%`;
-                    const baseHeight = '60%';
-                    const animHeights = ['40%', '70%', '40%'];
+                    const x = index * 25;
+                    const baseHeight = 60;
+                    const animHeights = [40, 70, 40];
                     return (
                       <motion.rect
                         key={index}
-                        x={x ?? ''}
-                        y="20%"
-                        width="20%"
-                        height={baseHeight ?? ''}
+                        x={x}
+                        y={20}
+                        width={20}
+                        height={baseHeight}
                         fill={selectedTrackData.color}
                         opacity={hoveredChord === index ? 0.8 : 0.4}
+                        initial={{ height: baseHeight }}
                         animate={{
-                          height: animHeights.filter(Boolean),
+                          height: animHeights,
                         }}
                         transition={{
                           duration: 1.5,

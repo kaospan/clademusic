@@ -248,12 +248,24 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       playFromQueue(queueIndex - 1);
       return;
     }
+    if (queueIndex === -1 && queue.length > 0) {
+      playFromQueue(0);
+      return;
+    }
+    if (onPrev) {
+      onPrev();
+      return;
+    }
     seekToMs(0);
-  }, [isIdle, positionMs, queueIndex, playFromQueue, seekToMs]);
+  }, [isIdle, positionMs, queueIndex, queue.length, playFromQueue, seekToMs, onPrev]);
 
   const handleNext = useCallback(() => {
     if (queueIndex >= 0 && queueIndex < queue.length - 1) {
       playFromQueue(queueIndex + 1);
+      return;
+    }
+    if (queueIndex === -1 && queue.length > 0) {
+      playFromQueue(0);
       return;
     }
     if (onNext) {
@@ -318,7 +330,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={() => (effectiveCanPrev ? (onPrev ? onPrev() : handlePrev()) : null)}
+                onClick={() => (effectiveCanPrev ? handlePrev() : null)}
                 disabled={!effectiveCanPrev}
                 className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Previous track"
