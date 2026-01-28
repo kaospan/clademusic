@@ -10,6 +10,7 @@ type SpotifyPlayer = {
   pause: () => Promise<void>;
   seek: (ms: number) => Promise<void>;
   setVolume: (volume: number) => Promise<void>;
+  getCurrentState?: () => Promise<any>;
 };
 
 type SpotifySDK = {
@@ -137,6 +138,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const [useEmbedFallback, setUseEmbedFallback] = useState(false);
   const lastTrackIdRef = useRef<string | null>(null);
   const lastEmitTsRef = useRef<number>(0);
+  const pollRef = useRef<number | null>(null);
 
   // Sync volume ref
   useEffect(() => {
@@ -289,6 +291,24 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
         playerRef.current = player;
         resumeAudioContextOnGesture();
 
+        if (pollRef.current) {
+          window.clearInterval(pollRef.current);
+        }
+        pollRef.current = window.setInterval(async () => {
+          if (!playerRef.current?.getCurrentState) return;
+          try {
+            const state = await playerRef.current.getCurrentState();
+            if (!state) return;
+            updatePlaybackState({
+              positionMs: state.position ?? 0,
+              durationMs: Number.isFinite(state.duration) ? state.duration : undefined,
+              isPlaying: !state.paused,
+            });
+          } catch (err) {
+            console.warn('[Spotify] poll state failed', err);
+          }
+        }, 750);
+
         registerProviderControls('spotify', {
           play: async (startSec) => {
             const tokenVal = tokenRef.current;
@@ -333,6 +353,10 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             deviceIdRef.current = null;
             setReady(false);
             resetSpotifyState();
+            if (pollRef.current) {
+              window.clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
           },
         });
       } catch (err) {
@@ -348,6 +372,10 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
       // Do not disconnect the singleton on unmount to avoid orphan device audio; let teardown handle it on provider switch.
       playerRef.current = null;
       setReady(false);
+      if (pollRef.current) {
+        window.clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
     };
   }, [provider, providerTrackId, user?.id, autoplay, autoplaySpotify, registerProviderControls, updatePlaybackState, seekToSec, isMuted]);
 
