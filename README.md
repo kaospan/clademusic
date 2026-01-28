@@ -164,44 +164,38 @@ bun run preview
 
 ## 📦 Deployment
 
-The app is designed to be deployed on any static hosting platform:
-
-```bash
-# Build the app
-bun run build
-
-# The `dist/` folder contains the production build
-```
-
-
-- **Cloudflare Pages** — Edge-first hosting
 
 ### Deploying to GitHub Pages
 
-1. Make sure your `package.json` includes:
+1. Ensure your `package.json` includes:
 
-  "homepage": "https://repoisrael.github.io/clade",
-  "scripts": {
-    "predeploy": "bun run build",
-    "deploy": "gh-pages -d dist"
-  }
-  ```
+   ```json
+   "homepage": "https://kaospan.github.io/clademusic/",
+   "scripts": {
+     "predeploy": "bun run build && echo . > dist/.nojekyll",
+     "deploy": "bun run build && gh-pages -d dist"
+   }
+   ```
 
 2. Install the `gh-pages` package if you haven't already:
 
-  ```bash
-  bun add -D gh-pages
-  # or: npm install --save-dev gh-pages
-  ```
+   ```bash
+   bun add -D gh-pages
+   # or: npm install --save-dev gh-pages
+   ```
 
 3. Deploy:
 
-  ```bash
-  bun run deploy
-  # or: npm run deploy
-  ```
+   ```bash
+   bun run deploy
+   # or: npm run deploy
+   ```
 
-Your site will be live at https://repoisrael.github.io/clade
+4. Go to your GitHub repository settings → Pages, and set the source to the `gh-pages` branch. Your site will be live at:
+
+   https://kaospan.github.io/clademusic/
+
+**Note:** The build output is in the `dist/` folder. The `.nojekyll` file disables Jekyll processing for static assets.
 
 ## 🤝 Contributing
 
@@ -219,5 +213,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 <p align="center">
   Made with 🎵 by <a href="https://github.com/repoisrael">repoisrael</a>
 </p>
-#   c l a d e m u s i c  
+#   c l a d e m u s i c 
+ 
  
