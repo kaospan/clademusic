@@ -34,6 +34,7 @@ function useAnimatedSeekbar(
   const rafIdRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(performance.now());
   const lastAuthorityMsRef = useRef<number>(positionMs);
+  const durationRef = useRef<number>(durationMs);
 
   // Sync to authoritative position when it changes meaningfully
   useEffect(() => {
@@ -45,6 +46,21 @@ function useAnimatedSeekbar(
     lastAuthorityMsRef.current = positionMs;
     lastFrameTimeRef.current = performance.now();
   }, [positionMs]);
+
+  // Clamp display to duration changes to avoid drift beyond track end.
+  useEffect(() => {
+    durationRef.current = durationMs;
+    if (durationMs > 0) {
+      setDisplayMs((prev) => Math.min(prev, durationMs));
+    }
+  }, [durationMs]);
+
+  // When playback stops, snap to authoritative position to stay in sync.
+  useEffect(() => {
+    if (!isPlaying) {
+      setDisplayMs(positionMs);
+    }
+  }, [isPlaying, positionMs]);
 
   // Animate forward during playback using RAF
   useEffect(() => {
@@ -62,8 +78,8 @@ function useAnimatedSeekbar(
 
       setDisplayMs((prev) => {
         const next = prev + elapsed;
-        // Clamp to duration
-        return durationMs > 0 ? Math.min(next, durationMs) : next;
+        const limit = durationRef.current;
+        return limit > 0 ? Math.min(next, limit) : next;
       });
 
       rafIdRef.current = requestAnimationFrame(animate);
