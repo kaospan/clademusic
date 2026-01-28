@@ -151,6 +151,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const animatedPositionMs = useAnimatedSeekbar(safeMs(positionMs), safeMs(durationMs), isPlaying);
   const positionSec = Math.max(0, animatedPositionMs / 1000);
   const durationSec = Math.max(0, safeMs(durationMs) / 1000);
+  const seekMaxSec = durationSec > 0 ? durationSec : Math.max(1, positionSec);
+  const seekValueSec = Math.min(positionSec, seekMaxSec);
   
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
   const effectiveCanNext = canNext ?? (queue.length > 1 || Boolean(onNext));
@@ -396,8 +398,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             <input
               type="range"
               min="0"
-              max={Math.max(durationSec, 1)}
-              value={durationSec > 0 ? Math.min(positionSec, durationSec) : positionSec}
+              max={seekMaxSec}
+              value={seekValueSec}
               onChange={(e) => seekToMs(Number(e.target.value) * 1000)}
               disabled={isIdle}
               className="flex-1 min-w-[80px] h-1 bg-white/20 rounded-full appearance-none cursor-pointer
