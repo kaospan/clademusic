@@ -397,7 +397,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               type="range"
               min="0"
               max={Math.max(durationSec, 1)}
-              value={Math.min(positionSec, durationSec)}
+              value={durationSec > 0 ? Math.min(positionSec, durationSec) : positionSec}
               onChange={(e) => seekToMs(Number(e.target.value) * 1000)}
               disabled={isIdle}
               className="flex-1 min-w-[80px] h-1 bg-white/20 rounded-full appearance-none cursor-pointer
