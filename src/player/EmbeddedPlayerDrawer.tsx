@@ -148,8 +148,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const animatedPositionMs = useAnimatedSeekbar(safeMs(positionMs), safeMs(durationMs), isPlaying);
   const positionSec = Math.max(0, animatedPositionMs / 1000);
   const durationSec = Math.max(0, safeMs(durationMs) / 1000);
-  const seekMaxSec = durationSec > 0 ? durationSec : Math.max(1, positionSec);
-  const seekValueSec = Math.min(positionSec, seekMaxSec);
+  const seekMaxSecRaw = durationSec > 0 ? durationSec : Math.max(1, positionSec);
+  const seekMaxSec = Number.isFinite(seekMaxSecRaw) && seekMaxSecRaw > 0 ? seekMaxSecRaw : 1;
+  const seekValueSecRaw = Math.min(positionSec, seekMaxSec);
+  const seekValueSec = Number.isFinite(seekValueSecRaw) ? seekValueSecRaw : 0;
   
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
   const effectiveCanNext = canNext ?? (queue.length > 1 || Boolean(onNext));
@@ -396,12 +398,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           <div className="flex items-center gap-2 px-3 pb-3 md:px-4 md:pb-4 text-white">
             <span className="text-[10px] md:text-xs tabular-nums w-12 text-right" aria-label="Elapsed time">{formatTime(positionSec)}</span>
             <input
+              key={`${provider ?? 'none'}-${trackId ?? 'none'}-seek`}
               type="range"
               min="0"
               max={seekMaxSec}
               value={seekValueSec}
               onChange={(e) => seekToMs(Number(e.target.value) * 1000)}
               disabled={isIdle}
+              step="0.1"
               className="flex-1 min-w-[80px] h-1 bg-white/20 rounded-full appearance-none cursor-pointer
                        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
                        [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
