@@ -449,7 +449,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isMinimized: false,
         isMini: false,
         isCinema: false,
-        positionMs: startSec ? startSec * 1000 : prev.positionMs,
+        positionMs: startSec ? startSec * 1000 : 0,
+        durationMs: 0,
         isMuted: false,
       };
 
@@ -523,7 +524,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         lastKnownAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
         seekToSec: payload.startSec ?? null,
         positionMs: payload.startSec ? payload.startSec * 1000 : 0,
-        durationMs: prev.durationMs || 0,
+        durationMs: 0,
         isMuted: false,
         isMinimized: false,
         isMini: false,
@@ -602,6 +603,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isPlaying: true,
         isMuted: false,
         seekToSec: handoffStartSec,
+        durationMs: 0,
       };
 
       if (provider === 'spotify') {
