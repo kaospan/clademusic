@@ -262,7 +262,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       return;
     }
     seekToMs(0);
-  }, [isIdle, positionMs, queueIndex, queue.length, playFromQueue, seekToMs, onPrev]);
+  }, [isIdle, positionMs, queueIndex, safeQueue.length, playFromQueue, seekToMs, onPrev]);
 
   const handleNext = useCallback(() => {
     if (queueIndex >= 0 && queueIndex < safeQueue.length - 1) {
@@ -276,7 +276,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     if (onNext) {
       onNext();
     }
-  }, [queueIndex, queue.length, playFromQueue, onNext]);
+  }, [queueIndex, safeQueue.length, playFromQueue, onNext]);
 
   return (
     <>
