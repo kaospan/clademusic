@@ -95,6 +95,7 @@ export function YouTubeVideoPlayer({
   onTimeUpdate,
 }: YouTubeVideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const timeUpdateInterval = useRef<number | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -105,13 +106,13 @@ export function YouTubeVideoPlayer({
     let mounted = true;
 
     loadYouTubeAPI().then(() => {
-      if (!mounted || !containerRef.current) return;
+      if (!mounted || !playerHostRef.current) return;
 
       // Create a unique ID for this player instance
       const playerId = `yt-player-${videoId}-${Date.now()}`;
       const playerDiv = document.createElement('div');
       playerDiv.id = playerId;
-      containerRef.current.replaceChildren(playerDiv);
+      playerHostRef.current.replaceChildren(playerDiv);
 
       playerRef.current = new window.YT.Player(playerId, {
         videoId,
@@ -208,6 +209,7 @@ export function YouTubeVideoPlayer({
         className
       )}
     >
+      <div ref={playerHostRef} className="absolute inset-0" />
       {!isReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80">
           <div className="flex gap-1">
