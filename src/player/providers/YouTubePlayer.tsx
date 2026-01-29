@@ -70,7 +70,14 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         window.setTimeout(() => {
           player.unMute?.();
           player.setVolume?.(100);
+          if (player.getPlayerState?.() !== window.YT?.PlayerState?.PLAYING) {
+            player.playVideo?.();
+          }
         }, 200);
+        window.setTimeout(() => {
+          player.unMute?.();
+          player.setVolume?.(100);
+        }, 650);
       };
 
       if (playerRef.current?.loadVideoById) {
@@ -83,7 +90,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         videoId: providerTrackId,
         playerVars: {
           autoplay: autoplay ? 1 : 0,
-          mute: 1,
+          mute: 0,
           controls: 0,
           modestbranding: 1,
           rel: 0,
