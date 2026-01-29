@@ -62,17 +62,15 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       if (destroyed || !window.YT || !containerRef.current) return;
 
       const startPlayback = (player: any) => {
-        player.mute?.();
         if (autoplay) {
           player.playVideo?.();
         }
-        if (!mutedRef.current) {
+        // Always attempt to unmute after a user gesture-triggered play.
+        player.setVolume?.(100);
+        window.setTimeout(() => {
+          player.unMute?.();
           player.setVolume?.(100);
-          window.setTimeout(() => {
-            player.unMute?.();
-            player.setVolume?.(100);
-          }, 200);
-        }
+        }, 200);
       };
 
       if (playerRef.current?.loadVideoById) {
