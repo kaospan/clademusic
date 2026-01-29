@@ -47,10 +47,15 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
   const mutedRef = useRef(isMuted);
+  const autoplayRef = useRef(autoplay);
 
   useEffect(() => {
     mutedRef.current = isMuted;
   }, [isMuted]);
+
+  useEffect(() => {
+    autoplayRef.current = autoplay;
+  }, [autoplay]);
 
   useEffect(() => {
     if (provider !== 'youtube' || !providerTrackId) return;
@@ -62,7 +67,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       if (destroyed || !window.YT || !containerRef.current) return;
 
       const startPlayback = (player: any) => {
-        if (autoplay) {
+        if (autoplayRef.current) {
           player.playVideo?.();
         }
         // Keep YouTube's mute state aligned with the app.
@@ -93,7 +98,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       playerRef.current = new window.YT.Player(containerRef.current, {
         videoId: providerTrackId,
         playerVars: {
-          autoplay: autoplay ? 1 : 0,
+          autoplay: autoplayRef.current ? 1 : 0,
           mute: 0,
           controls: 0,
           modestbranding: 1,
@@ -145,9 +150,14 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         },
         teardown: async () => {
           try {
+            playerRef.current?.stopVideo?.();
+            playerRef.current?.mute?.();
             playerRef.current?.destroy?.();
           } catch (err) {
             console.warn('YouTube teardown failed', err);
+          }
+          if (containerRef.current) {
+            containerRef.current.replaceChildren();
           }
         },
       });
@@ -161,13 +171,18 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         window.clearInterval(progressTimer);
       }
       try {
+        playerRef.current?.stopVideo?.();
+        playerRef.current?.mute?.();
         playerRef.current?.destroy?.();
       } catch (err) {
         console.warn('YouTube destroy failed', err);
       }
+      if (containerRef.current) {
+        containerRef.current.replaceChildren();
+      }
       playerRef.current = null;
     };
-  }, [provider, providerTrackId, autoplay, registerProviderControls, updatePlaybackState]);
+  }, [provider, providerTrackId, registerProviderControls, updatePlaybackState]);
 
   useEffect(() => {
     if (provider !== 'youtube') return;
