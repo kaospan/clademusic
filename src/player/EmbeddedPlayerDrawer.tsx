@@ -154,6 +154,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const seekValueSec = Number.isFinite(seekValueSecRaw) ? seekValueSecRaw : 0;
   
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
+  const isIdle = !isOpen || !provider || !trackId;
   const effectiveCanNext = canNext ?? (queue.length > 1 || Boolean(onNext));
   const effectiveCanPrev = canPrev ?? !isIdle;
 
@@ -161,8 +162,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     const fallback = { label: 'Now Playing', badge: '♪', color: 'bg-neutral-900/90', Icon: null as React.ComponentType<{ className?: string }> | null };
     return provider ? providerMeta[provider as keyof typeof providerMeta] ?? fallback : fallback;
   }, [provider]);
-
-  const isIdle = !isOpen || !provider || !trackId;
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
