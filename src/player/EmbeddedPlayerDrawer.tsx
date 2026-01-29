@@ -139,6 +139,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const cinemaRef = useRef<HTMLDivElement | null>(null);
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
+  const [scrubSec, setScrubSec] = useState<number | null>(null);
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
@@ -147,10 +148,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   // Use animated seekbar for smooth visual updates
   const animatedPositionMs = useAnimatedSeekbar(safeMs(positionMs), safeMs(durationMs), isPlaying);
   const positionSec = Math.max(0, animatedPositionMs / 1000);
+  const effectivePositionSec = scrubSec ?? positionSec;
   const durationSec = Math.max(0, safeMs(durationMs) / 1000);
   const seekMaxSecRaw = durationSec > 0 ? durationSec : Math.max(1, positionSec);
   const seekMaxSec = Number.isFinite(seekMaxSecRaw) && seekMaxSecRaw > 0 ? seekMaxSecRaw : 1;
-  const seekValueSecRaw = Math.min(positionSec, seekMaxSec);
+  const seekValueSecRaw = Math.min(effectivePositionSec, seekMaxSec);
   const seekValueSec = Number.isFinite(seekValueSecRaw) ? seekValueSecRaw : 0;
   
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
@@ -190,6 +192,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [exitCinema]);
+
+  useEffect(() => {
+    setScrubSec(null);
+  }, [provider, trackId]);
 
   useEffect(() => {
     if (!isCinema) return;
@@ -405,25 +411,34 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               onChange={(e) => {
                 const nextSec = Number(e.target.value);
                 if (!Number.isFinite(nextSec)) return;
-                seekToMs(nextSec * 1000);
+                setScrubSec(nextSec);
+              }}
+              onPointerDown={(e) => {
+                const target = e.currentTarget as HTMLInputElement;
+                const nextSec = Number(target.value);
+                if (!Number.isFinite(nextSec)) return;
+                setScrubSec(nextSec);
               }}
               onPointerUp={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 seekToMs(nextSec * 1000);
+                setScrubSec(null);
               }}
               onMouseUp={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 seekToMs(nextSec * 1000);
+                setScrubSec(null);
               }}
               onTouchEnd={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 seekToMs(nextSec * 1000);
+                setScrubSec(null);
               }}
               disabled={isIdle}
               step="0.1"
