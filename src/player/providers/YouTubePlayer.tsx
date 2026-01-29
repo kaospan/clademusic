@@ -65,7 +65,11 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         if (autoplay) {
           player.playVideo?.();
         }
-        // Always attempt to unmute after a user gesture-triggered play.
+        // Keep YouTube's mute state aligned with the app.
+        if (mutedRef.current) {
+          player.mute?.();
+          return;
+        }
         player.setVolume?.(100);
         window.setTimeout(() => {
           player.unMute?.();
@@ -177,6 +181,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       updatePlaybackState({
         positionMs: positionSec * 1000,
         durationMs: Number.isFinite(durationSec) ? durationSec * 1000 : 0,
+        isMuted: playerRef.current.isMuted?.() ?? mutedRef.current,
       });
     };
 
