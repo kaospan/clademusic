@@ -246,7 +246,10 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   if (provider !== 'youtube' || !providerTrackId) return null;
 
   return (
-    <div ref={containerRef} className="w-full bg-black rounded-xl overflow-hidden aspect-video">
+    <div
+      ref={containerRef}
+      className="w-full max-w-full bg-black overflow-hidden aspect-video rounded-none sm:rounded-xl sm:aspect-video"
+    >
       <div ref={playerHostRef} className="w-full h-full" />
     </div>
   );
