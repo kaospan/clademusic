@@ -28,9 +28,9 @@
 | File | Change |
 |------|--------|
 | `index.html` | Title: "Clade - Find Your Harmony" |
-| `package.json` | Homepage: `repoisrael.github.io/clade/` |
+| `package.json` | Homepage: `kaospan.github.io/clademusic/` |
 | `vite.config.ts` | Base path: `/clade/` |
-| `src/App.tsx` | Router basename: `/clade` |
+| `src/App.tsx` | Router basename: `/clademusic` |
 | `src/lib/searchHistory.ts` | LocalStorage key: `clade_search_history` |
 | All docs | Updated references (17 files) |
 
@@ -46,8 +46,8 @@
 ### URL Changes
 
 **Old**:
-- Homepage: `https://repoisrael.github.io/cladeai/`
-- GitHub: `https://github.com/repoisrael/cladeai`
+- Homepage: `https://kaospan.github.io/clademusic/`
+- GitHub: `https://github.com/kaospan/clademusic`
 - OG Images: `/cladeai/main/public/og-image.png`
 
 **New**:
@@ -65,7 +65,7 @@
 ### For Developers
 ```bash
 # Update your local repo remote
-git remote set-url origin https://github.com/repoisrael/clade.git
+git remote set-url origin https://github.com/kaospan/clademusic.git
 
 # Clear browser cache and localStorage
 # Update .env files with new redirect URIs
@@ -74,7 +74,7 @@ git remote set-url origin https://github.com/repoisrael/clade.git
 ### For Spotify OAuth
 Update redirect URI in Spotify Dashboard:
 ```
-Old: https://repoisrael.github.io/cladeai/spotify-callback
+Old: https://kaospan.github.io/clademusic/spotify-callback
 New: https://kaospan.github.io/clademusic/spotify-callback
 ```
 

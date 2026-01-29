@@ -4,7 +4,7 @@
 
 1. Ensure your `package.json` includes:
    ```json
-   "homepage": "https://repoisrael.github.io/clade/",
+   "homepage": "https://kaospan.github.io/clademusic/",
    "scripts": {
      "predeploy": "bun run build",
      "deploy": "gh-pages -d dist"
@@ -21,8 +21,8 @@
    # or: npm run deploy
    ```
 4. Your site will be live at:
-   https://repoisrael.github.io/clade/
+   https://kaospan.github.io/clademusic/
 
 **Note:**
-- Make sure your Vite config (`vite.config.ts`) has `base: "/clade/"`.
-- In your React app, set `<BrowserRouter basename="/clade">`.
+- Make sure your Vite config (`vite.config.ts`) has `base: "/clademusic/"`.
+- In your React app, set `<BrowserRouter basename="/clademusic">`.

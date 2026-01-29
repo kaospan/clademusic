@@ -160,7 +160,7 @@ More content
 ### Links
 - Use relative links: `[features](features.md)`
 - Link to code: `[src/types/harmony.ts](../src/types/harmony.ts)`
-- Link to GitHub issues: `[#123](https://github.com/repoisrael/clade/issues/123)`
+- Link to GitHub issues: `[#123](https://github.com/kaospan/clademusic/issues/123)`
 
 ## 🎯 Documentation Goals
 

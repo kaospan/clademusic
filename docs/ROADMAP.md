@@ -563,4 +563,4 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 
 **Last Reviewed**: January 22, 2026  
 **Next Review**: February 1, 2026  
-**Maintained By**: repoisrael@gmail.com
+**Maintained By**: kaospan@gmail.com

@@ -50,4 +50,4 @@ Tracks matched by: Progression shape (50%), Cadence (20%), Loop length (15%), Mo
 
 ---
 
-If you have questions or need help, open an issue on [GitHub](https://github.com/repoisrael/clade) or reach out to the maintainer.
+If you have questions or need help, open an issue on [GitHub](https://github.com/kaospan/clademusic) or reach out to the maintainer.
