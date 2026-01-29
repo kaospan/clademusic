@@ -402,7 +402,29 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               min="0"
               max={seekMaxSec}
               value={seekValueSec}
-              onChange={(e) => seekToMs(Number(e.target.value) * 1000)}
+              onChange={(e) => {
+                const nextSec = Number(e.target.value);
+                if (!Number.isFinite(nextSec)) return;
+                seekToMs(nextSec * 1000);
+              }}
+              onPointerUp={(e) => {
+                const target = e.currentTarget as HTMLInputElement;
+                const nextSec = Number(target.value);
+                if (!Number.isFinite(nextSec)) return;
+                seekToMs(nextSec * 1000);
+              }}
+              onMouseUp={(e) => {
+                const target = e.currentTarget as HTMLInputElement;
+                const nextSec = Number(target.value);
+                if (!Number.isFinite(nextSec)) return;
+                seekToMs(nextSec * 1000);
+              }}
+              onTouchEnd={(e) => {
+                const target = e.currentTarget as HTMLInputElement;
+                const nextSec = Number(target.value);
+                if (!Number.isFinite(nextSec)) return;
+                seekToMs(nextSec * 1000);
+              }}
               disabled={isIdle}
               step="0.1"
               className="flex-1 min-w-[80px] h-1 bg-white/20 rounded-full appearance-none cursor-pointer
