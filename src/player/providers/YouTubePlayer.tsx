@@ -48,6 +48,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   const playerRef = useRef<any>(null);
   const mutedRef = useRef(isMuted);
   const autoplayRef = useRef(autoplay);
+  const seekRetryRef = useRef<number | null>(null);
 
   useEffect(() => {
     mutedRef.current = isMuted;
@@ -170,6 +171,10 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       if (progressTimer) {
         window.clearInterval(progressTimer);
       }
+      if (seekRetryRef.current) {
+        window.clearTimeout(seekRetryRef.current);
+        seekRetryRef.current = null;
+      }
       try {
         playerRef.current?.stopVideo?.();
         playerRef.current?.mute?.();
@@ -207,8 +212,21 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   useEffect(() => {
     if (provider !== 'youtube') return;
     if (seekToSec == null) return;
-    playerRef.current?.seekTo?.(seekToSec, true);
-    clearSeek();
+    if (playerRef.current?.seekTo) {
+      playerRef.current.seekTo(seekToSec, true);
+      playerRef.current.playVideo?.();
+      clearSeek();
+      return;
+    }
+    if (seekRetryRef.current) {
+      window.clearTimeout(seekRetryRef.current);
+    }
+    seekRetryRef.current = window.setTimeout(() => {
+      if (!playerRef.current?.seekTo) return;
+      playerRef.current.seekTo(seekToSec, true);
+      playerRef.current.playVideo?.();
+      clearSeek();
+    }, 200);
   }, [provider, seekToSec, clearSeek]);
 
   useEffect(() => {
