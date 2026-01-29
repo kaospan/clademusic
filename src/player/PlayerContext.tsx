@@ -209,8 +209,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [state.queue, state.queueIndex]);
 
   const seekTo = useCallback((sec: number) => {
-    setState((prev) => ({ ...prev, seekToSec: sec, positionMs: sec * 1000 }));
-  }, [state.provider]);
+    const clamped = Math.max(0, sec);
+    setState((prev) => ({ ...prev, seekToSec: clamped, positionMs: clamped * 1000 }));
+    const active = activeProviderRef.current;
+    if (active) {
+      providerControlsRef.current[active]?.seekTo?.(clamped);
+    }
+  }, []);
 
   const clearSeek = useCallback(() => {
     setState((prev) => ({ ...prev, seekToSec: null }));
@@ -218,7 +223,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const seekToMs = useCallback((ms: number) => {
     const sec = Math.max(0, ms / 1000);
-    setState((prev) => ({ ...prev, positionMs: ms }));
     seekTo(sec);
   }, [seekTo]);
 
