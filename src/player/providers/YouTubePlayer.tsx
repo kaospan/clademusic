@@ -55,13 +55,29 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   useEffect(() => {
     if (provider !== 'youtube' || !providerTrackId) return;
     let destroyed = false;
+    let progressTimer: number | null = null;
 
     const setup = async () => {
       await loadYouTubeApi();
       if (destroyed || !window.YT || !containerRef.current) return;
 
+      const startPlayback = (player: any) => {
+        player.mute?.();
+        if (autoplay) {
+          player.playVideo?.();
+        }
+        if (!mutedRef.current) {
+          player.setVolume?.(100);
+          window.setTimeout(() => {
+            player.unMute?.();
+            player.setVolume?.(100);
+          }, 200);
+        }
+      };
+
       if (playerRef.current?.loadVideoById) {
         playerRef.current.loadVideoById(providerTrackId, 0);
+        startPlayback(playerRef.current);
         return;
       }
 
@@ -79,12 +95,10 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         },
         events: {
           onReady: (event: any) => {
-            event.target.mute();
-            if (autoplay) {
-              event.target.playVideo();
-            }
-            if (!mutedRef.current) {
-              window.setTimeout(() => event.target.unMute(), 150);
+            startPlayback(event.target);
+            const durationMs = event.target.getDuration?.() * 1000;
+            if (Number.isFinite(durationMs)) {
+              updatePlaybackState({ durationMs });
             }
           },
           onStateChange: (event: any) => {
@@ -92,7 +106,14 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
             const isPlaying = event.data === ytState?.PLAYING;
             const positionMs = event.target.getCurrentTime() * 1000;
             const durationMs = event.target.getDuration() * 1000;
-            updatePlaybackState({ isPlaying, positionMs, durationMs });
+            updatePlaybackState({
+              isPlaying,
+              positionMs,
+              durationMs: Number.isFinite(durationMs) ? durationMs : 0,
+            });
+            if (isPlaying && !mutedRef.current) {
+              event.target.unMute?.();
+            }
           },
         },
       });
@@ -103,11 +124,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
           if (typeof startSec === 'number') {
             playerRef.current.seekTo?.(startSec, true);
           }
-          playerRef.current.mute?.();
-          await playerRef.current.playVideo?.();
-          if (!mutedRef.current) {
-            window.setTimeout(() => playerRef.current?.unMute?.(), 150);
-          }
+          startPlayback(playerRef.current);
         },
         pause: async () => playerRef.current?.pauseVideo?.(),
         seekTo: async (seconds: number) => playerRef.current?.seekTo?.(seconds, true),
@@ -131,6 +148,9 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
 
     return () => {
       destroyed = true;
+      if (progressTimer) {
+        window.clearInterval(progressTimer);
+      }
       try {
         playerRef.current?.destroy?.();
       } catch (err) {
@@ -139,6 +159,25 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       playerRef.current = null;
     };
   }, [provider, providerTrackId, autoplay, registerProviderControls, updatePlaybackState]);
+
+  useEffect(() => {
+    if (provider !== 'youtube') return;
+    if (!playerRef.current) return;
+
+    const tick = () => {
+      if (!playerRef.current) return;
+      const durationSec = playerRef.current.getDuration?.();
+      const positionSec = playerRef.current.getCurrentTime?.();
+      if (!Number.isFinite(positionSec)) return;
+      updatePlaybackState({
+        positionMs: positionSec * 1000,
+        durationMs: Number.isFinite(durationSec) ? durationSec * 1000 : 0,
+      });
+    };
+
+    const intervalId = window.setInterval(tick, 500);
+    return () => window.clearInterval(intervalId);
+  }, [provider, updatePlaybackState, providerTrackId]);
 
   useEffect(() => {
     if (provider !== 'youtube') return;
