@@ -136,6 +136,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     nextTrack,
     previousTrack,
   } = usePlayer();
+  const safeQueue = Array.isArray(queue) ? queue : [];
   const cinemaRef = useRef<HTMLDivElement | null>(null);
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
@@ -157,7 +158,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   
   const volumePercent = Math.round((isMuted ? 0 : Number.isFinite(volume) ? volume : 0) * 100);
   const isIdle = !isOpen || !provider || !trackId;
-  const effectiveCanNext = canNext ?? (queue.length > 1 || Boolean(onNext));
+  const effectiveCanNext = canNext ?? (safeQueue.length > 1 || Boolean(onNext));
   const effectiveCanPrev = canPrev ?? !isIdle;
 
   const meta = useMemo(() => {
@@ -248,11 +249,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       seekToMs(0);
       return;
     }
-    if (queueIndex > 0) {
+    if (queueIndex > 0 && safeQueue.length) {
       playFromQueue(queueIndex - 1);
       return;
     }
-    if (queueIndex === -1 && queue.length > 0) {
+    if (queueIndex === -1 && safeQueue.length > 0) {
       playFromQueue(0);
       return;
     }
@@ -264,11 +265,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   }, [isIdle, positionMs, queueIndex, queue.length, playFromQueue, seekToMs, onPrev]);
 
   const handleNext = useCallback(() => {
-    if (queueIndex >= 0 && queueIndex < queue.length - 1) {
+    if (queueIndex >= 0 && queueIndex < safeQueue.length - 1) {
       playFromQueue(queueIndex + 1);
       return;
     }
-    if (queueIndex === -1 && queue.length > 0) {
+    if (queueIndex === -1 && safeQueue.length > 0) {
       playFromQueue(0);
       return;
     }
