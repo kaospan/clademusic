@@ -51,6 +51,20 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   const autoplayRef = useRef(autoplay);
   const seekRetryRef = useRef<number | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
+  const readyRef = useRef(false);
+  const rafIdRef = useRef<number | null>(null);
+
+  const attemptSeek = (seconds: number, forcePlay = false): boolean => {
+    pendingSeekRef.current = seconds;
+    if (playerRef.current?.seekTo && readyRef.current) {
+      playerRef.current.seekTo(seconds, true);
+      if (forcePlay) playerRef.current.playVideo?.();
+      updatePlaybackState({ positionMs: seconds * 1000 });
+      pendingSeekRef.current = null;
+      return true;
+    }
+    return false;
+  };
 
   useEffect(() => {
     mutedRef.current = isMuted;
@@ -63,11 +77,11 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   useEffect(() => {
     if (provider !== 'youtube' || !providerTrackId) return;
     let destroyed = false;
-    let progressTimer: number | null = null;
 
     const setup = async () => {
       await loadYouTubeApi();
       if (destroyed || !window.YT || !playerHostRef.current) return;
+      readyRef.current = false;
 
       const startPlayback = (player: any) => {
         if (autoplayRef.current) {
@@ -92,6 +106,32 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         }, 650);
       };
 
+      const startRaf = () => {
+        if (rafIdRef.current !== null) return;
+        const tick = () => {
+          if (playerRef.current) {
+            const durationSec = playerRef.current.getDuration?.();
+            const positionSec = playerRef.current.getCurrentTime?.();
+            if (Number.isFinite(positionSec)) {
+              updatePlaybackState({
+                positionMs: positionSec * 1000,
+                durationMs: Number.isFinite(durationSec) ? durationSec * 1000 : 0,
+                isMuted: playerRef.current.isMuted?.() ?? mutedRef.current,
+              });
+            }
+          }
+          rafIdRef.current = requestAnimationFrame(tick);
+        };
+        rafIdRef.current = requestAnimationFrame(tick);
+      };
+
+      const stopRaf = () => {
+        if (rafIdRef.current !== null) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+      };
+
       if (playerRef.current?.loadVideoById) {
         playerRef.current.loadVideoById(providerTrackId, 0);
         startPlayback(playerRef.current);
@@ -112,10 +152,14 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         },
         events: {
           onReady: (event: any) => {
+            readyRef.current = true;
             startPlayback(event.target);
             const durationMs = event.target.getDuration?.() * 1000;
             if (Number.isFinite(durationMs)) {
               updatePlaybackState({ durationMs });
+            }
+            if (pendingSeekRef.current !== null) {
+              attemptSeek(pendingSeekRef.current, true);
             }
           },
           onStateChange: (event: any) => {
@@ -131,6 +175,8 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
             if (isPlaying && !mutedRef.current) {
               event.target.unMute?.();
             }
+            if (isPlaying) startRaf();
+            else stopRaf();
           },
         },
       });
@@ -139,18 +185,17 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         play: async (startSec) => {
           if (!playerRef.current) return;
           if (typeof startSec === 'number') {
-            playerRef.current.seekTo?.(startSec, true);
+            if (!attemptSeek(startSec, true)) {
+              pendingSeekRef.current = startSec;
+            }
+          } else {
+            startPlayback(playerRef.current);
           }
-          startPlayback(playerRef.current);
         },
         pause: async () => playerRef.current?.pauseVideo?.(),
         seekTo: async (seconds: number) => {
-          pendingSeekRef.current = seconds;
-          if (playerRef.current?.seekTo) {
-            playerRef.current.seekTo(seconds, true);
-            playerRef.current.playVideo?.();
-            updatePlaybackState({ positionMs: seconds * 1000 });
-            pendingSeekRef.current = null;
+          if (!attemptSeek(seconds, true)) {
+            pendingSeekRef.current = seconds;
           }
         },
         setVolume: async (vol: number) => playerRef.current?.setVolume?.(Math.round(vol * 100)),
@@ -178,8 +223,9 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
 
     return () => {
       destroyed = true;
-      if (progressTimer) {
-        window.clearInterval(progressTimer);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
       }
       if (seekRetryRef.current) {
         window.clearTimeout(seekRetryRef.current);
@@ -202,43 +248,19 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
 
   useEffect(() => {
     if (provider !== 'youtube') return;
-    if (!playerRef.current) return;
-
-    const tick = () => {
-      if (!playerRef.current) return;
-      const durationSec = playerRef.current.getDuration?.();
-      const positionSec = playerRef.current.getCurrentTime?.();
-      if (!Number.isFinite(positionSec)) return;
-      updatePlaybackState({
-        positionMs: positionSec * 1000,
-        durationMs: Number.isFinite(durationSec) ? durationSec * 1000 : 0,
-        isMuted: playerRef.current.isMuted?.() ?? mutedRef.current,
-      });
-    };
-
-    const intervalId = window.setInterval(tick, 500);
-    return () => window.clearInterval(intervalId);
-  }, [provider, updatePlaybackState, providerTrackId]);
-
-  useEffect(() => {
-    if (provider !== 'youtube') return;
     if (seekToSec == null) return;
     pendingSeekRef.current = seekToSec;
-    const trySeek = () => {
-      if (!playerRef.current?.seekTo) return false;
-      playerRef.current.seekTo(seekToSec, true);
-      playerRef.current.playVideo?.();
-      updatePlaybackState({ positionMs: seekToSec * 1000 });
-      pendingSeekRef.current = null;
+    if (attemptSeek(seekToSec, true)) {
       clearSeek();
-      return true;
-    };
-    if (trySeek()) return;
+      return;
+    }
     if (seekRetryRef.current) {
       window.clearTimeout(seekRetryRef.current);
     }
     seekRetryRef.current = window.setTimeout(() => {
-      trySeek();
+      if (attemptSeek(seekToSec, true)) {
+        clearSeek();
+      }
     }, 250);
   }, [provider, seekToSec, clearSeek, updatePlaybackState]);
 
