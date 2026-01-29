@@ -1,1 +1,0 @@
-import{a as n,u,r as i,j as r,L as o}from"./index-CX4eiC8x.js";const g=()=>{const{user:t,loading:s,guestMode:a}=n(),e=u();return i.useEffect(()=>{s||(t?e("/feed",{replace:!0}):e("/login",{replace:!0}))},[t,a,s,e]),r.jsx("div",{className:"min-h-screen flex items-center justify-center bg-background text-foreground",children:r.jsx(o,{size:"lg"})})};export{g as default};
