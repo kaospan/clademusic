@@ -140,6 +140,18 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const lastEmitTsRef = useRef<number>(0);
   const pollRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    if (provider !== 'spotify' || !providerTrackId) return;
+    lastTrackIdRef.current = providerTrackId;
+    lastPositionRef.current = 0;
+    lastEmitTsRef.current = 0;
+    updatePlaybackState({
+      positionMs: 0,
+      durationMs: 0,
+      isPlaying: autoplay ?? autoplaySpotify ?? true,
+    });
+  }, [provider, providerTrackId, autoplay, autoplaySpotify, updatePlaybackState]);
+
   // Sync volume ref
   useEffect(() => {
     volumeRef.current = volume;
