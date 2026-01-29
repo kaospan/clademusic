@@ -196,6 +196,19 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
     clearSeek();
   }, [provider, seekToSec, clearSeek]);
 
+  useEffect(() => {
+    if (provider !== 'youtube') return;
+    if (!playerRef.current) return;
+    if (isMuted) {
+      playerRef.current.mute?.();
+      updatePlaybackState({ isMuted: true });
+    } else {
+      playerRef.current.unMute?.();
+      playerRef.current.setVolume?.(100);
+      updatePlaybackState({ isMuted: false });
+    }
+  }, [provider, isMuted, updatePlaybackState]);
+
   if (provider !== 'youtube' || !providerTrackId) return null;
 
   return <div ref={containerRef} className="w-full bg-black rounded-xl overflow-hidden aspect-video" />;
