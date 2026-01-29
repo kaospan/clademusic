@@ -4,7 +4,6 @@ import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
 import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, Square, SkipBack, SkipForward, ListMusic } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
 
@@ -124,7 +123,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     toggleMute,
     seekToMs,
     stop,
-    closePlayer,
     collapseToMini,
     restoreFromMini,
     setMiniPosition,
@@ -140,7 +138,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   } = usePlayer();
   const cinemaRef = useRef<HTMLDivElement | null>(null);
   const autoplay = isPlaying;
-  const [showVideo, setShowVideo] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
@@ -321,15 +318,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={() => setShowVideo((v) => !v)}
-                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label={showVideo ? 'Hide video' : 'Show video'}
-                title={showVideo ? 'Hide video' : 'Show video'}
-              >
-                {showVideo ? <ChevronUp className="h-3 w-3 md:h-4 md:w-4" /> : <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />}
-              </button>
-              <button
-                type="button"
                 onClick={() => (effectiveCanPrev ? handlePrev() : null)}
                 disabled={!effectiveCanPrev}
                 className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
@@ -377,10 +365,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={closePlayer}
+                onClick={collapseToMini}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label="Close player"
-                title="Close player"
+                aria-label="Minimize player"
+                title="Minimize"
               >
                 <X className="h-3 w-3 md:h-4 md:w-4" />
               </button>
@@ -390,10 +378,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           {/* Video area slides from top of player */}
           <motion.div
             initial={false}
-            animate={{ height: showVideo && provider && trackId ? 'auto' : 0, opacity: showVideo && provider && trackId ? 1 : 0 }}
+            animate={{ height: provider && trackId ? 'auto' : 0, opacity: provider && trackId ? 1 : 0 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
             className="overflow-hidden bg-black/80"
-            aria-hidden={!showVideo || !provider || !trackId}
+            aria-hidden={!provider || !trackId}
           >
             <div className="relative">
               {provider === 'spotify' ? (
