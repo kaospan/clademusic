@@ -45,6 +45,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   const { provider, isMuted, registerProviderControls, updatePlaybackState, clearSeek, seekToSec } = usePlayer();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const playerHostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
   const mutedRef = useRef(isMuted);
   const autoplayRef = useRef(autoplay);
@@ -65,7 +66,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
 
     const setup = async () => {
       await loadYouTubeApi();
-      if (destroyed || !window.YT || !containerRef.current) return;
+      if (destroyed || !window.YT || !playerHostRef.current) return;
 
       const startPlayback = (player: any) => {
         if (autoplayRef.current) {
@@ -96,7 +97,7 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
         return;
       }
 
-      playerRef.current = new window.YT.Player(containerRef.current, {
+      playerRef.current = new window.YT.Player(playerHostRef.current, {
         videoId: providerTrackId,
         playerVars: {
           autoplay: autoplayRef.current ? 1 : 0,
@@ -157,8 +158,8 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
           } catch (err) {
             console.warn('YouTube teardown failed', err);
           }
-          if (containerRef.current) {
-            containerRef.current.replaceChildren();
+          if (playerHostRef.current) {
+            playerHostRef.current.replaceChildren();
           }
         },
       });
@@ -182,8 +183,8 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
       } catch (err) {
         console.warn('YouTube destroy failed', err);
       }
-      if (containerRef.current) {
-        containerRef.current.replaceChildren();
+      if (playerHostRef.current) {
+        playerHostRef.current.replaceChildren();
       }
       playerRef.current = null;
     };
@@ -244,5 +245,9 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
 
   if (provider !== 'youtube' || !providerTrackId) return null;
 
-  return <div ref={containerRef} className="w-full bg-black rounded-xl overflow-hidden aspect-video" />;
+  return (
+    <div ref={containerRef} className="w-full bg-black rounded-xl overflow-hidden aspect-video">
+      <div ref={playerHostRef} className="w-full h-full" />
+    </div>
+  );
 }
