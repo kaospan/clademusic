@@ -146,6 +146,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const resizeActiveRef = useRef(false);
   const lastClientXRef = useRef(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [playerScale, setPlayerScale] = useState(1);
+  const playerResizeActiveRef = useRef(false);
+  const lastPlayerClientXRef = useRef(0);
+  const clampPlayerScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.6), 1.3), []);
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
@@ -323,6 +327,30 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
   }, [clampScale]);
 
+  // Player shell resize (width/height via scale)
+  useEffect(() => {
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (!playerResizeActiveRef.current) return;
+      const clientX = 'touches' in e ? e.touches[0]?.clientX ?? lastPlayerClientXRef.current : (e as MouseEvent).clientX;
+      const delta = clientX - lastPlayerClientXRef.current;
+      lastPlayerClientXRef.current = clientX;
+      setPlayerScale((prev) => clampPlayerScale(prev + delta * 0.0015));
+    };
+    const onUp = () => {
+      playerResizeActiveRef.current = false;
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [clampPlayerScale]);
+
   return (
     <>
       {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
@@ -337,6 +365,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           transition={{ duration: 0.2, ease: 'easeOut' }}
           data-player="universal"
           className="pointer-events-auto fixed top-14 left-1/2 -translate-x-1/2 z-[70] w-[90vw] max-w-[780px] rounded-none md:w-[min(720px,calc(100vw-32px))]"
+          style={{ scale: playerScale, transformOrigin: 'top center' }}
         >
           <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
@@ -551,6 +580,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 onClick={() => setVideoScale(0.3)}
                 className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
                 aria-label="Reset video to compact size"
+                title="Reset video size"
               >
                 <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </button>
@@ -559,6 +589,26 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         </div>
 
         </motion.div>
+      )}
+
+      {/* Player resize handle (affects overall player scale) */}
+      {!isMini && (
+        <div
+          className="pointer-events-auto fixed top-14 left-1/2 -translate-x-1/2 z-[71] w-[24px] h-[24px] cursor-se-resize"
+          style={{ marginTop: 'calc(4.25rem + 100%)' }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            playerResizeActiveRef.current = true;
+            lastPlayerClientXRef.current = e.clientX;
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            const clientX = e.touches[0]?.clientX ?? 0;
+            playerResizeActiveRef.current = true;
+            lastPlayerClientXRef.current = clientX;
+          }}
+          title="Drag to resize player"
+        />
       )}
 
       {isMini && (
