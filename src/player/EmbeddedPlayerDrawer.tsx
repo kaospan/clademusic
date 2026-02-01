@@ -142,7 +142,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
-  const [videoScale, setVideoScale] = useState(1); // allow resizing video area
+  const [videoScale, setVideoScale] = useState(0.3); // start smaller; user can resize
+  const resizeActiveRef = useRef(false);
+  const lastClientXRef = useRef(0);
+
+  const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
     (sec: number) => {
       if (!Number.isFinite(sec)) return;
@@ -289,6 +293,35 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     }
   }, [safeQueueIndex, safeQueue.length, playFromQueue, onNext]);
 
+  // Drag-to-resize for video: adjust scale based on horizontal drag of the handle
+  const handleResizeStart = useCallback((clientX: number) => {
+    resizeActiveRef.current = true;
+    lastClientXRef.current = clientX;
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (!resizeActiveRef.current) return;
+      const clientX = 'touches' in e ? e.touches[0]?.clientX ?? lastClientXRef.current : (e as MouseEvent).clientX;
+      const delta = clientX - lastClientXRef.current;
+      lastClientXRef.current = clientX;
+      setVideoScale((prev) => clampScale(prev + delta * 0.003)); // small sensitivity
+    };
+    const onUp = () => {
+      resizeActiveRef.current = false;
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [clampScale]);
+
   return (
     <>
       {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
@@ -404,9 +437,9 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           >
             <div className="relative flex justify-center px-2 py-2">
               <div
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto relative"
                 style={{
-                  width: `${Math.min(Math.max(videoScale * 100, 60), 140)}%`,
+                  width: `${Math.min(Math.max(videoScale * 100, 30), 160)}%`,
                   maxWidth: '100%',
                   transition: 'width 120ms ease',
                 }}
@@ -416,26 +449,23 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 ) : (
                   <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
                 )}
+                {provider === 'youtube' && (
+                  <div
+                    className="absolute bottom-1 right-1 h-4 w-4 cursor-se-resize rounded-sm bg-white/40 hover:bg-white/70 active:bg-white"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleResizeStart(e.clientX);
+                    }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      const clientX = e.touches[0]?.clientX ?? 0;
+                      handleResizeStart(clientX);
+                    }}
+                    title="Drag to resize video"
+                  />
+                )}
               </div>
             </div>
-            {provider === 'youtube' && (
-              <div className="px-4 pb-3 flex items-center gap-2 text-white text-xs">
-                <span className="shrink-0">Size</span>
-                <input
-                  type="range"
-                  min={60}
-                  max={140}
-                  step={5}
-                  value={Math.round(videoScale * 100)}
-                  onChange={(e) => setVideoScale(Number(e.target.value) / 100)}
-                  className="flex-1 h-1 bg-white/20 rounded-full appearance-none cursor-pointer
-                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 
-                             [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full 
-                             [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
-                  aria-label="Resize video"
-                />
-              </div>
-            )}
           </motion.div>
 
           {/* Compact Controls Row: Seekbar + Volume inline */}
@@ -509,9 +539,9 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
             {provider === 'youtube' && (
               <button
-                onClick={toggleFullscreen}
+                onClick={() => setVideoScale(0.3)}
                 className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
-                aria-label={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
+                aria-label="Reset video to compact size"
               >
                 <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </button>
