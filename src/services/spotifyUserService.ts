@@ -8,6 +8,9 @@
 import { Track } from '@/types';
 import { getValidAccessToken, refreshSpotifyToken, getSpotifyCredentials } from './spotifyAuthService';
 
+// Once a top-metrics call returns 401/403, stop re-requesting to avoid noisy 403s and retries.
+let topMetricsDisabled = false;
+
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 
 interface SpotifyPlayHistoryItem {
@@ -246,6 +249,7 @@ export async function getTopTracks(
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         console.warn('[Spotify] top tracks forbidden/unauthorized; treating as disconnected');
+        topMetricsDisabled = true;
         return [];
       }
       return [];
@@ -279,6 +283,8 @@ export async function getTopArtists(
   timeRange: TimeRange = 'medium_term',
   limit = 20
 ): Promise<SpotifyArtist[]> {
+  if (topMetricsDisabled) return [];
+
   const accessToken = await getValidAccessToken(userId);
   if (!accessToken) return [];
 
@@ -296,6 +302,7 @@ export async function getTopArtists(
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         console.warn('[Spotify] top artists forbidden/unauthorized; treating as disconnected');
+        topMetricsDisabled = true;
         return [];
       }
       return [];
