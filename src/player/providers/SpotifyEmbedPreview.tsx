@@ -138,7 +138,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const [useEmbedFallback, setUseEmbedFallback] = useState(false);
   const lastTrackIdRef = useRef<string | null>(null);
   const lastEmitTsRef = useRef<number>(0);
-  const pollRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (provider !== 'spotify' || !providerTrackId) return;
@@ -250,11 +249,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
                 lastPositionRef.current = rawPos;
               }
 
-              // Enforce monotonic forward motion during playback to avoid jitter
-              let pos = rawPos;
-              if (!state.paused) {
-                pos = Math.max(rawPos, lastPositionRef.current);
-              }
+              // Enforce monotonic forward motion (even when paused) to avoid jitter/backwards jumps
+              const pos = Math.max(rawPos, lastPositionRef.current);
               lastPositionRef.current = pos;
 
               console.log('[Spotify] state:', {
@@ -264,9 +260,9 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
                 track: state.track_window?.current_track?.name,
                 volume: state.device?.volume_percent ?? state.volume,
               });
-              // Throttle state emissions to reduce jitter (max ~10Hz)
+              // Throttle state emissions to reduce jitter (max ~5Hz)
               const now = performance.now();
-              if (now - lastEmitTsRef.current >= 90) {
+              if (now - lastEmitTsRef.current >= 180) {
                 lastEmitTsRef.current = now;
                 try {
                   updatePlaybackState({
@@ -302,24 +298,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
         await player.connect();
         playerRef.current = player;
         resumeAudioContextOnGesture();
-
-        if (pollRef.current) {
-          window.clearInterval(pollRef.current);
-        }
-        pollRef.current = window.setInterval(async () => {
-          if (!playerRef.current?.getCurrentState) return;
-          try {
-            const state = await playerRef.current.getCurrentState();
-            if (!state) return;
-            updatePlaybackState({
-              positionMs: state.position ?? 0,
-              durationMs: Number.isFinite(state.duration) ? state.duration : undefined,
-              isPlaying: !state.paused,
-            });
-          } catch (err) {
-            console.warn('[Spotify] poll state failed', err);
-          }
-        }, 750);
 
         registerProviderControls('spotify', {
           play: async (startSec) => {
@@ -365,10 +343,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             deviceIdRef.current = null;
             setReady(false);
             resetSpotifyState();
-            if (pollRef.current) {
-              window.clearInterval(pollRef.current);
-              pollRef.current = null;
-            }
           },
         });
       } catch (err) {
@@ -384,10 +358,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
       // Do not disconnect the singleton on unmount to avoid orphan device audio; let teardown handle it on provider switch.
       playerRef.current = null;
       setReady(false);
-      if (pollRef.current) {
-        window.clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
     };
   }, [provider, providerTrackId, user?.id, autoplay, autoplaySpotify, registerProviderControls, updatePlaybackState, seekToSec, isMuted]);
 
