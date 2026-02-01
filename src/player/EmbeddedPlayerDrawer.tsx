@@ -293,7 +293,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
       {!isMini && (
         <motion.div
-          drag
+          drag={scrubSec === null} // prevent drag while scrubbing the seekbar so clicks land reliably
           dragConstraints={dragBounds}
           dragElastic={0.15}
           initial={{ y: 0, opacity: 0 }}
