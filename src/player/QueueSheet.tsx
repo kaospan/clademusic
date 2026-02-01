@@ -29,9 +29,10 @@ export function QueueSheet({
   onClearQueue,
   onShuffleQueue,
 }: QueueSheetProps) {
-  const currentTrack = queue[currentIndex];
-  const upNext = queue.slice(currentIndex + 1);
-  const previous = queue.slice(0, currentIndex);
+  const safeIndex = currentIndex >= 0 && currentIndex < queue.length ? currentIndex : -1;
+  const currentTrack = safeIndex >= 0 ? queue[safeIndex] : null;
+  const upNext = safeIndex >= 0 ? queue.slice(safeIndex + 1) : [];
+  const previous = safeIndex >= 0 ? queue.slice(0, safeIndex) : [];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

@@ -28,7 +28,7 @@ export function BottomNav() {
             <Menu className="w-5 h-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0"> 
+        <SheetContent forceMount side="left" className="w-72 p-0"> 
           <SheetHeader className="px-4 py-3 border-b flex items-center justify-between">
             <SheetTitle>Navigate</SheetTitle>
             <SheetTrigger asChild>
