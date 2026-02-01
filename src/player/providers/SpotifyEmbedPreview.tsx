@@ -126,7 +126,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     volume,
     isMuted,
     registerProviderControls,
-    updatePlaybackState,
+    updatePlaybackState = () => {},
   } = usePlayer();
 
   const playerRef = useRef<SpotifyPlayer | null>(null);
