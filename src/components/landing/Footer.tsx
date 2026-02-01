@@ -146,11 +146,11 @@ export function Footer() {
             const alt = 'M0,5 Q25,0 50,5 T100,5 Q125,0 150,5 T200,5';
             return (
               <motion.path
-                d={base ?? ''}
+                d={base}
                 stroke="url(#footerGradient)"
                 strokeWidth="2"
                 fill="none"
-                animate={{ d: [base ?? '', alt ?? '', base ?? ''] }}
+                animate={{ d: [base, alt, base] }}
                 transition={{
                   duration: 4,
                   repeat: Infinity,

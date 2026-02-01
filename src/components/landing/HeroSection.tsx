@@ -99,7 +99,7 @@ export function HeroSection() {
             const wavePath = "M0,50 Q25,20 50,50 T100,50 Q125,80 150,50 T200,50 Q225,20 250,50 T300,50 Q325,80 350,50 T400,50";
             return (
               <motion.path
-                d={wavePath ?? ''}
+                d={wavePath}
                 stroke="url(#waveGradient)"
                 strokeWidth="3"
                 fill="none"
