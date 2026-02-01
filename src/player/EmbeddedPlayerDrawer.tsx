@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, Square, SkipBack, SkipForward, ListMusic } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, Square, SkipBack, SkipForward, ListMusic, RefreshCcw } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
 
@@ -145,6 +145,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const [videoScale, setVideoScale] = useState(0.3); // start smaller; user can resize
   const resizeActiveRef = useRef(false);
   const lastClientXRef = useRef(0);
+  const lastClientYRef = useRef(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [playerScale, setPlayerScale] = useState(1);
   const playerResizeActiveRef = useRef(false);
@@ -298,19 +299,25 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     }
   }, [safeQueueIndex, safeQueue.length, playFromQueue, onNext]);
 
-  // Drag-to-resize for video: adjust scale based on horizontal drag of the handle
-  const handleResizeStart = useCallback((clientX: number) => {
+  // Drag-to-resize for video: adjust scale based on diagonal drag of the handle
+  const handleResizeStart = useCallback((clientX: number, clientY: number) => {
     resizeActiveRef.current = true;
     lastClientXRef.current = clientX;
+    lastClientYRef.current = clientY;
   }, []);
 
   useEffect(() => {
     const onMove = (e: MouseEvent | TouchEvent) => {
       if (!resizeActiveRef.current) return;
-      const clientX = 'touches' in e ? e.touches[0]?.clientX ?? lastClientXRef.current : (e as MouseEvent).clientX;
-      const delta = clientX - lastClientXRef.current;
+      const point = 'touches' in e ? e.touches[0] : (e as MouseEvent);
+      const clientX = point?.clientX ?? lastClientXRef.current;
+      const clientY = point?.clientY ?? lastClientYRef.current;
+      const deltaX = clientX - lastClientXRef.current;
+      const deltaY = clientY - lastClientYRef.current;
       lastClientXRef.current = clientX;
-      setVideoScale((prev) => clampScale(prev + delta * 0.003)); // small sensitivity
+      lastClientYRef.current = clientY;
+      const delta = (deltaX + deltaY) * 0.0025; // respond to diagonal drag
+      setVideoScale((prev) => clampScale(prev + delta));
     };
     const onUp = () => {
       resizeActiveRef.current = false;
@@ -484,17 +491,26 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 )}
                 {provider === 'youtube' && (
                   <div
-                    className="absolute bottom-1 right-1 h-4 w-4 cursor-se-resize rounded-sm bg-white/40 hover:bg-white/70 active:bg-white"
+                    className="absolute bottom-1 right-1 h-4 w-4 cursor-se-resize"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      handleResizeStart(e.clientX);
+                      handleResizeStart(e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
                       e.preventDefault();
-                      const clientX = e.touches[0]?.clientX ?? 0;
-                      handleResizeStart(clientX);
+                      const touch = e.touches[0];
+                      const clientX = touch?.clientX ?? 0;
+                      const clientY = touch?.clientY ?? 0;
+                      handleResizeStart(clientX, clientY);
                     }}
                     title="Drag to resize video"
+                    style={{
+                      borderBottom: '8px solid rgba(255,255,255,0.65)',
+                      borderRight: '8px solid rgba(255,255,255,0.65)',
+                      borderTop: '8px solid transparent',
+                      borderLeft: '8px solid transparent',
+                      borderBottomRightRadius: '4px',
+                    }}
                   />
                 )}
               </div>
@@ -578,14 +594,24 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             />
 
             {provider === 'youtube' && (
-              <button
-                onClick={toggleFullscreen}
-                className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
-                aria-label={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
-                title={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
-              >
-                <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              </button>
+              <>
+                <button
+                  onClick={() => setVideoScale(1)}
+                  className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
+                  aria-label="Reset video size"
+                  title="Reset video size"
+                >
+                  <RefreshCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                </button>
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
+                  aria-label={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
+                  title={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
+                >
+                  <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                </button>
+              </>
             )}
           </div>
         </div>
