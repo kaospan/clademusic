@@ -145,6 +145,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const [videoScale, setVideoScale] = useState(0.3); // start smaller; user can resize
   const resizeActiveRef = useRef(false);
   const lastClientXRef = useRef(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
@@ -327,7 +328,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
       {!isMini && (
         <motion.div
-          drag={scrubSec === null} // prevent drag while scrubbing the seekbar so clicks land reliably
+          drag={!isScrubbing} // prevent drag while scrubbing the seekbar so clicks land reliably
           dragConstraints={dragBounds}
           dragElastic={0.15}
           initial={{ y: 0, opacity: 0 }}
