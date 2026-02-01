@@ -25,7 +25,7 @@
     "cypress:run": "cypress run",
     "test:e2e": "cypress run",
     "test:e2e:smoke": "cypress run --config-file cypress.config.mjs --spec 'cypress/e2e/smoke.cy.ts'",
-    "test:e2e:smoke:auto": "start-server-and-test \"npm run dev:e2e\" http://127.0.0.1:8090/ \"cypress run --config-file cypress.config.mjs --config baseUrl=http://127.0.0.1:8090/clademusic --spec 'cypress/e2e/smoke.cy.ts'\"",
+    "test:e2e:smoke:auto": "start-server-and-test \"bun run dev:e2e\" http://127.0.0.1:8090/ \"cypress run --config-file cypress.config.mjs --config baseUrl=http://127.0.0.1:8090/clademusic --spec 'cypress/e2e/smoke.cy.ts'\"",
     "test:e2e:smoke:prod": "cypress run --config-file cypress.config.mjs --config baseUrl=https://kaospan.github.io/clademusic --spec 'cypress/e2e/smoke.cy.ts'",
     "test:e2e:sanity": "cypress run --spec 'cypress/e2e/sanity/**/*.cy.ts'",
     "seed": "node scripts/seed.js",

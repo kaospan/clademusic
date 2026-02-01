@@ -3,11 +3,11 @@
 ## Unit Tests
 ```bash
 bun test
-# or: npm run test
+# or: bun run test
 ```
 
 ## End-to-End Tests (Cypress)
 ```bash
 bun cypress:open
-# or: npm run cypress:open
+# or: bun run cypress:open
 ```

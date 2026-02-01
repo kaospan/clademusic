@@ -243,7 +243,7 @@ Resolves: 34 TypeScript errors
 ### 4. Populate Tracks Table
 **Option A - Using tsx:**
 ```powershell
-npm install -D tsx
+bun install -D tsx
 npx tsx scripts/seed.js
 ```
 

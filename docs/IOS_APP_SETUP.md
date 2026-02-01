@@ -64,7 +64,7 @@ sudo gem install cocoapods
 sudo gem install fastlane
 
 # Install React Native CLI
-npm install -g react-native-cli
+bun install -g react-native-cli
 ```
 
 ### 2. Create Repository
@@ -91,18 +91,18 @@ cd ..
 
 ```bash
 # Same as Android - shared React Native codebase
-npm install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
-npm install react-native-screens react-native-safe-area-context
-npm install react-native-gesture-handler react-native-reanimated
-npm install zustand
-npm install @supabase/supabase-js
-npm install axios @tanstack/react-query
-npm install react-native-paper react-native-vector-icons react-native-svg
-npm install react-native-track-player
-npm install react-native-iap react-native-purchases  # RevenueCat
+bun install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
+bun install react-native-screens react-native-safe-area-context
+bun install react-native-gesture-handler react-native-reanimated
+bun install zustand
+bun install @supabase/supabase-js
+bun install axios @tanstack/react-query
+bun install react-native-paper react-native-vector-icons react-native-svg
+bun install react-native-track-player
+bun install react-native-iap react-native-purchases  # RevenueCat
 
 # iOS-specific
-npm install @react-native-firebase/app @react-native-firebase/messaging
+bun install @react-native-firebase/app @react-native-firebase/messaging
 
 # Install pods
 cd ios && pod install && cd ..
@@ -478,10 +478,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install CocoaPods
         run: |
@@ -489,7 +489,7 @@ jobs:
           pod install
       
       - name: Run tests
-        run: npm test
+        run: bun test
       
       - name: Build iOS app
         run: |
@@ -529,7 +529,7 @@ jobs:
           node-version: '20'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install CocoaPods
         run: |

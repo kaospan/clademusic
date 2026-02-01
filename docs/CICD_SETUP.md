@@ -120,7 +120,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -129,16 +129,16 @@ jobs:
           java-version: '17'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Run linter
-        run: npm run lint
+        run: bun run lint
       
       - name: Run unit tests
-        run: npm test
+        run: bun test
       
       - name: Run E2E tests
-        run: npm run test:e2e:android
+        run: bun run test:e2e:android
 
   build:
     name: Build APK
@@ -153,7 +153,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -162,7 +162,7 @@ jobs:
           java-version: '17'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Decode Keystore
         env:
@@ -211,7 +211,7 @@ jobs:
           java-version: '17'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Decode Keystore
         env:
@@ -278,10 +278,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install CocoaPods
         run: |
@@ -289,10 +289,10 @@ jobs:
           pod install
       
       - name: Run linter
-        run: npm run lint
+        run: bun run lint
       
       - name: Run unit tests
-        run: npm test
+        run: bun test
       
       - name: Run iOS tests
         run: |
@@ -315,10 +315,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install CocoaPods
         run: |
@@ -382,7 +382,7 @@ jobs:
           node-version: '20'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install CocoaPods
         run: |
@@ -416,7 +416,7 @@ jobs:
           node-version: '20'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install CocoaPods
         run: |
@@ -468,10 +468,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
@@ -482,7 +482,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           APP_URL: ${{ secrets.APP_URL }}
         run: |
-          npm run test:performance
+          bun run test:performance
       
       - name: Upload Test Results
         if: always()
@@ -525,7 +525,7 @@ Add these scripts to your `package.json`:
     "android:bundle": "cd android && ./gradlew bundleRelease",
     "ios:build": "cd ios && xcodebuild -workspace CladeAI.xcworkspace -scheme CladeAI -configuration Release",
     "ios:archive": "cd ios && fastlane beta",
-    "mobile:setup": "npm run android:setup && npm run ios:setup",
+    "mobile:setup": "bun run android:setup && bun run ios:setup",
     "android:setup": "cd android && ./gradlew wrapper",
     "ios:setup": "cd ios && pod install"
   }

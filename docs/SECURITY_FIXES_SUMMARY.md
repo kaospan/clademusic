@@ -199,7 +199,7 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 ## 📝 NEXT STEPS
 
 1. Run migrations in Supabase dashboard
-2. Test the build: `npm run build`
+2. Test the build: `bun run build`
 3. Implement 2FA Edge Functions (see docs folder)
 4. Update TwoFactorSetup.tsx to use Edge Functions
 5. Test complete 2FA flow

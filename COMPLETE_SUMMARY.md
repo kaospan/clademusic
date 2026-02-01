@@ -505,12 +505,12 @@ Every single request from the conversation history has been implemented:
 
 2. Install dependencies:
    ```bash
-   npm install isomorphic-dompurify
+   bun install isomorphic-dompurify
    ```
 
 3. Run penetration tests:
    ```bash
-   npm run test src/test/pentest.test.ts
+   bun run test src/test/pentest.test.ts
    ```
 
 ### Testing Phase:

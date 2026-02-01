@@ -4,7 +4,7 @@
  * Critical path tests that verify the app's core functionality.
  * These should run fast and catch any breaking changes.
  * 
- * Run: npm run test:e2e:smoke
+ * Run: bun run test:e2e:smoke
  */
 
 describe('Smoke Tests - Critical Paths', () => {

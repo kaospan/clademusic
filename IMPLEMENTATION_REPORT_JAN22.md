@@ -236,7 +236,7 @@ const { data } = await supabase.rpc('get_post_reactions', {
 ### Running the Script:
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Set environment variables
 export SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
@@ -303,10 +303,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: npm install
-      - run: npm test
-      - run: npm run test:pentest
-      - run: npm run test:e2e
+      - run: bun install
+      - run: bun test
+      - run: bun run test:pentest
+      - run: bun run test:e2e
       - name: Send Email Report
         uses: dawidd6/action-send-mail@v3
         with:

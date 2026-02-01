@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Node.js 18+
-- Bun (optional) or npm/yarn
+- Bun (optional) or bun/yarn
 - Git
 
 ## Installation
@@ -14,7 +14,7 @@
 2. Install dependencies:
    ```bash
    bun install
-   # or: npm install
+   # or: bun install
    ```
 
 ## Environment Variables

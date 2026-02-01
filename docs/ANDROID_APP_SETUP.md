@@ -65,41 +65,41 @@ git remote add origin https://github.com/yourusername/cladeai-android.git
 
 ```bash
 # Navigation
-npm install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
-npm install react-native-screens react-native-safe-area-context
-npm install react-native-gesture-handler react-native-reanimated
+bun install @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
+bun install react-native-screens react-native-safe-area-context
+bun install react-native-gesture-handler react-native-reanimated
 
 # State Management
-npm install zustand
+bun install zustand
 
 # API & Data
-npm install @supabase/supabase-js
-npm install axios
-npm install @tanstack/react-query
+bun install @supabase/supabase-js
+bun install axios
+bun install @tanstack/react-query
 
 # UI Components
-npm install react-native-paper
-npm install react-native-vector-icons
-npm install react-native-svg
+bun install react-native-paper
+bun install react-native-vector-icons
+bun install react-native-svg
 
 # Audio Player
-npm install react-native-track-player
-npm install react-native-spotify-remote
+bun install react-native-track-player
+bun install react-native-spotify-remote
 
 # Billing
-npm install react-native-iap
-npm install react-native-purchases  # RevenueCat
+bun install react-native-iap
+bun install react-native-purchases  # RevenueCat
 
 # Utilities
-npm install date-fns
-npm install react-native-dotenv
-npm install react-native-config
+bun install date-fns
+bun install react-native-dotenv
+bun install react-native-config
 
 # Dev Dependencies
-npm install --save-dev @types/react-native
-npm install --save-dev @testing-library/react-native
-npm install --save-dev jest
-npm install --save-dev prettier eslint
+bun install --save-dev @types/react-native
+bun install --save-dev @testing-library/react-native
+bun install --save-dev jest
+bun install --save-dev prettier eslint
 ```
 
 ### 3. Configure Android Build
@@ -323,7 +323,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'bun'
       
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -332,10 +332,10 @@ jobs:
           java-version: '17'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Run tests
-        run: npm test
+        run: bun test
       
       - name: Build Android APK
         env:
@@ -383,7 +383,7 @@ jobs:
           java-version: '17'
       
       - name: Install dependencies
-        run: npm ci
+        run: bun ci
       
       - name: Decode Keystore
         env:
@@ -552,14 +552,14 @@ Premium features require a subscription but the codebase remains open source.
 ### Unit Tests
 
 ```bash
-npm test
+bun test
 ```
 
 ### E2E Tests (Detox)
 
 ```bash
 # Install Detox
-npm install --save-dev detox
+bun install --save-dev detox
 
 # Run E2E tests
 detox test --configuration android.emu.debug

@@ -171,7 +171,7 @@ The demo showcases real progressions from famous tracks:
 ```bash
 # The landing page is already integrated
 # Just navigate to the root path
-npm run dev
+bun run dev
 
 # Open http://localhost:5173
 ```

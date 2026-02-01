@@ -20,13 +20,13 @@ supabase db diff
 
 ```bash
 # Install security library
-npm install isomorphic-dompurify
+bun install isomorphic-dompurify
 
 # Install Supabase client (if not installed)
-npm install @supabase/supabase-js
+bun install @supabase/supabase-js
 
 # Install testing libraries
-npm install -D vitest @testing-library/react
+bun install -D vitest @testing-library/react
 ```
 
 ### 3. Environment Variables (.env)
@@ -314,7 +314,7 @@ const headers = new Headers({
 
 ```bash
 # Run pentest suite
-npm run test src/test/pentest.test.ts
+bun run test src/test/pentest.test.ts
 
 # Expected output:
 # ✅ XSS Prevention: 8/8 passed

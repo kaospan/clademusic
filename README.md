@@ -63,11 +63,11 @@ cd clademusic
 
 # Install dependencies
 bun install
-# or: npm install
+# or: bun install
 
 # Start the development server
 bun dev
-# or: npm run dev
+# or: bun run dev
 ```
 
 The app will be available at `http://localhost:5173`
@@ -181,14 +181,14 @@ bun run preview
 
    ```bash
    bun add -D gh-pages
-   # or: npm install --save-dev gh-pages
+   # or: bun install --save-dev gh-pages
    ```
 
 3. Deploy:
 
    ```bash
    bun run deploy
-   # or: npm run deploy
+   # or: bun run deploy
    ```
 
 4. Go to your GitHub repository settings → Pages, and set the source to the `gh-pages` branch. Your site will be live at:

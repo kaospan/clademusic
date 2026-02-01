@@ -775,7 +775,7 @@ schedulePerformanceTests() {
 
 1. **Install Playwright**:
    ```bash
-   npm install --save-dev playwright @playwright/test
+   bun install --save-dev playwright @playwright/test
    npx playwright install chromium
    ```
 
@@ -788,7 +788,7 @@ schedulePerformanceTests() {
 
 3. **Run Initial Test**:
    ```bash
-   npm run test:performance
+   bun run test:performance
    ```
 
 4. **Enable Scheduled Tests**:
@@ -809,7 +809,7 @@ schedulePerformanceTests() {
 
 2. **Install Chart Dependencies**:
    ```bash
-   npm install recharts
+   bun install recharts
    ```
 
 3. **Test Dashboard**:
