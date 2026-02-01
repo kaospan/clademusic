@@ -84,7 +84,7 @@ export function QuickStreamButtons({
   const currentPositionSec = isCurrentTrack && positionMs ? positionMs / 1000 : undefined;
 
   const handleSpotifyClick = useCallback(() => {
-    if (!hasSpotify || !track.spotifyId) return;
+    if (!hasSpotify || !spotifyTrackId) return;
 
     setPreferredProvider('spotify');
     openPlayer({

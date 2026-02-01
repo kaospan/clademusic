@@ -141,6 +141,23 @@ const clampQueueIndex = (queueLength: number, index: number) => {
   return Math.max(0, Math.min(index, queueLength - 1));
 };
 
+// Choose the best available provider for a track, respecting user preference when possible
+const pickProviderForTrack = (track: import('@/types').Track) => {
+  const preferred = getPreferredProvider();
+  const hasSpotify = Boolean(track?.spotify_id);
+  const hasYoutube = Boolean(track?.youtube_id);
+
+  if (preferred === 'spotify' && hasSpotify) {
+    return { provider: 'spotify' as const, trackId: track.spotify_id };
+  }
+  if (preferred === 'youtube' && hasYoutube) {
+    return { provider: 'youtube' as const, trackId: track.youtube_id };
+  }
+  if (hasSpotify) return { provider: 'spotify' as const, trackId: track.spotify_id };
+  if (hasYoutube) return { provider: 'youtube' as const, trackId: track.youtube_id };
+  return { provider: null, trackId: null };
+};
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PlayerState>({
     provider: null,
@@ -352,12 +369,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => {
       const track = prev.queue[index];
       if (!track) return prev;
+      const choice = pickProviderForTrack(track);
+      if (!choice.provider || !choice.trackId) return prev;
       return {
         ...prev,
         queueIndex: index,
         canonicalTrackId: track.id,
-        provider: getPreferredProvider(),
-        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
+        provider: choice.provider,
+        trackId: choice.trackId,
+        spotifyOpen: choice.provider === 'spotify',
+        youtubeOpen: choice.provider === 'youtube',
       };
     });
   }, []);
@@ -404,13 +425,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const nextIndex = prev.queueIndex >= prev.queue.length - 1 ? 0 : prev.queueIndex + 1;
       const track = prev.queue[nextIndex];
       if (!track) return prev;
+      const choice = pickProviderForTrack(track);
+      if (!choice.provider || !choice.trackId) return prev;
 
       return {
         ...prev,
         queueIndex: nextIndex,
         canonicalTrackId: track.id,
-        provider: getPreferredProvider(),
-        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
+        provider: choice.provider,
+        trackId: choice.trackId,
+        spotifyOpen: choice.provider === 'spotify',
+        youtubeOpen: choice.provider === 'youtube',
       };
     });
   }, []);
@@ -423,13 +448,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const prevIndex = prev.queueIndex <= 0 ? prev.queue.length - 1 : prev.queueIndex - 1;
       const track = prev.queue[prevIndex];
       if (!track) return prev;
+      const choice = pickProviderForTrack(track);
+      if (!choice.provider || !choice.trackId) return prev;
 
       return {
         ...prev,
         queueIndex: prevIndex,
         canonicalTrackId: track.id,
-        provider: getPreferredProvider(),
-        trackId: getPreferredProvider() === 'spotify' ? track.spotify_id : track.youtube_id,
+        provider: choice.provider,
+        trackId: choice.trackId,
+        spotifyOpen: choice.provider === 'spotify',
+        youtubeOpen: choice.provider === 'youtube',
       };
     });
   }, []);

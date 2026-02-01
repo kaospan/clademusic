@@ -74,8 +74,8 @@ export function getProviderLinks(track: TrackProviderInfo): ProviderLink[] {
 
 // Open provider link - opens web player directly
 export function openProviderLink(link: ProviderLink, preferApp = false): void {
-  // Always open web link in new tab - this opens Spotify web player immediately
-  window.open(link.webUrl, '_blank', 'noopener,noreferrer');
+  const targetUrl = preferApp && link.appUrl ? link.appUrl : link.webUrl;
+  window.open(targetUrl, '_blank', 'noopener,noreferrer');
 }
 
 // Provider display info
