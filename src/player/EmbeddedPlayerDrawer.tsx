@@ -293,7 +293,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           exit={{ y: -20, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           data-player="universal"
-          className="pointer-events-auto fixed top-3 left-1/2 -translate-x-1/2 z-[9999] w-[min(100vw-16px,780px)] rounded-none md:w-[min(720px,calc(100vw-32px))]"
+          className="pointer-events-auto fixed top-14 left-1/2 -translate-x-1/2 z-[70] w-[90vw] max-w-[780px] rounded-none md:w-[min(720px,calc(100vw-32px))]"
         >
           <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
