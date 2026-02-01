@@ -54,6 +54,16 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
   const readyRef = useRef(false);
   const rafIdRef = useRef<number | null>(null);
 
+  // If provider switches away, clear any pending seek or retry timers
+  useEffect(() => {
+    if (provider === 'youtube') return;
+    pendingSeekRef.current = null;
+    if (seekRetryRef.current) {
+      window.clearTimeout(seekRetryRef.current);
+      seekRetryRef.current = null;
+    }
+  }, [provider]);
+
   const attemptSeek = (seconds: number, forcePlay = false): boolean => {
     pendingSeekRef.current = seconds;
     if (!playerRef.current?.seekTo || !readyRef.current) return false;
