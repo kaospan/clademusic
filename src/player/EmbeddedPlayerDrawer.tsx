@@ -142,6 +142,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
+  const [videoScale, setVideoScale] = useState(1); // allow resizing video area
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
@@ -392,13 +393,40 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             className="overflow-hidden bg-black/80"
             aria-hidden={!provider || !trackId}
           >
-            <div className="relative">
-              {provider === 'spotify' ? (
-                <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
-              ) : (
-                <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
-              )}
+            <div className="relative flex justify-center px-2 py-2">
+              <div
+                className="w-full sm:w-auto"
+                style={{
+                  width: `${Math.min(Math.max(videoScale * 100, 60), 140)}%`,
+                  maxWidth: '100%',
+                  transition: 'width 120ms ease',
+                }}
+              >
+                {provider === 'spotify' ? (
+                  <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
+                ) : (
+                  <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
+                )}
+              </div>
             </div>
+            {provider === 'youtube' && (
+              <div className="px-4 pb-3 flex items-center gap-2 text-white text-xs">
+                <span className="shrink-0">Size</span>
+                <input
+                  type="range"
+                  min={60}
+                  max={140}
+                  step={5}
+                  value={Math.round(videoScale * 100)}
+                  onChange={(e) => setVideoScale(Number(e.target.value) / 100)}
+                  className="flex-1 h-1 bg-white/20 rounded-full appearance-none cursor-pointer
+                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 
+                             [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full 
+                             [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                  aria-label="Resize video"
+                />
+              </div>
+            )}
           </motion.div>
 
           {/* Compact Controls Row: Seekbar + Volume inline */}
