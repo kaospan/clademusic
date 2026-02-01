@@ -143,6 +143,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
   const [videoScale, setVideoScale] = useState(1); // allow resizing video area
+  const commitSeek = useCallback(
+    (sec: number) => {
+      if (!Number.isFinite(sec)) return;
+      seekToMs(sec * 1000);
+      setScrubSec(null);
+    },
+    [seekToMs]
+  );
 
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
@@ -442,6 +450,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 const nextSec = Number(e.target.value);
                 if (!Number.isFinite(nextSec)) return;
                 setScrubSec(nextSec);
+                // Also commit immediately so single-click seeks never miss
+                commitSeek(nextSec);
               }}
               onPointerDown={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
@@ -453,22 +463,19 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
-                seekToMs(nextSec * 1000);
-                setScrubSec(null);
+                commitSeek(nextSec);
               }}
               onMouseUp={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
-                seekToMs(nextSec * 1000);
-                setScrubSec(null);
+                commitSeek(nextSec);
               }}
               onTouchEnd={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
-                seekToMs(nextSec * 1000);
-                setScrubSec(null);
+                commitSeek(nextSec);
               }}
               disabled={isIdle}
               step="0.1"
