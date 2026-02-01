@@ -483,30 +483,38 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 const nextSec = Number(e.target.value);
                 if (!Number.isFinite(nextSec)) return;
                 setScrubSec(nextSec);
+                // If this was a simple click (not active scrub), apply immediately
+                if (!isScrubbing) {
+                  commitSeek(nextSec);
+                }
               }}
               onPointerDown={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 setScrubSec(nextSec);
+                setIsScrubbing(true);
               }}
               onPointerUp={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 commitSeek(nextSec);
+                setIsScrubbing(false);
               }}
               onMouseUp={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 commitSeek(nextSec);
+                setIsScrubbing(false);
               }}
               onTouchEnd={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
                 const nextSec = Number(target.value);
                 if (!Number.isFinite(nextSec)) return;
                 commitSeek(nextSec);
+                setIsScrubbing(false);
               }}
               disabled={isIdle}
               step="0.1"
