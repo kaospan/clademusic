@@ -21,8 +21,8 @@ interface QueueSheetProps {
 export function QueueSheet({
   open,
   onOpenChange,
-  queue,
-  currentIndex,
+  queue = [],
+  currentIndex = -1,
   onPlayTrack,
   onRemoveTrack,
   onReorderQueue,

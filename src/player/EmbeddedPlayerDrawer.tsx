@@ -137,6 +137,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     previousTrack,
   } = usePlayer();
   const safeQueue = Array.isArray(queue) ? queue : [];
+  const safeQueueIndex = typeof queueIndex === 'number' ? queueIndex : -1;
   const cinemaRef = useRef<HTMLDivElement | null>(null);
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
@@ -249,11 +250,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       seekToMs(0);
       return;
     }
-    if (queueIndex > 0 && safeQueue.length) {
-      playFromQueue(queueIndex - 1);
+    if (safeQueueIndex > 0 && safeQueue.length) {
+      playFromQueue(safeQueueIndex - 1);
       return;
     }
-    if (queueIndex === -1 && safeQueue.length > 0) {
+    if (safeQueueIndex === -1 && safeQueue.length > 0) {
       playFromQueue(0);
       return;
     }
@@ -262,21 +263,21 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       return;
     }
     seekToMs(0);
-  }, [isIdle, positionMs, queueIndex, safeQueue.length, playFromQueue, seekToMs, onPrev]);
+  }, [isIdle, positionMs, safeQueueIndex, safeQueue.length, playFromQueue, seekToMs, onPrev]);
 
   const handleNext = useCallback(() => {
-    if (queueIndex >= 0 && queueIndex < safeQueue.length - 1) {
-      playFromQueue(queueIndex + 1);
+    if (safeQueueIndex >= 0 && safeQueueIndex < safeQueue.length - 1) {
+      playFromQueue(safeQueueIndex + 1);
       return;
     }
-    if (queueIndex === -1 && safeQueue.length > 0) {
+    if (safeQueueIndex === -1 && safeQueue.length > 0) {
       playFromQueue(0);
       return;
     }
     if (onNext) {
       onNext();
     }
-  }, [queueIndex, safeQueue.length, playFromQueue, onNext]);
+  }, [safeQueueIndex, safeQueue.length, playFromQueue, onNext]);
 
   return (
     <>
@@ -529,7 +530,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         open={queueOpen}
         onOpenChange={setQueueOpen}
         queue={queue}
-        currentIndex={queueIndex}
+        currentIndex={safeQueueIndex}
         onPlayTrack={(idx) => playFromQueue(idx)}
         onRemoveTrack={(idx) => removeFromQueue(idx)}
         onReorderQueue={reorderQueue}
