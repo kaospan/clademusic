@@ -56,14 +56,17 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
 
   const attemptSeek = (seconds: number, forcePlay = false): boolean => {
     pendingSeekRef.current = seconds;
-    if (playerRef.current?.seekTo && readyRef.current) {
-      playerRef.current.seekTo(seconds, true);
-      if (forcePlay) playerRef.current.playVideo?.();
-      updatePlaybackState({ positionMs: seconds * 1000 });
-      pendingSeekRef.current = null;
-      return true;
+    if (!playerRef.current?.seekTo || !readyRef.current) return false;
+    // cancel any in-flight retry to avoid double-apply
+    if (seekRetryRef.current) {
+      window.clearTimeout(seekRetryRef.current);
+      seekRetryRef.current = null;
     }
-    return false;
+    playerRef.current.seekTo(seconds, true);
+    if (forcePlay) playerRef.current.playVideo?.();
+    updatePlaybackState({ positionMs: seconds * 1000 });
+    pendingSeekRef.current = null;
+    return true;
   };
 
   useEffect(() => {
@@ -257,11 +260,19 @@ export function YouTubePlayer({ providerTrackId, autoplay = true }: YouTubePlaye
     if (seekRetryRef.current) {
       window.clearTimeout(seekRetryRef.current);
     }
-    seekRetryRef.current = window.setTimeout(() => {
+    // Try a couple of fast retries to catch ready state
+    const tries = [120, 300, 600];
+    let idx = 0;
+    const doRetry = () => {
       if (attemptSeek(seekToSec, true)) {
         clearSeek();
+        return;
       }
-    }, 250);
+      if (idx < tries.length) {
+        seekRetryRef.current = window.setTimeout(doRetry, tries[idx++]);
+      }
+    };
+    seekRetryRef.current = window.setTimeout(doRetry, tries[idx++]);
   }, [provider, seekToSec, clearSeek, updatePlaybackState]);
 
   useEffect(() => {
