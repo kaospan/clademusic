@@ -59,6 +59,10 @@ const basePlayerContext = {
   closePlayer: vi.fn(),
   nextTrack: vi.fn(),
   previousTrack: vi.fn(),
+  registerProviderControls: vi.fn(),
+  updatePlaybackState: vi.fn(),
+  clearSeek: vi.fn(),
+  seekToSec: null,
 };
 
 const mockPlayerContext = { ...basePlayerContext };
