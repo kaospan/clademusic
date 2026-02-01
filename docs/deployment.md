@@ -13,10 +13,12 @@
 2. Install the `gh-pages` package:
    ```bash
    bun add -D gh-pages
+   # or: bun install --save-dev gh-pages
    ```
 3. Deploy:
    ```bash
    bun run deploy
+   # or: bun run deploy
    ```
 4. Your site will be live at:
    https://kaospan.github.io/clademusic/
