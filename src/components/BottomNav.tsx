@@ -62,16 +62,6 @@ export function BottomNav() {
       <NavLink to="/feed" className="sr-only" aria-hidden="true">
         Feed
       </NavLink>
-      {/* Accessible fallback nav for tests/screen readers when sheet is closed */}
-      <nav className="sr-only" aria-label="Primary">
-        <ul>
-          {navItems.map((item) => (
-            <li key={`sr-${item.to}`}>
-              <NavLink to={item.to}>{item.label}</NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
     </div>
   );
 }
