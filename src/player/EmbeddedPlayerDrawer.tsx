@@ -163,6 +163,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const durationSec = Math.max(0, safeMs(durationMs) / 1000);
   const seekMaxSecRaw = durationSec > 0 ? durationSec : Math.max(1, positionSec);
   const seekMaxSec = Number.isFinite(seekMaxSecRaw) && seekMaxSecRaw > 0 ? seekMaxSecRaw : 1;
+  const seekStepSec = Math.max(0.01, seekMaxSec / 1200); // finer granularity: ~1200 steps across track
   const seekValueSecRaw = Math.min(effectivePositionSec, seekMaxSec);
   const seekValueSec = Number.isFinite(seekValueSecRaw) ? seekValueSecRaw : 0;
   
@@ -445,13 +446,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               type="range"
               min="0"
               max={seekMaxSec}
+              step={seekStepSec}
               value={seekValueSec}
               onChange={(e) => {
                 const nextSec = Number(e.target.value);
                 if (!Number.isFinite(nextSec)) return;
                 setScrubSec(nextSec);
-                // Also commit immediately so single-click seeks never miss
-                commitSeek(nextSec);
               }}
               onPointerDown={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
