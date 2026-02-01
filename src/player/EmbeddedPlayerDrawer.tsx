@@ -580,10 +580,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
             {provider === 'youtube' && (
               <button
-                onClick={() => setVideoScale(0.3)}
+                onClick={toggleFullscreen}
                 className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
-                aria-label="Reset video to compact size"
-                title="Reset video size"
+                aria-label={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
+                title={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
               >
                 <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </button>
