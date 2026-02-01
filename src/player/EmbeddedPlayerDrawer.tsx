@@ -529,7 +529,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       <QueueSheet
         open={queueOpen}
         onOpenChange={setQueueOpen}
-        queue={queue}
+        queue={safeQueue}
         currentIndex={safeQueueIndex}
         onPlayTrack={(idx) => playFromQueue(idx)}
         onRemoveTrack={(idx) => removeFromQueue(idx)}
