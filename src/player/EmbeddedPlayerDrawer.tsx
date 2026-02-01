@@ -469,7 +469,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               <div
                 className="w-full sm:w-auto relative"
                 style={{
-                  width: `${Math.min(Math.max(videoScale * 100, 30), 160)}%`,
+                  width:
+                    provider === 'youtube'
+                      ? `${Math.min(Math.max(videoScale * 100, 30), 160)}%`
+                      : '100%',
                   maxWidth: '100%',
                   transition: 'width 120ms ease',
                 }}
