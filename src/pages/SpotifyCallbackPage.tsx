@@ -155,7 +155,15 @@ export default function SpotifyCallbackPage() {
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
         // Store in user_providers table (do not clobber refresh_token if Spotify omits it)
-        const upsertPayload: Record<string, unknown> = {
+        const upsertPayload: {
+          user_id: string;
+          provider: string;
+          provider_user_id: string;
+          access_token: string;
+          expires_at: string;
+          connected_at: string;
+          refresh_token?: string;
+        } = {
           user_id: user.id,
           provider: 'spotify',
           provider_user_id: profile.id,
