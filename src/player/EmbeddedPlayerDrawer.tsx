@@ -697,31 +697,44 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             setMiniPosition(clampMiniPosition(next));
           }}
           style={{ x: miniPosition.x, y: miniPosition.y }}
-          className="pointer-events-auto fixed bottom-6 right-4 z-[65] w-[260px] max-w-[80vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg"
+          className="pointer-events-auto fixed bottom-6 right-4 z-[65] w-[clamp(160px,20vw,260px)] max-w-[80vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg"
           ref={miniRef}
         >
-          <div className="flex items-center justify-between px-3 py-2 gap-2">
-            <div className="flex flex-col min-w-0">
-              {resolvedTitle && <span className="text-sm font-semibold text-white truncate">{resolvedTitle}</span>}
-              {resolvedArtist && <span className="text-xs text-white/70 truncate">{resolvedArtist}</span>}
+          <div className="p-2 space-y-2">
+            <div className="relative overflow-hidden rounded-lg border border-border/60 bg-black">
+              {provider === 'youtube' && trackId ? (
+                <div className="w-full aspect-video">
+                  <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
+                </div>
+              ) : provider === 'spotify' && trackId ? (
+                <div className="w-full aspect-video max-h-[140px] overflow-hidden">
+                  <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
+                </div>
+              ) : null}
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={togglePlayPause}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={restoreFromMini}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-                aria-label="Restore player"
-              >
-                <ChevronUp className="h-4 w-4" />
-              </button>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col min-w-0">
+                {resolvedTitle && <span className="text-xs font-semibold text-white truncate">{resolvedTitle}</span>}
+                {resolvedArtist && <span className="text-[11px] text-white/70 truncate">{resolvedArtist}</span>}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={togglePlayPause}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={restoreFromMini}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+                  aria-label="Restore player"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
