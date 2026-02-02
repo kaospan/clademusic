@@ -142,7 +142,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
-  const [videoScale, setVideoScale] = useState(0.3); // start smaller; user can resize
+  const [videoScale, setVideoScale] = useState(0.8); // start at a sensible size; user can resize
   const resizeActiveRef = useRef(false);
   const lastClientXRef = useRef(0);
   const lastClientYRef = useRef(0);
@@ -491,7 +491,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 )}
                 {provider === 'youtube' && (
                   <div
-                    className="absolute bottom-1 right-1 h-4 w-4 cursor-se-resize"
+                    className="absolute bottom-1 right-1 h-4 w-4 cursor-se-resize outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    tabIndex={0}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleResizeStart(e.clientX, e.clientY);
@@ -502,6 +503,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                       const clientX = touch?.clientX ?? 0;
                       const clientY = touch?.clientY ?? 0;
                       handleResizeStart(clientX, clientY);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setVideoScale(1);
+                      }
                     }}
                     title="Drag to resize video"
                     style={{
