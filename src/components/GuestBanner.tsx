@@ -30,7 +30,7 @@ export function GuestBanner() {
   };
 
   const handleSignUp = () => {
-    navigate('/auth');
+    navigate('/signup');
   };
 
   return (

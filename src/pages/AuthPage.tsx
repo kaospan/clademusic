@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,10 +15,18 @@ const authSchema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters').optional(),
 });
 
-export default function AuthPage() {
+type AuthMode = 'signin' | 'signup';
+
+export default function AuthPage({ initialMode = 'signin' }: { initialMode?: AuthMode }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { signIn, signUp, user } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const initial = useMemo<AuthMode>(() => {
+    const qp = searchParams.get('mode');
+    if (qp === 'signup' || qp === 'signin') return qp;
+    return initialMode;
+  }, [searchParams, initialMode]);
+  const [mode, setMode] = useState<AuthMode>(initial);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -224,7 +232,10 @@ export default function AuthPage() {
                 <>
                   Don't have an account?{' '}
                   <button
-                    onClick={() => setMode('signup')}
+                    onClick={() => {
+                      setMode('signup');
+                      setSearchParams({ mode: 'signup' });
+                    }}
                     className="text-primary hover:underline font-medium"
                   >
                     Sign up
@@ -234,7 +245,10 @@ export default function AuthPage() {
                 <>
                   Already have an account?{' '}
                   <button
-                    onClick={() => setMode('signin')}
+                    onClick={() => {
+                      setMode('signin');
+                      setSearchParams({ mode: 'signin' });
+                    }}
                     className="text-primary hover:underline font-medium"
                   >
                     Sign in
