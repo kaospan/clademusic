@@ -16,6 +16,14 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'test-user' }, loading: false }),
 }));
 
+vi.mock('@/hooks/api/useSpotifyUser', () => ({
+  useSpotifyConnected: () => ({ data: true }),
+}));
+
+vi.mock('@/hooks/api/useSpotifyConnect', () => ({
+  useConnectSpotify: () => ({ mutateAsync: vi.fn() }),
+}));
+
 describe('Navigation & quicklinks regressions', () => {
   beforeEach(() => {
     openPlayerMock.mockClear();
