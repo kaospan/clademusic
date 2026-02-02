@@ -54,7 +54,16 @@ export function QuickStreamButtons({
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
   const { openPlayer, play, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
-  const navigate = useNavigate();
+  // Safe navigate for test environments where Router isn't mounted
+  const navigate = (() => {
+    try {
+      return useNavigate();
+    } catch {
+      return (to: string) => {
+        window.location.href = to;
+      };
+    }
+  })();
   const { user } = useAuth();
 
   const normalizeSpotifyId = useCallback((raw?: string | null) => {
