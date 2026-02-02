@@ -153,6 +153,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const clampPlayerScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.6), 1.3), []);
   const miniRef = useRef<HTMLDivElement | null>(null);
   const miniMargin = 8;
+  const getDefaultMiniPosition = useCallback(() => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 };
+    // place bottom-right with margin
+    return { x: window.innerWidth / 2 - miniMargin - 130, y: -(window.innerHeight / 2 - miniMargin - 90) };
+  }, [miniMargin]);
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
@@ -465,7 +470,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               <button
                 type="button"
                 onClick={() => {
-                  setMiniPosition(clampMiniPosition({ x: 0, y: 0 }));
+                  const targetPos = clampMiniPosition(getDefaultMiniPosition());
+                  setMiniPosition(targetPos);
                   collapseToMini();
                 }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
