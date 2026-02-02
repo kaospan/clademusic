@@ -3,9 +3,13 @@ import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, Square, SkipBack, SkipForward, ListMusic, RefreshCcw } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
+import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
+import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const providerMeta = {
   spotify: { label: 'Spotify', badge: '🎧', color: 'bg-black/90', Icon: SpotifyIcon },
@@ -122,7 +126,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     setVolumeLevel,
     toggleMute,
     seekToMs,
-    stop,
     collapseToMini,
     restoreFromMini,
     setMiniPosition,
@@ -136,6 +139,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     nextTrack,
     previousTrack,
   } = usePlayer();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: isSpotifyConnected } = useSpotifyConnected();
+  const connectSpotify = useConnectSpotify();
   const safeQueue = Array.isArray(queue) ? queue : [];
   const safeQueueIndex = typeof queueIndex === 'number' ? queueIndex : -1;
   const cinemaRef = useRef<HTMLDivElement | null>(null);
@@ -211,6 +218,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const handleReconnectSpotify = useCallback(() => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    void connectSpotify.mutateAsync();
+  }, [connectSpotify, navigate, user]);
 
   const toggleFullscreen = useCallback(() => {
     const el = playerWrapperRef.current;
@@ -789,6 +804,18 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                        [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
               aria-label="Volume"
             />
+
+            {provider === 'spotify' && isSpotifyConnected !== true && (
+              <button
+                type="button"
+                onClick={handleReconnectSpotify}
+                className="rounded-full border border-white/30 bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90 transition hover:border-white/60 hover:bg-white/20"
+                aria-label="Reconnect Spotify"
+                title="Reconnect Spotify"
+              >
+                Reconnect Spotify
+              </button>
+            )}
 
             {provider === 'youtube' && (
               <>

@@ -219,6 +219,20 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     clearSeek();
   }, [provider, seekToSec, clearSeek]);
 
+  useEffect(() => {
+    return () => {
+      try {
+        controllerRef.current?.destroy?.();
+      } catch (err) {
+        console.warn('[Spotify Embed] destroy failed', err);
+      }
+      controllerRef.current = null;
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
+    };
+  }, []);
+
   if (provider !== 'spotify' || !providerTrackId) return null;
 
   return (
