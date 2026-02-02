@@ -18,7 +18,7 @@ interface TrackSectionsProps {
   trackId: string;
 }
 
-const LABEL_MAP: Record<SongSectionType, string> = {
+const LABEL_MAP: Record<h, string> = {
   intro: 'Intro',
   verse: 'Verse',
   'pre-chorus': 'Pre-Chorus',

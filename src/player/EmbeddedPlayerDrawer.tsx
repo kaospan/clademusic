@@ -360,6 +360,24 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
   }, [clampPlayerScale]);
 
+  const clampMiniPosition = useCallback(
+    (pos: { x: number; y: number }) => {
+      if (typeof window === 'undefined') return pos;
+      const rect = miniRef.current?.getBoundingClientRect();
+      const width = rect?.width ?? 260;
+      const height = rect?.height ?? 120;
+      const minX = -(window.innerWidth - width - miniMargin);
+      const maxX = window.innerWidth - miniMargin;
+      const minY = -(window.innerHeight - height - miniMargin);
+      const maxY = window.innerHeight - miniMargin;
+      return {
+        x: Math.min(Math.max(pos.x, minX), maxX),
+        y: Math.min(Math.max(pos.y, minY), maxY),
+      };
+    },
+    [miniMargin]
+  );
+
   // Reset outer player scale when leaving YouTube (only YouTube is resizable)
   useEffect(() => {
     if (provider !== 'youtube') {
@@ -446,7 +464,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={collapseToMini}
+                onClick={() => {
+                  setMiniPosition(clampMiniPosition({ x: 0, y: 0 }));
+                  collapseToMini();
+                }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                 aria-label="Minimize to mini player"
                 title="Minimize"
@@ -666,10 +687,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           dragElastic={0.2}
           dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
           onDragEnd={(_, info) => {
-            setMiniPosition({ x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y });
+            const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
+            setMiniPosition(clampMiniPosition(next));
           }}
           style={{ x: miniPosition.x, y: miniPosition.y }}
           className="pointer-events-auto fixed bottom-6 right-4 z-[65] w-[260px] max-w-[80vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg"
+          ref={miniRef}
         >
           <div className="flex items-center justify-between px-3 py-2 gap-2">
             <div className="flex flex-col min-w-0">
