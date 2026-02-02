@@ -151,7 +151,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const playerResizeActiveRef = useRef(false);
   const lastPlayerClientXRef = useRef(0);
   const clampPlayerScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.6), 1.3), []);
-  const miniRef = useRef<HTMLDivElement | null>(null);
+  const playerWrapperRef = useRef<HTMLDivElement | null>(null);
+  const miniContainerRef = useRef<HTMLDivElement | null>(null);
   const miniMargin = 8;
   const getDefaultMiniPosition = useCallback(() => {
     if (typeof window === 'undefined') return { x: 0, y: 0 };
@@ -211,26 +212,31 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleFullscreen = () => {
-    if (provider !== 'youtube') return;
-    if (isCinema) {
+  const toggleFullscreen = useCallback(() => {
+    const el = playerWrapperRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
       document.exitFullscreen?.();
       exitCinema();
     } else {
-      enterCinema();
+      el.requestFullscreen?.()
+        .then(() => enterCinema())
+        .catch(() => {});
     }
-  };
+  }, [enterCinema, exitCinema]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
       const active = !!document.fullscreenElement;
       if (!active) {
         exitCinema();
+      } else {
+        enterCinema();
       }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [exitCinema]);
+  }, [enterCinema, exitCinema]);
 
   // Hydrate persisted layout (compact flag + scales)
   useEffect(() => {
@@ -416,7 +422,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const clampMiniPosition = useCallback(
     (pos: { x: number; y: number }) => {
       if (typeof window === 'undefined') return pos;
-      const rect = miniRef.current?.getBoundingClientRect();
+      const rect = miniContainerRef.current?.getBoundingClientRect();
       const width = rect?.width ?? 260;
       const height = rect?.height ?? 120;
       const minX = -(window.innerWidth - width - miniMargin);
@@ -447,7 +453,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       {/* Single Interchangeable Player - stays mounted for compact & mini so playback never stops */}
       <motion.div
         ref={(node) => {
-          miniRef.current = node;
+          playerWrapperRef.current = node;
+          miniContainerRef.current = node;
           cinemaRef.current = node;
         }}
         drag={isMini || !isScrubbing} // allow drag in mini; block while scrubbing
