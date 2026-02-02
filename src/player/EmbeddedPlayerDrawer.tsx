@@ -159,6 +159,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     return { x: window.innerWidth / 2 - miniMargin - 130, y: -(window.innerHeight / 2 - miniMargin - 90) };
   }, [miniMargin]);
   const [isCompact, setIsCompact] = useState(false);
+  const layoutStorageKey = 'player_layout_v1';
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
@@ -223,9 +224,34 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [exitCinema]);
 
+  // Hydrate persisted layout (compact flag + scales)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(layoutStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<{ isCompact: boolean; videoScale: number; playerScale: number }>;
+      if (typeof parsed.isCompact === 'boolean') setIsCompact(parsed.isCompact);
+      if (Number.isFinite(parsed.videoScale)) setVideoScale(clampScale(parsed.videoScale!));
+      if (Number.isFinite(parsed.playerScale)) setPlayerScale(clampPlayerScale(parsed.playerScale!));
+    } catch (err) {
+      console.warn('Failed to hydrate player layout', err);
+    }
+  }, [clampPlayerScale, clampScale]);
+
+  // Persist layout whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const payload = JSON.stringify({ isCompact, videoScale, playerScale });
+    try {
+      localStorage.setItem(layoutStorageKey, payload);
+    } catch (err) {
+      console.warn('Failed to persist player layout', err);
+    }
+  }, [isCompact, videoScale, playerScale]);
+
   useEffect(() => {
     setScrubSec(null);
-    setIsCompact(false);
   }, [provider, trackId]);
 
   useEffect(() => {
@@ -418,7 +444,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           isMini
             ? 'bottom-6 right-4 left-auto translate-x-0 w-[clamp(200px,80vw,360px)]'
             : isCompact
-              ? 'bottom-4 right-4 left-auto translate-x-0 w-[min(460px,90vw)]'
+              ? 'bottom-4 left-4 right-auto translate-x-0 w-[min(460px,90vw)]'
               : 'top-14 left-1/2 -translate-x-1/2 w-[90vw] max-w-[780px]'
         }`}
         style={{
