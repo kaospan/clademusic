@@ -159,6 +159,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     return { x: window.innerWidth / 2 - miniMargin - 130, y: -(window.innerHeight / 2 - miniMargin - 90) };
   }, [miniMargin]);
   const [isCompact, setIsCompact] = useState(false);
+  const getDefaultCompactPosition = useCallback(() => {
+    if (typeof window === 'undefined') return { x: 0, y: 0 };
+    // bottom-left with margin
+    return { x: -(window.innerWidth / 2 - miniMargin - 120), y: window.innerHeight / 2 - miniMargin - 120 };
+  }, [miniMargin]);
+  const [mainPosition, setMainPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [compactPosition, setCompactPosition] = useState<{ x: number; y: number }>(() => getDefaultCompactPosition());
+  const [restorePosition, setRestorePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const layoutStorageKey = 'player_layout_v1';
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
@@ -253,6 +261,18 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   useEffect(() => {
     setScrubSec(null);
   }, [provider, trackId]);
+
+  // Recenter positions when viewport changes
+  useEffect(() => {
+    const onResize = () => {
+      setCompactPosition(getDefaultCompactPosition());
+      if (!isCompact && !isMini) {
+        setMainPosition({ x: 0, y: 0 });
+      }
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [getDefaultCompactPosition, isCompact, isMini]);
 
   useEffect(() => {
     if (!isCinema) return;
@@ -438,9 +458,16 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         exit={{ y: -20, opacity: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
         onDragEnd={(_, info) => {
-          if (!isMini) return;
-          const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
-          setMiniPosition(clampMiniPosition(next));
+          if (isMini) {
+            const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
+            setMiniPosition(clampMiniPosition(next));
+          } else if (isCompact) {
+            const next = { x: compactPosition.x + info.offset.x, y: compactPosition.y + info.offset.y };
+            setCompactPosition(next);
+          } else {
+            const next = { x: mainPosition.x + info.offset.x, y: mainPosition.y + info.offset.y };
+            setMainPosition(next);
+          }
         }}
         data-player="universal"
         className={`pointer-events-auto fixed z-[70] rounded-none md:w-[min(720px,calc(100vw-32px))] ${
@@ -453,8 +480,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         style={{
           scale: isMini ? 0.5 : isCompact ? 0.7 : playerScale,
           transformOrigin: isMini ? 'bottom right' : isCompact ? 'bottom right' : 'top center',
-          x: isMini ? miniPosition.x : undefined,
-          y: isMini ? miniPosition.y : undefined,
+          x: isMini ? miniPosition.x : isCompact ? compactPosition.x : mainPosition.x,
+          y: isMini ? miniPosition.y : isCompact ? compactPosition.y : mainPosition.y,
         }}
       >
           <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
@@ -510,7 +537,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               {isCompact && (
                 <button
                   type="button"
-                  onClick={() => setIsCompact(false)}
+                  onClick={() => {
+                    setIsCompact(false);
+                    setMainPosition(restorePosition);
+                  }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Restore compact player"
                   title="Restore compact"
@@ -531,7 +561,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               {!isCompact && (
                 <button
                   type="button"
-                  onClick={() => setIsCompact(true)}
+                  onClick={() => {
+                    setRestorePosition(mainPosition);
+                    setCompactPosition(getDefaultCompactPosition());
+                    setIsCompact(true);
+                  }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Compact player"
                   title="Compact"
