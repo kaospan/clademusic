@@ -583,8 +583,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                disabled={provider !== 'youtube'}
-                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                 aria-label={isCinema ? 'Exit full screen' : 'Enter full screen'}
                 title={isCinema ? 'Exit full screen' : 'Enter full screen'}
               >
@@ -758,14 +757,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   title="Reset video size"
                 >
                   <RefreshCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                </button>
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
-                  aria-label={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
-                  title={isCinema ? 'Exit cinema mode' : 'Enter cinema mode'}
-                >
-                  <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
               </>
             )}
