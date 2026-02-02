@@ -6,6 +6,7 @@ import { getPreferredProvider, setPreferredProvider } from '@/lib/preferences';
 import { usePlayer } from '@/player/PlayerContext';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 
 interface QuickStreamButtonsProps {
@@ -53,6 +54,7 @@ export function QuickStreamButtons({
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
   const { openPlayer, play, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const normalizeSpotifyId = useCallback((raw?: string | null) => {
@@ -85,6 +87,11 @@ export function QuickStreamButtons({
 
   const handleSpotifyClick = useCallback(() => {
     if (!hasSpotify || !spotifyTrackId) return;
+    if (!user) {
+      // Require authentication for full-track Spotify playback
+      navigate('/auth');
+      return;
+    }
 
     setPreferredProvider('spotify');
     openPlayer({
