@@ -545,10 +545,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     setState((prev) => {
+      // Ensure the track lives in the queue so Next/Prev always work
+      let nextQueue = prev.queue;
+      let nextQueueIndex = prev.queueIndex;
+      const canonicalId = payload.canonicalTrackId ?? prev.canonicalTrackId ?? `anon-${payload.provider}-${payload.providerTrackId ?? Date.now()}`;
+      if (canonicalId) {
+        const existingIdx = prev.queue.findIndex((t) => t.id === canonicalId);
+        if (existingIdx === -1) {
+          const queuedTrack: import('@/types').Track = {
+            id: canonicalId,
+            title: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle ?? 'Untitled',
+            artist: payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist ?? undefined,
+            album: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum ?? undefined,
+            spotify_id: payload.provider === 'spotify' ? payload.providerTrackId ?? undefined : undefined,
+            youtube_id: payload.provider === 'youtube' ? payload.providerTrackId ?? undefined : undefined,
+          };
+          nextQueue = [...prev.queue, queuedTrack];
+          nextQueueIndex = nextQueue.length - 1;
+        } else {
+          nextQueueIndex = existingIdx;
+        }
+      }
+
       const updates: Partial<PlayerState> = {
         provider: payload.provider,
         trackId: payload.providerTrackId,
-        canonicalTrackId: payload.canonicalTrackId ?? prev.canonicalTrackId,
+        canonicalTrackId: canonicalId,
         trackTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
         trackArtist: dedupeArtists(payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist),
         trackAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
@@ -569,6 +591,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         youtubeTrackId: payload.provider === 'youtube' ? payload.providerTrackId : prev.youtubeTrackId,
         autoplaySpotify: payload.provider === 'spotify' ? payload.autoplay ?? true : false,
         autoplayYoutube: payload.provider === 'youtube' ? payload.autoplay ?? true : false,
+        queue: nextQueue,
+        queueIndex: nextQueueIndex,
       };
       return { ...prev, ...updates };
     });
