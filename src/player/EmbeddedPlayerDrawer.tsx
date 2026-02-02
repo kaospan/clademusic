@@ -268,6 +268,22 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     setScrubSec(null);
   }, [provider, trackId]);
 
+  const computeDragBounds = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
+    }
+    const node = playerWrapperRef.current;
+    if (!node) return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
+    const rect = node.getBoundingClientRect();
+    const margin = 8;
+    return {
+      left: -rect.left + margin,
+      right: window.innerWidth - rect.right - margin,
+      top: -rect.top + margin,
+      bottom: window.innerHeight - rect.bottom - margin,
+    };
+  }, []);
+
   // Recenter positions when viewport changes
   useEffect(() => {
     const onResize = () => {
@@ -313,22 +329,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       throw new Error('Invariant violated: player rendered without title.');
     }
   }, [isOpen, resolvedTitle]);
-
-  const computeDragBounds = useCallback(() => {
-    if (typeof window === 'undefined') {
-      return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
-    }
-    const node = playerWrapperRef.current;
-    if (!node) return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
-    const rect = node.getBoundingClientRect();
-    const margin = 8;
-    return {
-      left: -rect.left + margin,
-      right: window.innerWidth - rect.right - margin,
-      top: -rect.top + margin,
-      bottom: window.innerHeight - rect.bottom - margin,
-    };
-  }, []);
 
   useLayoutEffect(() => {
     setDragBounds(computeDragBounds());
