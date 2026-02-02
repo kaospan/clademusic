@@ -162,8 +162,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const [isCompact, setIsCompact] = useState(false);
   const getDefaultCompactPosition = useCallback(() => {
     if (typeof window === 'undefined') return { x: 0, y: 0 };
-    // bottom-left with margin
-    return { x: -(window.innerWidth / 2 - miniMargin - 120), y: window.innerHeight / 2 - miniMargin - 120 };
+    const margin = 12;
+    return { x: margin, y: window.innerHeight - 200 };
   }, [miniMargin]);
   const [mainPosition, setMainPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [compactPosition, setCompactPosition] = useState<{ x: number; y: number }>(() => getDefaultCompactPosition());
@@ -437,6 +437,30 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     [miniMargin]
   );
 
+  const snapCompactToCorner = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const rect = playerWrapperRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const margin = 12;
+    const targets = [
+      { x: margin, y: margin }, // top-left (kept for completeness)
+      { x: window.innerWidth - rect.width - margin, y: margin }, // top-right
+      { x: margin, y: window.innerHeight - rect.height - margin }, // bottom-left
+      { x: window.innerWidth - rect.width - margin, y: window.innerHeight - rect.height - margin }, // bottom-right
+    ];
+    let best = targets[0];
+    let bestDist = Infinity;
+    const current = { x: rect.left, y: rect.top };
+    for (const t of targets) {
+      const d = (t.x - current.x) ** 2 + (t.y - current.y) ** 2;
+      if (d < bestDist) {
+        bestDist = d;
+        best = t;
+      }
+    }
+    setCompactPosition(best);
+  }, []);
+
   // Reset outer player scale when leaving YouTube (only YouTube is resizable)
   useEffect(() => {
     if (provider !== 'youtube') {
@@ -481,12 +505,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           isMini
             ? 'bottom-6 right-4 left-auto translate-x-0 w-[clamp(200px,80vw,360px)]'
             : isCompact
-              ? 'bottom-4 left-4 right-auto translate-x-0 w-[min(460px,90vw)]'
+              ? 'top-0 left-0 translate-x-0 w-[min(460px,90vw)]'
               : 'top-14 left-1/2 -translate-x-1/2 w-[90vw] max-w-[780px]'
         }`}
         style={{
           scale: isMini ? 0.5 : isCompact ? 0.7 : playerScale,
-          transformOrigin: isMini ? 'bottom right' : isCompact ? 'bottom right' : 'top center',
+          transformOrigin: isMini ? 'bottom right' : isCompact ? 'top left' : 'top center',
           x: isMini ? miniPosition.x : isCompact ? compactPosition.x : mainPosition.x,
           y: isMini ? miniPosition.y : isCompact ? compactPosition.y : mainPosition.y,
         }}
@@ -572,6 +596,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                     setRestorePosition(mainPosition);
                     setCompactPosition(getDefaultCompactPosition());
                     setIsCompact(true);
+                    requestAnimationFrame(snapCompactToCorner);
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Compact player"

@@ -26,11 +26,14 @@ export default function FeedPage() {
   const { data: trackResult, isLoading: tracksLoading, error: tracksError } = useFeedTracks(50);
   const { data: recommendations = [], isLoading: recommendationsLoading } = useSpotifyRecommendations([], [], 50);
 
-  // Prefer personalized Spotify recommendations when available for signed-in users; fall back to feed tracks
-  const feedTracks = (user && recommendations.length > 0 ? recommendations : trackResult?.tracks) ?? [];
+  // Always show both recent feed tracks and personalized recommendations (if available and signed-in).
+  const baseFeed = trackResult?.tracks ?? [];
+  const personalizedRecs = user ? recommendations : [];
+  const merged = [...baseFeed, ...personalizedRecs];
+
   const tracks: Track[] = (() => {
     const seen = new Set<string>();
-    return feedTracks.filter((t) => {
+    return merged.filter((t) => {
       const key = t.spotify_id || t.id;
       if (!key) return false;
       if (seen.has(key)) return false;
