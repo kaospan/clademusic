@@ -398,24 +398,36 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
   return (
     <>
-      {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
-      {!isMini && (
-        <motion.div
-          drag={!isScrubbing} // prevent drag while scrubbing the seekbar so clicks land reliably
-          dragConstraints={dragBounds}
-          dragElastic={0.15}
-          initial={{ y: 0, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -20, opacity: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          data-player="universal"
-          className={`pointer-events-auto fixed z-[70] rounded-none md:w-[min(720px,calc(100vw-32px))] ${
-            isCompact
+      {/* Single Interchangeable Player - stays mounted for compact & mini so playback never stops */}
+      <motion.div
+        ref={miniRef}
+        drag={isMini || !isScrubbing} // allow drag in mini; block while scrubbing
+        dragConstraints={isMini ? { left: -1000, right: 1000, top: -1000, bottom: 1000 } : dragBounds}
+        dragElastic={0.15}
+        initial={{ y: 0, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: -20, opacity: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        onDragEnd={(_, info) => {
+          if (!isMini) return;
+          const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
+          setMiniPosition(clampMiniPosition(next));
+        }}
+        data-player="universal"
+        className={`pointer-events-auto fixed z-[70] rounded-none md:w-[min(720px,calc(100vw-32px))] ${
+          isMini
+            ? 'bottom-6 right-4 left-auto translate-x-0 w-[clamp(200px,80vw,360px)]'
+            : isCompact
               ? 'bottom-4 right-4 left-auto translate-x-0 w-[min(460px,90vw)]'
               : 'top-14 left-1/2 -translate-x-1/2 w-[90vw] max-w-[780px]'
-          }`}
-          style={{ scale: isCompact ? 0.7 : playerScale, transformOrigin: isCompact ? 'bottom right' : 'top center' }}
-        >
+        }`}
+        style={{
+          scale: isMini ? 0.5 : isCompact ? 0.7 : playerScale,
+          transformOrigin: isMini ? 'bottom right' : isCompact ? 'bottom right' : 'top center',
+          x: isMini ? miniPosition.x : undefined,
+          y: isMini ? miniPosition.y : undefined,
+        }}
+      >
           <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
           <div className="flex items-center gap-3 px-3 py-2 md:px-4 md:py-2.5 bg-background/80 backdrop-blur">
@@ -688,7 +700,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         </div>
 
         </motion.div>
-      )}
+      </motion.div>
 
       {/* Player resize handle (affects overall player scale) */}
       {!isMini && provider === 'youtube' && (
@@ -708,59 +720,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           }}
           title="Drag to resize player"
         />
-      )}
-
-      {isMini && (
-        <motion.div
-          drag
-          dragElastic={0.2}
-          dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
-          onDragEnd={(_, info) => {
-            const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
-            setMiniPosition(clampMiniPosition(next));
-          }}
-          style={{ x: miniPosition.x, y: miniPosition.y }}
-          className="pointer-events-auto fixed bottom-6 right-4 z-[65] w-[clamp(160px,20vw,260px)] max-w-[80vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg"
-          ref={miniRef}
-        >
-          <div className="p-2 space-y-2">
-            <div className="relative overflow-hidden rounded-lg border border-border/60 bg-black">
-              {provider === 'youtube' && trackId ? (
-                <div className="w-full aspect-video">
-                  <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
-                </div>
-              ) : provider === 'spotify' && trackId ? (
-                <div className="w-full aspect-video max-h-[140px] overflow-hidden">
-                  <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
-                </div>
-              ) : null}
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex flex-col min-w-0">
-                {resolvedTitle && <span className="text-xs font-semibold text-white truncate">{resolvedTitle}</span>}
-                {resolvedArtist && <span className="text-[11px] text-white/70 truncate">{resolvedArtist}</span>}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={togglePlayPause}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-                  aria-label={isPlaying ? 'Pause' : 'Play'}
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={restoreFromMini}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-                  aria-label="Restore player"
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       )}
 
       {/* Queue sheet */}
