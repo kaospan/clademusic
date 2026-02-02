@@ -148,6 +148,25 @@ export default function LoginPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                enterGuestMode();
+                toast.info('Guest mode enabled — explore the feed freely.');
+                navigate('/feed');
+              }}
+            >
+              Continue as guest
+            </Button>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground select-none">
+              <div className="h-px flex-1 bg-border" />
+              <span>or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
             {mode === 'signup' && (
               <div className="space-y-2">
                 <Label htmlFor="displayName">Display name</Label>
@@ -179,19 +198,6 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                enterGuestMode();
-                toast.info('Guest mode enabled — explore the feed freely.');
-                navigate('/feed');
-              }}
-            >
-              Continue as guest
-            </Button>
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
@@ -227,6 +233,20 @@ export default function LoginPage() {
                 <>{mode === 'signin' ? 'Sign in' : 'Create account'}</>
               )}
             </Button>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground select-none">
+              <div className="h-px flex-1 bg-border" />
+              <span>or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {['Google', 'Apple', 'Microsoft', 'Amazon', 'Deezer', 'Spotify', 'Tidal'].map((provider) => (
+                <Button key={provider} type="button" variant="outline" className="w-full justify-center">
+                  Continue with {provider}
+                </Button>
+              ))}
+            </div>
           </form>
 
           <div className="mt-6 text-center">
