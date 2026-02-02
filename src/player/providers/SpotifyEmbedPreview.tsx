@@ -249,8 +249,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
                 lastPositionRef.current = rawPos;
               }
 
-              // Enforce monotonic forward motion (even when paused) to avoid jitter/backwards jumps
-              const pos = Math.max(rawPos, lastPositionRef.current);
+              // Accept authoritative position including backward seeks; keep last seen for jitter detection
+              const pos = rawPos;
               lastPositionRef.current = pos;
 
               console.log('[Spotify] state:', {
