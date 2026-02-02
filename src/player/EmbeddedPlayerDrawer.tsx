@@ -151,6 +151,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const playerResizeActiveRef = useRef(false);
   const lastPlayerClientXRef = useRef(0);
   const clampPlayerScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.6), 1.3), []);
+  const miniRef = useRef<HTMLDivElement | null>(null);
+  const miniMargin = 8;
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
