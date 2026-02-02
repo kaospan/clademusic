@@ -10,6 +10,7 @@ import { GuestBanner } from '@/components/GuestBanner';
 import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
 import { useFeedTracks } from '@/hooks/api/useTracks';
 import { useAuth } from '@/hooks/useAuth';
+import { useLastFmStats } from '@/hooks/api/useLastFm';
 import { useSpotifyRecommendations } from '@/hooks/api/useSpotifyUser';
 import { InteractionType, Track } from '@/types';
 import { ChevronUp, ChevronDown, LogIn, AlertCircle } from 'lucide-react';
@@ -20,6 +21,7 @@ import { usePlayer } from '@/player/PlayerContext';
 
 export default function FeedPage() {
   const { user, loading: authLoading, guestMode, enterGuestMode } = useAuth();
+  const { data: lastfmStats } = useLastFmStats();
   const navigate = useNavigate();
   
   // Fetch from multiple sources
@@ -29,12 +31,24 @@ export default function FeedPage() {
   // Always show both recent feed tracks and personalized recommendations (if available and signed-in).
   const baseFeed = trackResult?.tracks ?? [];
   const personalizedRecs = user ? recommendations : [];
-  const merged = [...baseFeed, ...personalizedRecs];
+  // Map Last.fm recent scrobbles to Track shape (no provider IDs; display-only)
+  const lastfmRecent: Track[] = (lastfmStats?.recentTracks ?? []).map((t, idx) => ({
+    id: `lastfm:${t.artist}-${t.name}-${t.playedAt?.getTime() ?? idx}`,
+    title: t.name,
+    artist: t.artist,
+    album: t.album,
+    cover_url: t.imageUrl,
+    // Keep order as returned (newest first), no provider IDs to avoid quick-stream confusion
+  }));
 
+  // Merge in priority order: scrobbles (newest), base feed, personalized recs; dedupe by provider id or title+artist
   const tracks: Track[] = (() => {
     const seen = new Set<string>();
-    return merged.filter((t) => {
-      const key = t.spotify_id || t.id;
+    const all = [...lastfmRecent, ...baseFeed, ...personalizedRecs];
+    return all.filter((t) => {
+      const title = (t.title || (t as any).name || '').toLowerCase().trim();
+      const artist = (t.artist || t.artists?.[0] || '').toLowerCase().trim();
+      const key = (t.spotify_id || t.youtube_id || `${title}|${artist}`) || t.id;
       if (!key) return false;
       if (seen.has(key)) return false;
       seen.add(key);
