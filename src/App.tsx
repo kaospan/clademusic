@@ -19,6 +19,7 @@ const Index = lazy(() => import("./pages/Index")); // Landing Page
 const FeedPage = lazy(() => import("./pages/FeedPage"));
 const AuthGatePage = lazy(() => import("./pages/AuthGatePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -83,6 +84,7 @@ const App = () => (
                     <Route path="/feed" element={<FeedPage />} />
                     <Route path="/auth" element={<AuthGatePage />} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/compare" element={<ComparePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
