@@ -538,12 +538,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               )}
               <button
                 type="button"
-                onClick={stop}
-                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-destructive/30 hover:text-destructive"
-                aria-label="Stop playback"
-                title="Stop playback"
+                onClick={toggleFullscreen}
+                disabled={provider !== 'youtube'}
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={isCinema ? 'Exit full screen' : 'Enter full screen'}
+                title={isCinema ? 'Exit full screen' : 'Enter full screen'}
               >
-                <Square className="h-3 w-3 md:h-4 md:w-4" />
+                <Maximize2 className="h-3 w-3 md:h-4 md:w-4" />
               </button>
               <button
                 type="button"

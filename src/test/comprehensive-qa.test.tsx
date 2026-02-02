@@ -148,7 +148,7 @@ describe('Mobile Player QA', () => {
     it('should render player when open', () => {
       render(<EmbeddedPlayerDrawer />, { wrapper });
       
-      expect(screen.getAllByLabelText(/stop playback/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByLabelText(/full screen/i).length).toBeGreaterThan(0);
     });
 
     it('should show minimize button on mobile', () => {
@@ -471,7 +471,7 @@ describe('Accessibility QA', () => {
   it('should have proper ARIA labels', () => {
     render(<EmbeddedPlayerDrawer />, { wrapper });
     
-    expect(screen.getAllByLabelText(/stop playback/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText(/full screen/i).length).toBeGreaterThan(0);
     expect(screen.getAllByLabelText(/minimize to mini player/i).length).toBeGreaterThan(0);
   });
 
