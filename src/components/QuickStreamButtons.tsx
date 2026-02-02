@@ -52,7 +52,7 @@ export function QuickStreamButtons({
   const spotifyLink = links.find((l) => l.provider === 'spotify');
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
-  const { openPlayer, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
+  const { openPlayer, play, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
   const { user } = useAuth();
 
   const normalizeSpotifyId = useCallback((raw?: string | null) => {
@@ -97,7 +97,9 @@ export function QuickStreamButtons({
       artist: trackArtist,
       startSec: currentPositionSec,
     });
-  }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId]);
+    // Fire play explicitly to guarantee autoplay (esp. Spotify SDK/device handoff)
+    play?.();
+  }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId, play]);
 
   const handleYouTubeClick = useCallback(async () => {
     setPreferredProvider('youtube');
