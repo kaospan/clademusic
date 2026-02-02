@@ -703,6 +703,9 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               max={seekMaxSec}
               step={seekStepSec}
               value={seekValueSec}
+              onPointerDownCapture={(e) => e.stopPropagation()}
+              onMouseDownCapture={(e) => e.stopPropagation()}
+              onTouchStartCapture={(e) => e.stopPropagation()}
               onChange={(e) => {
                 const nextSec = Number(e.target.value);
                 if (!Number.isFinite(nextSec)) return;
@@ -765,6 +768,9 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               min="0"
               max="100"
               value={volumePercent}
+              onPointerDownCapture={(e) => e.stopPropagation()}
+              onMouseDownCapture={(e) => e.stopPropagation()}
+              onTouchStartCapture={(e) => e.stopPropagation()}
               onChange={(e) => setVolumeLevel(Number(e.target.value) / 100)}
               className="w-20 md:w-28 h-1 bg-white/20 rounded-full appearance-none cursor-pointer
                        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 

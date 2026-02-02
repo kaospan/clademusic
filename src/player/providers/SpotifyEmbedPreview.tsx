@@ -8,6 +8,8 @@ type SpotifyPlayer = {
   connect: () => Promise<boolean>;
   disconnect: () => Promise<void>;
   pause: () => Promise<void>;
+  resume?: () => Promise<void>;
+  togglePlay?: () => Promise<void>;
   seek: (ms: number) => Promise<void>;
   setVolume: (volume: number) => Promise<void>;
   getCurrentState?: () => Promise<any>;
@@ -29,20 +31,19 @@ interface SpotifyEmbedPreviewProps {
   autoplay?: boolean;
 }
 
-const SPOTIFY_EMBED_ALLOW = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-
 let sdkPromise: Promise<void> | null = null;
 let sdkReady = false;
 let spotifyPlayerSingleton: SpotifyPlayer | null = null;
 let spotifyDeviceId: string | null = null;
 let audioContextResumed = false;
 let spotifyListenersAttached = false;
-let registeredFallbackControls = false;
 
 const resetSpotifyState = () => {
   spotifyPlayerSingleton = null;
   spotifyDeviceId = null;
   spotifyListenersAttached = false;
+  lastTrackStarted.id = null;
+  inFlightPlay.running = false;
 };
 
 const MIN_AUDIBLE_VOLUME = 0.05; // avoid accidental zeros when unmuted
@@ -135,6 +136,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   const volumeRef = useRef<number>(volume);
   const lastPositionRef = useRef<number>(0);
   const [ready, setReady] = useState(false);
+  const [useEmbedFallback, setUseEmbedFallback] = useState(false);
+  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null);
   const lastTrackIdRef = useRef<string | null>(null);
   const lastEmitTsRef = useRef<number>(0);
 
@@ -143,6 +146,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     lastTrackIdRef.current = providerTrackId;
     lastPositionRef.current = 0;
     lastEmitTsRef.current = 0;
+    setUseEmbedFallback(false);
+    setFallbackMessage(null);
     updatePlaybackState({
       positionMs: 0,
       durationMs: 0,
@@ -163,6 +168,9 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
 
     // Guest / no token: require sign-in for full-track playback
     if (!user?.id) {
+      setUseEmbedFallback(true);
+      setFallbackMessage('Sign in to connect Spotify for full-track playback.');
+      setReady(false);
       updatePlaybackState({
         isPlaying: false,
         positionMs: 0,
@@ -185,10 +193,14 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
         if (cancelled || !window.Spotify) return;
         tokenRef.current = token;
         if (!token) {
+          setUseEmbedFallback(true);
+          setFallbackMessage('Connect Spotify to enable playback.');
+          setReady(false);
           return;
         }
 
         setUseEmbedFallback(false);
+        setFallbackMessage(null);
         const initialVolume = isMuted ? 0 : Math.max(volumeRef.current, MIN_AUDIBLE_VOLUME);
         const player = getOrCreatePlayer(token, initialVolume);
 
@@ -242,15 +254,18 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
               });
               // Throttle state emissions to reduce jitter (max ~5Hz)
               const now = performance.now();
-              if (now - lastEmitTsRef.current >= 180) {
-                lastEmitTsRef.current = now;
-                try {
-                  updatePlaybackState({
-                    positionMs: pos,
-                    durationMs: Number.isFinite(state.duration) ? state.duration : undefined,
-                    isPlaying: !state.paused,
-                    volume: typeof state.volume === 'number' ? state.volume : volumeRef.current,
-                    isMuted: state.volume === 0,
+            if (now - lastEmitTsRef.current >= 180) {
+              lastEmitTsRef.current = now;
+              try {
+                const durationMs = Number.isFinite(state.duration)
+                  ? state.duration
+                  : state.track_window?.current_track?.duration_ms;
+                updatePlaybackState({
+                  positionMs: pos,
+                  durationMs,
+                  isPlaying: !state.paused,
+                  volume: typeof state.volume === 'number' ? state.volume : volumeRef.current,
+                  isMuted: state.volume === 0,
                     trackTitle: state.track_window?.current_track?.name ?? null,
                     trackArtist: artistNames,
                     trackAlbum: state.track_window?.current_track?.album?.name ?? null,
@@ -285,7 +300,11 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
             const device = deviceIdRef.current;
             if (!tokenVal || !device) return;
             if (providerTrackId && lastTrackStarted.id === providerTrackId && ready) {
-              await player.resume?.();
+              if (player.resume) {
+                await player.resume();
+              } else if (player.togglePlay) {
+                await player.togglePlay();
+              }
               return;
             }
             if (inFlightPlay.running) return;
@@ -328,6 +347,8 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
       } catch (err) {
         console.error('Spotify SDK setup failed', err);
         setUseEmbedFallback(true);
+        setFallbackMessage('Spotify playback failed to initialize.');
+        setReady(false);
       }
     };
 
@@ -375,6 +396,14 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   }, [provider, providerTrackId, ready, autoplay, autoplaySpotify, seekToSec, isMuted, useEmbedFallback]);
 
   if (provider !== 'spotify' || !providerTrackId) return null;
+
+  if (useEmbedFallback) {
+    return (
+      <div className="w-full rounded-xl border border-white/10 bg-black/60 px-4 py-3 text-xs text-white/70">
+        {fallbackMessage ?? 'Spotify unavailable. Please reconnect to play full tracks.'}
+      </div>
+    );
+  }
 
   return ready ? null : (
     <div className="w-full h-14 md:h-20 bg-gradient-to-r from-green-950/80 via-black to-green-950/80 rounded-xl overflow-hidden" />
