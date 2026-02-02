@@ -54,18 +54,20 @@ export default function SpotifyCallbackPage() {
         const error = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
 
-        // Prevent re-using the same code (can happen with double-mounts or browser back/forward)
+        // Prevent re-using the same code (page refresh/back button or multiple loads)
         if (code) {
           const key = `spotify_code_${code}`;
           consumedCodeKeyRef.current = key;
-          const alreadyUsed = sessionStorage.getItem(key);
+          const alreadyUsed = localStorage.getItem(key) || sessionStorage.getItem(key);
           if (alreadyUsed) {
             console.warn('[Spotify Callback] Code already consumed, skipping re-exchange');
             setStatus('success');
-            setTimeout(() => navigate('/profile', { replace: true }), 1000);
+            setTimeout(() => navigate('/profile', { replace: true }), 800);
             return;
           }
+          // mark in both scopes to survive same-tab refresh and prevent cross-tab reuse
           sessionStorage.setItem(key, 'used');
+          localStorage.setItem(key, 'used');
         }
 
         // Handle Spotify errors
@@ -126,6 +128,13 @@ export default function SpotifyCallbackPage() {
         }
 
         console.log('[Spotify Callback] Token exchange successful');
+        // Strip code/state from the URL to prevent accidental re-use on refresh
+        try {
+          const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (err) {
+          console.warn('[Spotify Callback] Failed to clean URL', err);
+        }
         const tokens: SpotifyTokenResponse = await tokenResponse.json();
 
         console.log('[Spotify Callback] Fetching Spotify profile...');
