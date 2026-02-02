@@ -522,9 +522,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               <button
                 type="button"
                 onClick={() => {
+                  // When collapsing with X, stop playback and park mini in default spot.
                   setIsCompact(false);
                   const targetPos = clampMiniPosition(getDefaultMiniPosition());
                   setMiniPosition(targetPos);
+                  stop();
                   collapseToMini();
                 }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
