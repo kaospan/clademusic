@@ -546,10 +546,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 const nextSec = Number(e.target.value);
                 if (!Number.isFinite(nextSec)) return;
                 setScrubSec(nextSec);
-                // If this was a simple click (not active scrub), apply immediately
-                if (!isScrubbing) {
-                  commitSeek(nextSec);
-                }
+                // Commit immediately so single taps and drag updates seek right away
+                commitSeek(nextSec);
               }}
               onPointerDown={(e) => {
                 const target = e.currentTarget as HTMLInputElement;
@@ -578,6 +576,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 if (!Number.isFinite(nextSec)) return;
                 commitSeek(nextSec);
                 setIsScrubbing(false);
+              }}
+              onClick={(e) => {
+                const target = e.currentTarget as HTMLInputElement;
+                const nextSec = Number(target.value);
+                if (!Number.isFinite(nextSec)) return;
+                commitSeek(nextSec);
               }}
               disabled={isIdle}
               className="flex-1 min-w-[80px] h-1 bg-white/20 rounded-full appearance-none cursor-pointer
