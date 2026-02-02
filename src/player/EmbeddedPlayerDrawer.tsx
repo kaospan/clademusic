@@ -426,7 +426,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     <>
       {/* Single Interchangeable Player - stays mounted for compact & mini so playback never stops */}
       <motion.div
-        ref={miniRef}
+        ref={(node) => {
+          miniRef.current = node;
+          cinemaRef.current = node;
+        }}
         drag={isMini || !isScrubbing} // allow drag in mini; block while scrubbing
         dragConstraints={isMini ? { left: -1000, right: 1000, top: -1000, bottom: 1000 } : dragBounds}
         dragElastic={0.15}
