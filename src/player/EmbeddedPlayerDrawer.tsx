@@ -158,6 +158,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     // place bottom-right with margin
     return { x: window.innerWidth / 2 - miniMargin - 130, y: -(window.innerHeight / 2 - miniMargin - 90) };
   }, [miniMargin]);
+  const [isCompact, setIsCompact] = useState(false);
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
@@ -224,6 +225,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
   useEffect(() => {
     setScrubSec(null);
+    setIsCompact(false);
   }, [provider, trackId]);
 
   useEffect(() => {
