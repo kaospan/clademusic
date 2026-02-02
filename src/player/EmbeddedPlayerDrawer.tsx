@@ -698,8 +698,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
             )}
           </div>
         </div>
-
-        </motion.div>
       </motion.div>
 
       {/* Player resize handle (affects overall player scale) */}
