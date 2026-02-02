@@ -358,6 +358,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
   }, [clampPlayerScale]);
 
+  // Reset outer player scale when leaving YouTube (only YouTube is resizable)
+  useEffect(() => {
+    if (provider !== 'youtube') {
+      setPlayerScale(1);
+      playerResizeActiveRef.current = false;
+    }
+  }, [provider]);
+
   return (
     <>
       {/* Single Interchangeable Player - positioned inside navbar area, draggable across screen */}
@@ -627,7 +635,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       )}
 
       {/* Player resize handle (affects overall player scale) */}
-      {!isMini && (
+      {!isMini && provider === 'youtube' && (
         <div
           className="pointer-events-auto fixed top-14 left-1/2 -translate-x-1/2 z-[71] w-[24px] h-[24px] cursor-se-resize"
           style={{ marginTop: 'calc(4.25rem + 100%)' }}
