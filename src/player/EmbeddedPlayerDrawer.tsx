@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useState, useCallback } from 'react';
+import { useMemo, useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
@@ -167,7 +167,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   }, [miniMargin]);
   const [mainPosition, setMainPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [compactPosition, setCompactPosition] = useState<{ x: number; y: number }>(() => getDefaultCompactPosition());
-  const [restorePosition, setRestorePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [dragBounds, setDragBounds] = useState({ left: -1000, right: 1000, top: -1000, bottom: 1000 });
   const layoutStorageKey = 'player_layout_v1';
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
@@ -275,10 +275,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       if (!isCompact && !isMini) {
         setMainPosition({ x: 0, y: 0 });
       }
+      setDragBounds(computeDragBounds());
     };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [getDefaultCompactPosition, isCompact, isMini]);
+  }, [computeDragBounds, getDefaultCompactPosition, isCompact, isMini]);
 
   useEffect(() => {
     if (!isCinema) return;
@@ -313,17 +314,25 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     }
   }, [isOpen, resolvedTitle]);
 
-  const dragBounds = useMemo(() => {
+  const computeDragBounds = useCallback(() => {
     if (typeof window === 'undefined') {
       return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
     }
+    const node = playerWrapperRef.current;
+    if (!node) return { left: -1000, right: 1000, top: -1000, bottom: 1000 };
+    const rect = node.getBoundingClientRect();
+    const margin = 8;
     return {
-      left: -window.innerWidth,
-      right: window.innerWidth,
-      top: -window.innerHeight,
-      bottom: window.innerHeight,
+      left: -rect.left + margin,
+      right: window.innerWidth - rect.right - margin,
+      top: -rect.top + margin,
+      bottom: window.innerHeight - rect.bottom - margin,
     };
   }, []);
+
+  useLayoutEffect(() => {
+    setDragBounds(computeDragBounds());
+  }, [computeDragBounds, isMini, isCompact, mainPosition, compactPosition, miniPosition, playerScale, videoScale]);
 
   const handlePrev = useCallback(() => {
     if (isIdle) return;
@@ -482,7 +491,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           cinemaRef.current = node;
         }}
         drag={isMini || !isScrubbing} // allow drag in mini; block while scrubbing
-        dragConstraints={isMini ? { left: -1000, right: 1000, top: -1000, bottom: 1000 } : dragBounds}
+        dragConstraints={dragBounds}
         dragElastic={0.15}
         initial={{ y: 0, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -570,7 +579,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   type="button"
                   onClick={() => {
                     setIsCompact(false);
-                    setMainPosition(restorePosition);
+                    setMainPosition({ x: 0, y: 0 });
+                    requestAnimationFrame(() => setDragBounds(computeDragBounds()));
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Restore compact player"
@@ -593,10 +603,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 <button
                   type="button"
                   onClick={() => {
-                    setRestorePosition(mainPosition);
+                    setMainPosition({ x: 0, y: 0 });
                     setCompactPosition(getDefaultCompactPosition());
                     setIsCompact(true);
                     requestAnimationFrame(snapCompactToCorner);
+                    requestAnimationFrame(() => setDragBounds(computeDragBounds()));
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Compact player"

@@ -133,8 +133,8 @@ export async function getRecentlyPlayedTracks(
  * Check if user has Spotify connected
  */
 export async function isSpotifyConnected(userId: string): Promise<boolean> {
-  const credentials = await getSpotifyCredentials(userId);
-  return credentials !== null;
+  const token = await getValidAccessToken(userId);
+  return Boolean(token);
 }
 
 /**

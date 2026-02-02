@@ -55,7 +55,7 @@ export function QuickStreamButtons({
   const spotifyLink = links.find((l) => l.provider === 'spotify');
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
-  const { openPlayer, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
+  const { openPlayer, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId, trackId: currentProviderTrackId } = usePlayer();
   // Safe navigate for test environments where Router isn't mounted
   const navigate = (() => {
     try {
@@ -95,7 +95,9 @@ export function QuickStreamButtons({
   const unavailable = !hasSpotify && !hasYouTube;
 
   // Check if this is the currently playing track
-  const isCurrentTrack = currentTrackId === canonicalTrackId;
+  const isCurrentTrack = currentTrackId === canonicalTrackId
+    || (currentProvider === 'spotify' && spotifyTrackId && currentProviderTrackId === spotifyTrackId)
+    || (currentProvider === 'youtube' && youtubeTrackId && currentProviderTrackId === youtubeTrackId);
   const currentPositionSec = isCurrentTrack && positionMs ? positionMs / 1000 : undefined;
 
   const handleSpotifyClick = useCallback(() => {
