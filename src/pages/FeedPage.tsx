@@ -19,7 +19,7 @@ import { useState } from 'react';
 import { usePlayer } from '@/player/PlayerContext';
 
 export default function FeedPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, guestMode, enterGuestMode } = useAuth();
   const navigate = useNavigate();
   
   // Fetch from multiple sources
@@ -49,10 +49,10 @@ export default function FeedPage() {
   const { openPlayer } = usePlayer();
 
   useEffect(() => {
-    if (user) {
+    if (user || guestMode) {
       setShowAuthPrompt(false);
     }
-  }, [user]);
+  }, [user, guestMode]);
   
   const handleInteraction = (type: InteractionType) => {
     if (!user) {
@@ -187,21 +187,35 @@ export default function FeedPage() {
             <h1 className="text-lg lg:text-xl font-bold gradient-text">HarmonyFeed</h1>
             <div className="flex items-center gap-3 lg:gap-4">
               <span className="text-xs lg:text-sm text-muted-foreground flex items-center gap-1">
-              {currentIndex + 1} / {tracks.length}
-            </span>
-            {!user && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/auth')}
-                className="gap-1.5"
-              >
-                <LogIn className="w-4 h-4" />
-                <span className="hidden sm:inline">Sign in</span>
-              </Button>
-            )}
+                {currentIndex + 1} / {tracks.length}
+              </span>
+              {!user && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      enterGuestMode();
+                      setShowAuthPrompt(false);
+                    }}
+                    className="gap-1.5"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span className="hidden sm:inline">Continue as guest</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/auth')}
+                    className="gap-1.5"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span className="hidden sm:inline">Sign in</span>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
         </ResponsiveContainer>
       </header>
 
@@ -248,6 +262,30 @@ export default function FeedPage() {
       {/* Feed content */}
       <main className="flex-1 pt-16 pb-24">
         <ResponsiveContainer maxWidth="full" className="py-6">
+          {!user && (
+            <div className="mx-auto mb-4 max-w-lg lg:max-w-2xl rounded-lg border border-border/60 bg-background/70 px-4 py-3 shadow-md backdrop-blur">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Continue as guest to browse using the latest Last.fm scrobbles. You can switch to your account anytime.
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      enterGuestMode();
+                      setShowAuthPrompt(false);
+                    }}
+                  >
+                    Continue as guest
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/auth')}>
+                    Sign in
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Simple center-focused layout for all users */}
           <div className="h-[calc(100vh-12rem)] max-w-lg mx-auto lg:max-w-2xl">
             <AnimatePresence mode="wait">
