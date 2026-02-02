@@ -62,6 +62,12 @@ const withinWindow = (timestamp: string, windowMs: number) => {
   return age >= 0 && age <= windowMs;
 };
 
+const computeReuseWindows = (baseDate = Date.now()) => {
+  const reuseUntil = new Date(baseDate + TTL_MS).toISOString();
+  const reanalyzeAfter = new Date(baseDate + REANALYZE_MS).toISOString();
+  return { reuse_until: reuseUntil, reanalyze_after: reanalyzeAfter };
+};
+
 // ============================================================================
 // MAIN ANALYSIS API
 // ============================================================================
@@ -329,6 +335,8 @@ async function storeInCache(
 
     const payload = {
       ...fingerprint,
+      is_provisional: false,
+      ...computeReuseWindows(),
       updated_at: new Date().toISOString(),
     };
 
@@ -464,6 +472,7 @@ function createProvisionalFingerprint(trackId: string): HarmonicFingerprint {
     analysis_timestamp: new Date().toISOString(),
     analysis_version: ANALYSIS_CONFIG.CURRENT_MODEL_VERSION,
     is_provisional: true,
+    ...computeReuseWindows(), // provisional reuse window prevents hammering
     detected_key: undefined,
     detected_mode: 'major',
   };
