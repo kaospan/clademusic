@@ -154,20 +154,22 @@ export default function SpotifyCallbackPage() {
         // Calculate token expiry time
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-        // Store in user_providers table
+        // Store in user_providers table (do not clobber refresh_token if Spotify omits it)
+        const upsertPayload: Record<string, unknown> = {
+          user_id: user.id,
+          provider: 'spotify',
+          provider_user_id: profile.id,
+          access_token: tokens.access_token,
+          expires_at: expiresAt,
+          connected_at: new Date().toISOString(),
+        };
+        if (tokens.refresh_token) {
+          upsertPayload.refresh_token = tokens.refresh_token;
+        }
+
         const { error: upsertError } = await supabase
           .from('user_providers')
-          .upsert({
-            user_id: user.id,
-            provider: 'spotify',
-            provider_user_id: profile.id,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_at: expiresAt,
-            connected_at: new Date().toISOString(),
-          }, {
-            onConflict: 'user_id,provider',
-          });
+          .upsert(upsertPayload, { onConflict: 'user_id,provider' });
 
         if (upsertError) {
           console.error('Failed to store Spotify connection:', upsertError);

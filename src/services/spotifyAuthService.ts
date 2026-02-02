@@ -51,6 +51,10 @@ export async function refreshSpotifyToken(
     console.error('Spotify client ID not configured');
     return null;
   }
+  if (!refreshToken) {
+    console.warn('Spotify refresh token missing; reconnect required');
+    return null;
+  }
 
   try {
     const response = await fetch(SPOTIFY_TOKEN_URL, {
