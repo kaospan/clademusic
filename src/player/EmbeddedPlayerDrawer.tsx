@@ -516,8 +516,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   collapseToMini();
                 }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label="Minimize to mini player"
-                title="Minimize to mini player"
+                aria-label="Minimize player"
+                title="Minimize"
               >
                 <X className="h-3 w-3 md:h-4 md:w-4" />
               </button>
