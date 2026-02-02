@@ -409,8 +409,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           exit={{ y: -20, opacity: 0 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           data-player="universal"
-          className="pointer-events-auto fixed top-14 left-1/2 -translate-x-1/2 z-[70] w-[90vw] max-w-[780px] rounded-none md:w-[min(720px,calc(100vw-32px))]"
-          style={{ scale: playerScale, transformOrigin: 'top center' }}
+          className={`pointer-events-auto fixed z-[70] rounded-none md:w-[min(720px,calc(100vw-32px))] ${
+            isCompact
+              ? 'bottom-4 right-4 left-auto translate-x-0 w-[min(460px,90vw)]'
+              : 'top-14 left-1/2 -translate-x-1/2 w-[90vw] max-w-[780px]'
+          }`}
+          style={{ scale: isCompact ? 0.7 : playerScale, transformOrigin: isCompact ? 'bottom right' : 'top center' }}
         >
           <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
@@ -462,6 +466,17 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               >
                 {isPlaying ? <Pause className="h-4 w-4 md:h-5 md:w-5" /> : <Play className="h-4 w-4 md:h-5 md:w-5" />}
               </button>
+              {isCompact && (
+                <button
+                  type="button"
+                  onClick={() => setIsCompact(false)}
+                  className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                  aria-label="Restore compact player"
+                  title="Restore compact"
+                >
+                  <ChevronUp className="h-3 w-3 md:h-4 md:w-4" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => (effectiveCanNext ? handleNext() : null)}
@@ -501,8 +516,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   collapseToMini();
                 }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label="Minimize player"
-                title="Minimize"
+                aria-label="Minimize to mini player"
+                title="Minimize to mini player"
               >
                 <X className="h-3 w-3 md:h-4 md:w-4" />
               </button>
