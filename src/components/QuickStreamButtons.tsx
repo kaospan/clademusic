@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { searchYouTubeVideos } from '@/services/youtubeSearchService';
+import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
+import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
 
 interface QuickStreamButtonsProps {
   track: TrackProviderInfo;
@@ -53,7 +55,7 @@ export function QuickStreamButtons({
   const spotifyLink = links.find((l) => l.provider === 'spotify');
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
-  const { openPlayer, play, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
+  const { openPlayer, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId } = usePlayer();
   // Safe navigate for test environments where Router isn't mounted
   const navigate = (() => {
     try {
@@ -65,6 +67,8 @@ export function QuickStreamButtons({
     }
   })();
   const { user } = useAuth();
+  const { data: isSpotifyConnected } = useSpotifyConnected();
+  const connectSpotify = useConnectSpotify();
 
   const normalizeSpotifyId = useCallback((raw?: string | null) => {
     if (!raw) return null;
@@ -101,6 +105,11 @@ export function QuickStreamButtons({
       navigate('/auth');
       return;
     }
+    if (isSpotifyConnected !== true) {
+      // Kick off Spotify OAuth connect flow if not connected yet
+      void connectSpotify.mutateAsync();
+      return;
+    }
 
     setPreferredProvider('spotify');
     openPlayer({
@@ -113,9 +122,7 @@ export function QuickStreamButtons({
       artist: trackArtist,
       startSec: currentPositionSec,
     });
-    // Fire play explicitly to guarantee autoplay (esp. Spotify SDK/device handoff)
-    play?.();
-  }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId, play]);
+  }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId, user, isSpotifyConnected, connectSpotify, navigate]);
 
   const handleYouTubeClick = useCallback(async () => {
     setPreferredProvider('youtube');
