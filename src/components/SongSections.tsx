@@ -61,6 +61,13 @@ export function SongSections({ sections, youtubeId, title, className }: SongSect
   };
 
 
+  function formatTime(seconds: number): React.ReactNode {
+    if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) return '--:--';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
