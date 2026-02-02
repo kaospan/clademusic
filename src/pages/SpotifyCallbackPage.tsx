@@ -38,6 +38,7 @@ export default function SpotifyCallbackPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const handledRef = useRef(false);
+  const consumedCodeKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     async function handleCallback() {
@@ -52,6 +53,20 @@ export default function SpotifyCallbackPage() {
         const state = searchParams.get('state');
         const error = searchParams.get('error');
         const errorDescription = searchParams.get('error_description');
+
+        // Prevent re-using the same code (can happen with double-mounts or browser back/forward)
+        if (code) {
+          const key = `spotify_code_${code}`;
+          consumedCodeKeyRef.current = key;
+          const alreadyUsed = sessionStorage.getItem(key);
+          if (alreadyUsed) {
+            console.warn('[Spotify Callback] Code already consumed, skipping re-exchange');
+            setStatus('success');
+            setTimeout(() => navigate('/profile', { replace: true }), 1000);
+            return;
+          }
+          sessionStorage.setItem(key, 'used');
+        }
 
         // Handle Spotify errors
         if (error) {
