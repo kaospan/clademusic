@@ -391,6 +391,9 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       setPlayerScale(1);
       playerResizeActiveRef.current = false;
     }
+    if (isMini) {
+      setIsCompact(false);
+    }
   }, [provider]);
 
   return (
@@ -469,19 +472,17 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               >
                 <SkipForward className="h-4 w-4 md:h-5 md:w-5" />
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const targetPos = clampMiniPosition(getDefaultMiniPosition());
-                  setMiniPosition(targetPos);
-                  collapseToMini();
-                }}
-                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                aria-label="Minimize to mini player"
-                title="Minimize"
-              >
-                <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-              </button>
+              {!isCompact && (
+                <button
+                  type="button"
+                  onClick={() => setIsCompact(true)}
+                  className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                  aria-label="Compact player"
+                  title="Compact"
+                >
+                  <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={stop}
@@ -493,7 +494,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
               <button
                 type="button"
-                onClick={collapseToMini}
+                onClick={() => {
+                  setIsCompact(false);
+                  const targetPos = clampMiniPosition(getDefaultMiniPosition());
+                  setMiniPosition(targetPos);
+                  collapseToMini();
+                }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                 aria-label="Minimize player"
                 title="Minimize"
