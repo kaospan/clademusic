@@ -37,6 +37,7 @@ const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_SCOPES = [
   'user-read-email',
   'user-read-private',
+  'user-top-read',
   'streaming',
   'user-modify-playback-state',
   'user-read-playback-state',

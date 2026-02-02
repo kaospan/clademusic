@@ -29,7 +29,7 @@ export async function getSpotifyCredentials(userId: string): Promise<UserProvide
     .select('*')
     .eq('user_id', userId)
     .eq('provider', 'spotify')
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
     return null;

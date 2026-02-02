@@ -308,7 +308,7 @@ export async function getLastFmUsername(userId: string): Promise<string | null> 
     .select('provider_user_id')
     .eq('user_id', userId)
     .eq('provider', 'lastfm')
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
     return null;
