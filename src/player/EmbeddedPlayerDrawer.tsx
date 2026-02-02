@@ -504,6 +504,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           } else if (isCompact) {
             const next = { x: compactPosition.x + info.offset.x, y: compactPosition.y + info.offset.y };
             setCompactPosition(next);
+            requestAnimationFrame(snapCompactToCorner);
           } else {
             const next = { x: mainPosition.x + info.offset.x, y: mainPosition.y + info.offset.y };
             setMainPosition(next);
@@ -628,11 +629,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               <button
                 type="button"
                 onClick={() => {
-                  // When collapsing with X, stop playback and park mini in default spot.
+                  // Collapse to mini but keep playback alive.
                   setIsCompact(false);
                   const targetPos = clampMiniPosition(getDefaultMiniPosition());
                   setMiniPosition(targetPos);
-                  stop();
                   collapseToMini();
                 }}
                 className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
@@ -763,7 +763,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
                        [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
                        [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
-e              aria-label="Seek"
+              aria-label="Seek"
             />
             <span className="text-[10px] md:text-xs tabular-nums w-12 text-left" aria-label="Total duration">{formatTime(durationSec)}</span>
 

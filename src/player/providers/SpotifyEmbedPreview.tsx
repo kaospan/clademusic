@@ -199,6 +199,18 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
   }, [provider, providerTrackId, autoplay, autoplaySpotify, registerProviderControls, user?.id]);
 
   useEffect(() => {
+    if (provider === 'spotify') return;
+    if (controllerRef.current?.destroy) {
+      controllerRef.current.destroy();
+    }
+    controllerRef.current = null;
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+    setReady(false);
+  }, [provider]);
+
+  useEffect(() => {
     if (provider !== 'spotify') return;
     if (seekToSec == null) return;
     if (controllerRef.current?.seek) {
