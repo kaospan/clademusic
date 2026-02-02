@@ -5,7 +5,7 @@
  * Exchanges the authorization code for tokens and stores them.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,9 +37,12 @@ export default function SpotifyCallbackPage() {
   const { user } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const handledRef = useRef(false);
 
   useEffect(() => {
     async function handleCallback() {
+      if (handledRef.current) return; // guard against StrictMode double-invoke
+      handledRef.current = true;
       try {
         console.log('[Spotify Callback] Starting...');
         console.log('[Spotify Callback] URL params:', Object.fromEntries(searchParams.entries()));
@@ -148,8 +151,6 @@ export default function SpotifyCallbackPage() {
         }
 
         // Clean up OAuth state
-        clearOAuthState();
-
         setStatus('success');
 
         // Redirect to profile after a moment
@@ -161,6 +162,8 @@ export default function SpotifyCallbackPage() {
         console.error('Spotify callback error:', err);
         setErrorMessage(err instanceof Error ? err.message : 'Unknown error');
         setStatus('error');
+      } finally {
+        // Always clear to avoid stale state; safe because we guard double-run
         clearOAuthState();
       }
     }
