@@ -17,6 +17,8 @@ import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
 import { ResponsiveContainer, ResponsiveGrid } from '@/components/layout/ResponsiveLayout';
 import { QuickStreamButtons } from '@/components/QuickStreamButtons';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from '@/components/shared';
 import { 
   getSearchHistory, 
   addToSearchHistory, 
@@ -255,7 +257,13 @@ export default function SearchPage() {
       <header className="sticky top-0 z-40 glass-strong safe-top">
         <ResponsiveContainer maxWidth="full">
           <div className="py-4 space-y-3">
-            <h1 className="text-xl lg:text-2xl font-bold">Search</h1>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CladeLogoAnimated size={22} className="text-primary" />
+                <h1 className="text-xl lg:text-2xl font-bold">Search</h1>
+              </div>
+              <ProfileCircle />
+            </div>
             
             {/* Search mode toggle */}
             <div className="flex gap-2">

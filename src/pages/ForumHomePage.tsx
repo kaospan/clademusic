@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -142,7 +144,10 @@ export function ForumHomePage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">Forums</h1>
+            <div className="flex items-center gap-3">
+              <CladeLogoAnimated size={24} className="text-primary" />
+              <h1 className="text-2xl font-bold">Forums</h1>
+            </div>
             <div className="flex-1 max-w-2xl">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -158,6 +163,7 @@ export function ForumHomePage() {
               <Plus className="h-5 w-5 mr-2" />
               Create Post
             </Button>
+            <ProfileCircle />
           </div>
           
           {/* Sort tabs */}
