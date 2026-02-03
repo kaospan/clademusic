@@ -157,6 +157,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const [playerScale, setPlayerScale] = useState(1);
   const playerResizeActiveRef = useRef(false);
   const lastPlayerClientXRef = useRef(0);
+  const lastPlayerClientYRef = useRef(0);
   const clampPlayerScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.6), 1.3), []);
   const playerWrapperRef = useRef<HTMLDivElement | null>(null);
   const miniContainerRef = useRef<HTMLDivElement | null>(null);
@@ -170,12 +171,23 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const getDefaultCompactPosition = useCallback(() => {
     if (typeof window === 'undefined') return { x: 0, y: 0 };
     const margin = 12;
-    return { x: margin, y: window.innerHeight - 200 };
+    const width = 420;
+    const height = 180;
+    return { x: window.innerWidth - width - margin, y: window.innerHeight - height - margin };
   }, [miniMargin]);
   const [mainPosition, setMainPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [compactPosition, setCompactPosition] = useState<{ x: number; y: number }>(() => getDefaultCompactPosition());
   const [dragBounds, setDragBounds] = useState({ left: -1000, right: 1000, top: -1000, bottom: 1000 });
   const layoutStorageKey = 'player_layout_v1';
+  const clampPositionToBounds = useCallback(
+    (pos: { x: number; y: number }) => {
+      return {
+        x: Math.min(Math.max(pos.x, dragBounds.left), dragBounds.right),
+        y: Math.min(Math.max(pos.y, dragBounds.top), dragBounds.bottom),
+      };
+    },
+    [dragBounds]
+  );
 
   const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
@@ -349,6 +361,18 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     setDragBounds(computeDragBounds());
   }, [computeDragBounds, isMini, isCompact, mainPosition, compactPosition, miniPosition, playerScale, videoScale]);
 
+  useEffect(() => {
+    if (isMini) {
+      setMiniPosition((prev) => clampMiniPosition(prev));
+      return;
+    }
+    if (isCompact) {
+      setCompactPosition((prev) => clampPositionToBounds(prev));
+      return;
+    }
+    setMainPosition((prev) => clampPositionToBounds(prev));
+  }, [clampMiniPosition, clampPositionToBounds, isCompact, isMini]);
+
   const handlePrev = useCallback(() => {
     if (isIdle) return;
     if (positionMs > 3000) {
@@ -423,10 +447,15 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   useEffect(() => {
     const onMove = (e: MouseEvent | TouchEvent) => {
       if (!playerResizeActiveRef.current) return;
-      const clientX = 'touches' in e ? e.touches[0]?.clientX ?? lastPlayerClientXRef.current : (e as MouseEvent).clientX;
-      const delta = clientX - lastPlayerClientXRef.current;
+      const point = 'touches' in e ? e.touches[0] : (e as MouseEvent);
+      const clientX = point?.clientX ?? lastPlayerClientXRef.current;
+      const clientY = point?.clientY ?? lastPlayerClientYRef.current;
+      const deltaX = clientX - lastPlayerClientXRef.current;
+      const deltaY = clientY - lastPlayerClientYRef.current;
       lastPlayerClientXRef.current = clientX;
-      setPlayerScale((prev) => clampPlayerScale(prev + delta * 0.0015));
+      lastPlayerClientYRef.current = clientY;
+      const delta = (deltaX + deltaY) * 0.0012;
+      setPlayerScale((prev) => clampPlayerScale(prev + delta));
     };
     const onUp = () => {
       playerResizeActiveRef.current = false;
@@ -784,10 +813,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
             <button
               onClick={toggleMute}
-              className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
+              className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/90 transition hover:border-white/40 hover:bg-white/20"
               aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
-              {isMuted ? <VolumeX className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Volume2 className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+              {isMuted ? <VolumeX className="h-4 w-4 md:h-5 md:w-5" /> : <Volume2 className="h-4 w-4 md:h-5 md:w-5" />}
             </button>
             <input
               type="range"
@@ -830,28 +859,29 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </>
             )}
           </div>
+          {!isMini && (
+            <div
+              className="absolute bottom-2 right-2 h-5 w-5 cursor-se-resize rounded-sm bg-white/10 hover:bg-white/20 active:bg-white/30"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                playerResizeActiveRef.current = true;
+                lastPlayerClientXRef.current = e.clientX;
+                lastPlayerClientYRef.current = e.clientY;
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                lastPlayerClientXRef.current = touch?.clientX ?? 0;
+                lastPlayerClientYRef.current = touch?.clientY ?? 0;
+                playerResizeActiveRef.current = true;
+              }}
+              onPointerDownCapture={(e) => e.stopPropagation()}
+              title="Drag to resize player"
+              aria-label="Resize player"
+            />
+          )}
         </div>
       </motion.div>
-
-      {/* Player resize handle (affects overall player scale) */}
-      {!isMini && provider === 'youtube' && (
-        <div
-          className="pointer-events-auto fixed top-14 left-1/2 -translate-x-1/2 z-[71] w-[24px] h-[24px] cursor-se-resize"
-          style={{ marginTop: 'calc(4.25rem + 100%)' }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            playerResizeActiveRef.current = true;
-            lastPlayerClientXRef.current = e.clientX;
-          }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            const clientX = e.touches[0]?.clientX ?? 0;
-            playerResizeActiveRef.current = true;
-            lastPlayerClientXRef.current = clientX;
-          }}
-          title="Drag to resize player"
-        />
-      )}
 
       {/* Queue sheet */}
       <QueueSheet
