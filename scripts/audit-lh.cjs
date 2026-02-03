@@ -11,12 +11,12 @@ function ensureDir(dir) {
 }
 
 function findLighthouseBin() {
-  const binName = process.platform === 'win32' ? 'lighthouse.cmd' : 'lighthouse';
-  const binPath = path.join(process.cwd(), 'node_modules', '.bin', binName);
-  if (!fs.existsSync(binPath)) {
-    throw new Error(`Missing ${binPath}. Install lighthouse (dev dependency) before running this audit.`);
+  const candidates = process.platform === 'win32' ? ['lighthouse.exe', 'lighthouse.cmd', 'lighthouse'] : ['lighthouse'];
+  for (const name of candidates) {
+    const binPath = path.join(process.cwd(), 'node_modules', '.bin', name);
+    if (fs.existsSync(binPath)) return binPath;
   }
-  return binPath;
+  throw new Error(`Missing lighthouse binary under node_modules/.bin. Install lighthouse (dev dependency) before running this audit.`);
 }
 
 function extractMetrics(lhr) {
