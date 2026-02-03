@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Track } from '@/types';
@@ -32,19 +32,30 @@ export function QueueSheet({
   const currentTrack = safeIndex >= 0 ? queue[safeIndex] : null;
   const upNext = safeIndex >= 0 ? queue.slice(safeIndex + 1) : [];
   const previous = safeIndex >= 0 ? queue.slice(0, safeIndex) : [];
+  const description =
+    queue.length === 0
+      ? 'No tracks in queue'
+      : `${queue.length} track${queue.length === 1 ? '' : 's'} • ${upNext.length} up next`;
 
   const queueBody = (
     <>
-      <div className="px-6 py-4 border-b">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <div className="px-6 py-4 border-b flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
             <Music className="w-5 h-5" />
             Queue
-          </DialogTitle>
-          <DialogDescription>
-            {queue.length === 0 ? 'No tracks in queue' : `${queue.length} track${queue.length === 1 ? '' : 's'} • ${upNext.length} up next`}
-          </DialogDescription>
-        </DialogHeader>
+          </h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onOpenChange(false)}
+          aria-label="Close queue"
+          title="Close queue"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
       {queue.length > 0 && (
@@ -227,18 +238,12 @@ export function QueueSheet({
     <>
       {/* Desktop/tablet: right sidebar */}
       <div
-        className={`hidden md:block fixed inset-y-0 right-0 z-[80] w-[420px] max-w-[40vw] border-l bg-background shadow-2xl transition-transform duration-200 ${
+        className={`hidden md:flex fixed inset-y-0 right-0 z-[80] w-[420px] max-w-[40vw] border-l bg-background shadow-2xl transition-transform duration-200 flex-col ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
+        aria-hidden={!open}
       >
-        <div className="h-full flex flex-col">
-          <div className="flex items-center justify-end px-4 py-3 border-b">
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} aria-label="Close queue">
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          {queueBody}
-        </div>
+        {queueBody}
       </div>
 
       {/* Mobile: modal dialog */}
