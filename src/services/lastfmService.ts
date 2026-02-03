@@ -9,6 +9,48 @@ import { supabase } from '@/integrations/supabase/client';
 
 const LASTFM_API_BASE = 'https://ws.audioscrobbler.com/2.0';
 
+export function normalizeLastFmUsername(input: string): string {
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  const withoutAt = trimmed.startsWith('@') ? trimmed.slice(1) : trimmed;
+
+  // Common: users paste their profile URL (e.g. https://www.last.fm/user/<name>)
+  const urlUserMatch = withoutAt.match(/last\.fm\/user\/([^/?#]+)/i);
+  if (urlUserMatch?.[1]) {
+    try {
+      return decodeURIComponent(urlUserMatch[1]);
+    } catch {
+      return urlUserMatch[1];
+    }
+  }
+
+  // Accept a path fragment like /user/<name>
+  const pathUserMatch = withoutAt.match(/\/user\/([^/?#]+)/i);
+  if (pathUserMatch?.[1]) {
+    try {
+      return decodeURIComponent(pathUserMatch[1]);
+    } catch {
+      return pathUserMatch[1];
+    }
+  }
+
+  // If someone pastes a URL without protocol, try parsing it.
+  if (withoutAt.includes('last.fm')) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(withoutAt) ? withoutAt : `https://${withoutAt}`);
+      const parts = url.pathname.split('/').filter(Boolean);
+      const userIdx = parts.findIndex((p) => p.toLowerCase() === 'user');
+      const candidate = userIdx >= 0 ? parts[userIdx + 1] : undefined;
+      if (candidate) return decodeURIComponent(candidate);
+    } catch {
+      // Fall back to returning the raw string below.
+    }
+  }
+
+  return withoutAt.replace(/\/+$/, '');
+}
+
 export interface LastFmArtist {
   name: string;
   playcount: string;
@@ -270,15 +312,20 @@ export async function getLastFmStats(username: string): Promise<LastFmStats | nu
  * Store Last.fm username for a user
  */
 export async function connectLastFm(userId: string, username: string): Promise<void> {
+  const normalized = normalizeLastFmUsername(username);
+  if (!normalized) {
+    throw new Error('Please enter your Last.fm username');
+  }
+
   // Verify the username exists on Last.fm
-  const userInfo = await getLastFmUserInfo(username);
+  const userInfo = await getLastFmUserInfo(normalized);
   if (!userInfo) {
     throw new Error('Last.fm username not found. Please check the username and try again.');
   }
 
   const updateMetadata = async () => {
     const { data, error } = await supabase.auth.updateUser({
-      data: { lastfm_username: username },
+      data: { lastfm_username: normalized },
     });
     if (error || !data?.user) {
       throw new Error('Failed to save Last.fm connection');
@@ -292,7 +339,7 @@ export async function connectLastFm(userId: string, username: string): Promise<v
     .upsert({
       user_id: userId,
       provider: 'lastfm',
-      provider_user_id: username,
+      provider_user_id: normalized,
       // Last.fm doesn't use OAuth tokens for public data
       access_token: 'public',
       refresh_token: 'public',
