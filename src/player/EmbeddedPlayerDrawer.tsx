@@ -349,6 +349,24 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
   }, []);
 
+  const clampMiniPosition = useCallback(
+    (pos: { x: number; y: number }) => {
+      if (typeof window === 'undefined') return pos;
+      const rect = miniContainerRef.current?.getBoundingClientRect();
+      const width = rect?.width ?? 260;
+      const height = rect?.height ?? 120;
+      const minX = -(window.innerWidth - width - miniMargin);
+      const maxX = window.innerWidth - miniMargin;
+      const minY = -(window.innerHeight - height - miniMargin);
+      const maxY = window.innerHeight - miniMargin;
+      return {
+        x: Math.min(Math.max(pos.x, minX), maxX),
+        y: Math.min(Math.max(pos.y, minY), maxY),
+      };
+    },
+    [miniMargin]
+  );
+
   // Recenter positions when viewport changes
   useEffect(() => {
     const onResize = () => {
