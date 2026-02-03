@@ -1,6 +1,6 @@
 # Clade Architecture Summary
 
-**Last Updated**: January 21, 2026
+**Last Updated**: February 3, 2026
 
 ## Product Vision
 
@@ -56,7 +56,7 @@ Store result → Update confidence score
 
 ### 3. Audio Analysis Layer 🚧
 
-**Status**: Placeholder implementation (TODO: integrate ML model)
+**Status**: Mock analysis pipeline is implemented; ML model integration is still pending.
 
 **Requirements:**
 - Extract chroma/harmonic features from audio
@@ -64,11 +64,14 @@ Store result → Update confidence score
 - Output relative structures with confidence scores
 - Never block UI during analysis
 
-**TODO:**
+**Implemented (in repo):**
+- [x] Supabase Edge Function background job runner (`supabase/functions/harmonic-analysis`)
+- [x] Database schema for `harmonic_fingerprints` + `analysis_jobs` (`supabase/migrations/20260125_harmonic_analysis_core.sql`)
+- [x] Real-time job progress updates (Supabase Realtime via `src/hooks/useHarmonicAnalysis.ts`)
+
+**Remaining:**
 - [ ] Integrate Essentia.js or custom ML model
-- [ ] Add Supabase Edge Function for background processing
 - [ ] Implement section boundary detection
-- [ ] Add real-time progress updates
 
 ### 4. UX Requirements ✅
 
@@ -94,7 +97,7 @@ Store result → Update confidence score
 **Optimizations:**
 - ✅ Aggressive caching (90-day TTL)
 - ✅ ISRC-based deduplication
-- 🚧 Batch background processing (TODO: queue system)
+- ✅ Background processing via Edge Function + `analysis_jobs`
 - ✅ Confidence thresholds (< 0.7 = provisional)
 
 **Design Goal**: Millions of songs, not thousands
@@ -153,16 +156,19 @@ src/
 │       └── ResponsiveLayout.tsx   # ✅ Desktop layouts
 │
 └── hooks/
-    └── useHarmonicAnalysis.ts     # 🚧 TODO: React hook
+    └── useHarmonicAnalysis.ts     # ✅ React hook (Realtime + job tracking)
 ```
 
-## Database Schema (TODO)
+## Database Schema
 
-### `harmonic_fingerprints` Table
+The schema is defined via Supabase migrations (see `supabase/migrations/20260125_harmonic_analysis_core.sql`).
+
+### `harmonic_fingerprints` (excerpt)
 
 ```sql
 CREATE TABLE harmonic_fingerprints (
-  track_id TEXT PRIMARY KEY,
+  id uuid PRIMARY KEY,
+  track_id TEXT NOT NULL,
   tonal_center JSONB NOT NULL,
   roman_progression JSONB NOT NULL,
   loop_length_bars INTEGER NOT NULL,
@@ -170,18 +176,18 @@ CREATE TABLE harmonic_fingerprints (
   confidence_score REAL CHECK (confidence_score BETWEEN 0 AND 1),
   analysis_version TEXT NOT NULL,
   is_provisional BOOLEAN DEFAULT TRUE,
-  detected_key TEXT, -- UI display only
+  detected_key TEXT, -- display only
   ...
 );
 ```
 
-### `analysis_jobs` Table
+### `analysis_jobs` (excerpt)
 
 ```sql
 CREATE TABLE analysis_jobs (
-  id TEXT PRIMARY KEY,
+  id uuid PRIMARY KEY,
   track_id TEXT NOT NULL,
-  status TEXT CHECK (status IN ('queued', 'processing', 'completed', 'failed')),
+  status TEXT CHECK (status IN ('queued', 'processing', 'completed', 'failed', 'cached')),
   progress REAL CHECK (progress BETWEEN 0 AND 1),
   result JSONB, -- HarmonicFingerprint
   ...
@@ -205,10 +211,9 @@ CREATE TABLE analysis_jobs (
 
 ### 🚧 In Progress
 
-- [ ] Database schema migration (Supabase)
 - [ ] ML audio analysis integration (Essentia.js or custom)
-- [ ] Supabase Edge Function for background processing
-- [ ] Real-time job progress updates
+- [ ] Advanced similarity (rotation matching, embeddings, clustering)
+- [ ] Section boundary detection
 
 ### 📋 TODO (Priority Order)
 
@@ -224,9 +229,9 @@ CREATE TABLE analysis_jobs (
    - Calculate confidence scores
 
 3. **Background Processing**
-   - Create Supabase Edge Function for async analysis
-   - Implement job queue system
-   - Add progress tracking (WebSockets)
+   - Harden Edge Function error handling + retries
+   - Add rate limits for analysis triggers
+   - Add admin tooling for stuck jobs
 
 4. **Advanced Similarity**
    - Progression rotation matching
@@ -247,21 +252,18 @@ CREATE TABLE analysis_jobs (
 | Full analysis | < 30s (background) | 🚧 TODO |
 | Similarity query | < 200ms | 🚧 TODO |
 
-## Recent Changes (Jan 21, 2026)
+## Recent Changes (Feb 3, 2026)
 
-1. ✅ Created harmonic analysis type system
-2. ✅ Implemented hybrid pipeline architecture
-3. ✅ Built similarity engine with configurable weights
-4. ✅ Added UI components for confidence display
-5. ✅ Documented architecture comprehensively
-6. ✅ Updated responsive desktop UI (FeedPage, SearchPage)
-7. ✅ Build successful (16.43s, 2555 modules)
+1. ✅ Added Supabase Edge Function runner (`harmonic-analysis`)
+2. ✅ Added schema migrations for `harmonic_fingerprints` and `analysis_jobs`
+3. ✅ Added real-time job + fingerprint subscriptions (`useHarmonicAnalysis`)
+4. 🚧 ML model integration still pending
 
 ## Next Steps
 
-1. **Immediate**: Create database tables via Supabase migration
+1. **Immediate**: Deploy Supabase migrations + Edge Functions to the target project
 2. **Short-term**: Integrate ML audio analysis model
-3. **Medium-term**: Add real-time progress tracking
+3. **Medium-term**: Add section boundary detection
 4. **Long-term**: Build harmonic clustering visualization
 
 ## References

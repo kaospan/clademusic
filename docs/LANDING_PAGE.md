@@ -170,10 +170,10 @@ The demo showcases real progressions from famous tracks:
 
 ```bash
 # The landing page is already integrated
-# Just navigate to the root path
+# Just navigate to the app base path
 bun run dev
 
-# Open http://localhost:5173
+# Open http://localhost:8080/clademusic/
 ```
 
 ## 🎨 Customization

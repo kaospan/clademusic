@@ -1,8 +1,10 @@
-# CladeAI Android App Repository Setup
+# Clade Android App Repository Setup (Draft)
 
 ## Overview
 
-This guide covers setting up a separate repository for the CladeAI Android mobile app using React Native with TypeScript.
+> **Status (2026-02-03):** This is a blueprint for a separate React Native repository. The `clademusic` repo currently contains the web app.
+
+This guide covers setting up a separate repository for the Clade Android mobile app using React Native with TypeScript.
 
 ## Repository Structure
 
@@ -441,7 +443,7 @@ CladeAI transforms music discovery into a social experience powered by AI.
 • Early access to new features
 
 🌍 OPEN SOURCE:
-CladeAI is proudly open source. Contribute at github.com/cladeai
+Clade is proudly open source. Contribute at github.com/kaospan/clademusic
 
 Download now and join 1 million music enthusiasts!
 ```
@@ -580,6 +582,6 @@ detox test --configuration android.emu.debug
 
 ## Support
 
-- **Documentation**: https://docs.cladeai.com/android
-- **Issues**: https://github.com/cladeai/cladeai-android/issues
-- **Discord**: https://discord.gg/cladeai
+- **Documentation**: `docs/index.md` (this repo)
+- **Issues**: https://github.com/kaospan/clademusic/issues
+- **Discord**: (TBD)

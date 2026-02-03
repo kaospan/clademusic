@@ -1,14 +1,14 @@
 # Building for Production
 
-## Build the App
+## Build
 ```bash
 bun run build
-# or: bun run build
 ```
 The production build will be in the `dist/` folder.
 
-## Preview the Production Build Locally
+## Preview Locally
 ```bash
 bun run preview
-# or: bun run preview
 ```
+
+**Note:** This repo is configured with `base: "/clademusic/"` (see `vite.config.ts`), so preview URLs should include `/clademusic/`.

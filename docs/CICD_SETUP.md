@@ -1,4 +1,32 @@
-# Mobile CI/CD Setup Guide
+# CI/CD Setup Guide
+
+**Last Updated**: 2026-02-03
+
+## Web (this repo)
+
+This repository (clademusic) is a Vite + React web app. GitHub Actions runs CI, PR checks, CD deployments, and an hourly QA job.
+
+### Workflow Files
+- `/.github/workflows/ci.yml` — lint, typecheck, Vitest, Playwright suite, and build artifacts
+- `/.github/workflows/pr.yml` — path-filtered checks + optional Vercel preview
+- `/.github/workflows/cd.yml` — deploy (GitHub Pages by default; optional Vercel/Netlify)
+- `/.github/workflows/qa-hourly.yml` — scheduled smoke/perf suites + Supabase reporting
+
+### Deployment Targets
+Set the repo variable `DEPLOY_TARGET`:
+- `github-pages` (default)
+- `vercel`
+- `netlify`
+
+### Optional secrets/vars
+- Vercel: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+- Netlify: `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`
+- Supabase function deploy: `DEPLOY_SUPABASE=true`, `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`
+- Hourly QA reporter: `STAGING_URL`, `CI_TEST_REPORT_TOKEN` (and optional `BASE_URL`)
+
+---
+
+## Mobile (archived draft)
 
 ## Overview
 
@@ -596,5 +624,5 @@ REVENUECAT_IOS_KEY=your-ios-key
 
 ## Support
 
-- **Documentation**: https://docs.cladeai.com/cicd
-- **Issues**: https://github.com/cladeai/cladeai-web/issues
+- **Documentation**: `docs/index.md` (this repo)
+- **Issues**: https://github.com/kaospan/clademusic/issues

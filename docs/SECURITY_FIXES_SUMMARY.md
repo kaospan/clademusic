@@ -1,4 +1,4 @@
-# 🔒 Security Fixes Applied - HarmonyHub
+# 🔒 Security Fixes Applied - Clade
 
 ## Date: 2026-01-20
 
@@ -40,26 +40,27 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 
 ## 🔴 CRITICAL SECURITY FIXES (Require Migration + Code Updates)
 
-### 6. **2FA Secrets Exposed in Profiles Table** ✅ MIGRATION READY
+### 6. **2FA Secrets Exposed in Profiles Table** ✅ MIGRATION READY, ✅ EDGE FUNCTIONS IMPLEMENTED
 **Vulnerability:** 
 - `twofa_secret` and `twofa_backup_codes` stored in `profiles` table
 - Users can SELECT their own profile, exposing plaintext secrets
 - Client-side verification allows complete 2FA bypass
 
 **Fix Applied:**
-- Created `user_2fa_secrets` table with RLS policy `SELECT USING (false)`
-- Migrated existing 2FA data to secure table
-- Removed sensitive columns from profiles
-- Created `user_has_2fa_enabled()` SECURITY DEFINER function (safe)
+- Added secure storage tables/migrations (see below)
+- Implemented server-side verification and storage via Supabase Edge Functions
+- Updated the 2FA setup UI to call Edge Functions instead of direct DB writes
 
-**Migration:** `20260120202800_critical_security_fixes.sql` (Part 1)
+**Migrations (repo)**
+- `supabase/migrations/20260120_secure_2fa_secrets.sql` (current Edge Function storage: `secure_2fa_secrets`)
+- `supabase/migrations/20260120202800_critical_security_fixes.sql` (legacy/alternate storage: `user_2fa_secrets`)
 
-**Code Changes Needed:**
-1. ❌ Update `TwoFactorSetup.tsx` to call Edge Function instead of direct DB write
-2. ❌ Create Edge Functions:
-   - `setup-2fa`: Server-side secret storage and verification
-   - `verify-2fa`: Server-side TOTP/backup code verification
-3. ❌ Update login flow to use Edge Function for 2FA checks
+**Code Status (repo)**
+1. ✅ `src/components/TwoFactorSetup.tsx` calls `supabase.functions.invoke('setup_2fa')`
+2. ✅ Edge Functions implemented:
+   - `supabase/functions/setup_2fa`
+   - `supabase/functions/verify_2fa`
+3. ⚠️ Login flow still needs to enforce 2FA on sign-in (challenge step)
 
 **Documentation Created:**
 - `docs/EDGE_FUNCTION_SETUP_2FA.md`
@@ -129,26 +130,15 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 
 ## ⚠️ REMAINING WORK
 
-### High Priority (Requires Edge Functions)
-1. **Implement `setup-2fa` Edge Function**
-   - Verify TOTP code server-side before storing
-   - Use service_role to write to `user_2fa_secrets`
-   - Update `profiles.twofa_enabled` flag
-   
-2. **Implement `verify-2fa` Edge Function**
-   - Verify TOTP codes server-side during login
-   - Check backup code hashes
-   - Rate limit to 5 attempts/minute
-   
-3. **Update TwoFactorSetup.tsx**
-   - Remove direct Supabase writes (lines 95-102)
-   - Call `setup-2fa` Edge Function instead
-   - Keep UI flow the same
-   
-4. **Update Login Flow**
-   - Add 2FA challenge step
-   - Call `verify-2fa` Edge Function
-   - Show backup code option
+### High Priority (2FA Enforcement)
+1. **Update Login Flow**
+   - Add a 2FA challenge step when `profiles.twofa_enabled = true`
+   - Call `verify_2fa` Edge Function
+   - Provide backup code option
+
+2. **Rate Limiting / Brute Force Protection**
+   - Add rate limiting to `verify_2fa` (Edge Function or DB-backed counters)
+   - Consider logging failed attempts
 
 ### Medium Priority
 5. **Add Leaked Password Protection**
@@ -166,9 +156,9 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 
 1. ✅ **Apply migrations** to Supabase database (run the 2 SQL files)
 2. ✅ **Test nearby listeners** feature (infinite recursion fixed)
-3. ⚠️ **Implement 2FA Edge Functions** (blocks client-side bypass)
-4. ⚠️ **Update 2FA UI components** (use Edge Functions)
-5. ⚠️ **Test 2FA flow** end-to-end
+3. ✅ **2FA Edge Functions** (implemented in repo)
+4. ✅ **2FA setup UI** (uses Edge Functions)
+5. ⚠️ **Enforce 2FA at login** + end-to-end testing
 
 ---
 
@@ -180,7 +170,7 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 | ILIKE Injection | ⚠️ Pattern matching exploitable | ✅ Special chars escaped | DONE |
 | RLS Recursion | ❌ Infinite loop | ✅ SECURITY DEFINER bypass | DONE |
 | 2FA Secrets | 🔴 Readable by user | ✅ Admin-only table | MIGRATION READY |
-| 2FA Verification | 🔴 Client-side bypass | ⚠️ Needs Edge Functions | CODE NEEDED |
+| 2FA Verification | 🔴 Client-side bypass | ✅ Server-side via Edge Functions | DONE (setup/verify) |
 | GPS Coordinates | 🔴 Exact location exposed | ✅ Fuzzy coords (~1km) | DONE |
 | Email Addresses | ⚠️ In profiles table | ✅ Own profile only | DONE |
 
@@ -192,7 +182,7 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 **Build/Code Issues Fixed:** 5 of 5  
 **Database Security:** ✅ Hardened with RLS + SECURITY DEFINER functions  
 **Location Privacy:** ✅ Fuzzy coordinates protect user safety  
-**2FA Security:** ⚠️ 80% done (needs Edge Functions for full protection)
+**2FA Security:** ⚠️ Setup secured; login enforcement pending
 
 ---
 
@@ -200,13 +190,11 @@ const escapedSearch = query.search.replace(/[%_]/g, '\\$&');
 
 1. Run migrations in Supabase dashboard
 2. Test the build: `bun run build`
-3. Implement 2FA Edge Functions (see docs folder)
-4. Update TwoFactorSetup.tsx to use Edge Functions
-5. Test complete 2FA flow
+3. Enforce 2FA in login flow (challenge step)
+4. Test complete 2FA flow end-to-end
 6. Enable leaked password protection in Supabase Auth settings
 
 **Estimated Time to Complete:**
-- Migration deployment: 5 minutes
-- Edge Functions implementation: 2-3 hours
-- Testing: 1 hour
-- **Total: ~4 hours to full security hardening**
+- Enforce 2FA at login: 2-4 hours
+- End-to-end testing: 1 hour
+- **Total: ~3-5 hours to full 2FA hardening**

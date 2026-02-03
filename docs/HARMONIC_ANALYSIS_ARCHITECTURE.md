@@ -123,7 +123,7 @@ async function getHarmonicAnalysis(trackId: string) {
 ```
 
 **Optimization**: Index `harmonic_fingerprints` table by:
-- `track_id` (primary key)
+- `track_id` (unique)
 - `confidence_score` (for quality filtering)
 - `cadence_type` (for similarity queries)
 
@@ -340,21 +340,21 @@ src/
 │   └── AnalysisStatusBadge.tsx  # UI for confidence display
 │
 └── hooks/
-    └── useHarmonicAnalysis.ts   # React hook (TODO)
+    └── useHarmonicAnalysis.ts   # React hook (Realtime + job tracking)
 ```
 
 ## Future Improvements
 
 ### Short-term (MVP+)
 - [ ] Integrate real ML audio analysis model
-- [ ] Add Supabase Edge Function for background processing
+- [x] Supabase Edge Function for background processing
 - [ ] Implement progression rotation matching
 - [ ] Add user feedback mechanism for corrections
 
 ### Medium-term
 - [ ] ML-based progression embeddings (semantic similarity)
 - [ ] Crowd-sourced analysis refinement
-- [ ] Real-time analysis progress updates (WebSockets)
+- [x] Real-time analysis progress updates (Supabase Realtime)
 - [ ] Batch re-analysis when model improves
 
 ### Long-term
@@ -378,6 +378,6 @@ src/
 
 ---
 
-**Last Updated**: January 2026  
+**Last Updated**: February 2026  
 **Model Version**: 1.0.0 (placeholder)  
 **Author**: Clade Engineering Team

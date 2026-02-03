@@ -2,27 +2,18 @@
 
 ## Deploying to GitHub Pages
 
-1. Ensure your `package.json` includes:
-   ```json
-   "homepage": "https://kaospan.github.io/clademusic/",
-   "scripts": {
-     "predeploy": "bun run build",
-     "deploy": "gh-pages -d dist"
-   }
-   ```
-2. Install the `gh-pages` package:
-   ```bash
-   bun add -D gh-pages
-   # or: bun install --save-dev gh-pages
-   ```
-3. Deploy:
+This repo is configured to deploy under `https://kaospan.github.io/clademusic/`.
+
+1. Confirm Vite base path is set:
+   - `vite.config.ts`: `base: "/clademusic/"`
+
+2. Deploy:
    ```bash
    bun run deploy
-   # or: bun run deploy
    ```
-4. Your site will be live at:
+3. Your site will be live at:
    https://kaospan.github.io/clademusic/
 
-**Note:**
-- Make sure your Vite config (`vite.config.ts`) has `base: "/clademusic/"`.
-- In your React app, set `<BrowserRouter basename="/clademusic">`.
+**Notes**
+- React Router uses `basename={import.meta.env.BASE_URL}` (no hard-coded `/clademusic` needed).
+- GitHub Actions can deploy automatically via `.github/workflows/cd.yml`.

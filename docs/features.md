@@ -36,13 +36,12 @@
 
 ### Multi-Platform Support
 - **YouTube Embed** — In-app video playback with section navigation
-- **Spotify SDK** — Direct playback for premium users
+- **Spotify Embed Preview** — In-app Spotify playback preview (web)
 - **Quick Stream Buttons** — One-tap links to Apple Music, Deezer, SoundCloud, Amazon Music
 - **Provider Badges** — Visual indicators showing availability across platforms
 
 ### Player Features
-- **Floating Players** — Picture-in-picture mode with drag-and-drop positioning
-- **Active Player Management** — Smart z-index handling (100 for active, 50 for inactive)
+- **Single Global Player Drawer** — Unified playback via `PlayerContext` (Spotify + YouTube)
 - **Section Jump** — Tap song sections to seek to that timestamp
 - **Queue Management** — Play next, play later, reorder queue, remove tracks
 - **3-Dot Track Menu** — Quick access to queue actions and similar tracks
@@ -152,8 +151,8 @@
 
 ### Planned Features
 - [ ] ML Audio Analysis Integration (Essentia.js)
-- [ ] Supabase Edge Functions for background processing
-- [ ] Real-time analysis progress (WebSockets)
+- [x] Supabase Edge Functions for background processing
+- [x] Real-time analysis progress (Supabase Realtime)
 - [ ] Crowd-sourced analysis corrections
 - [ ] Harmonic cluster visualization (t-SNE)
 - [ ] Progression transposition matching
@@ -167,5 +166,5 @@
 
 ---
 
-**Last Updated**: January 21, 2026  
+**Last Updated**: February 3, 2026  
 **Version**: 1.0.0

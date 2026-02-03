@@ -69,6 +69,7 @@ import type { TimeRange } from '@/services/spotifyUserService';
 import { QuickStreamButtons } from '@/components/QuickStreamButtons';
 import { usePlayer } from '@/player/PlayerContext';
 import { getPreferredProvider } from '@/lib/preferences';
+import { normalizeLastFmUsername } from '@/services/lastfmService';
 
 // Mood profile styling
 const moodColors: Record<string, string> = {
@@ -163,12 +164,13 @@ export default function ProfilePage() {
   };
 
   const handleConnectLastFm = async () => {
-    if (!lastFmInput.trim()) {
+    const normalized = normalizeLastFmUsername(lastFmInput);
+    if (!normalized) {
       toast.error('Please enter your Last.fm username');
       return;
     }
     try {
-      await connectLastFm.mutateAsync(lastFmInput.trim());
+      await connectLastFm.mutateAsync(normalized);
       toast.success('Last.fm connected successfully!');
       setLastFmDialogOpen(false);
       setLastFmInput('');
@@ -706,10 +708,10 @@ export default function ProfilePage() {
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                       <p className="text-sm text-muted-foreground">
-                        Enter your Last.fm username to sync your listening history and scrobbles.
+                        Enter your Last.fm username (or paste your profile URL) to sync your listening history and scrobbles.
                       </p>
                       <Input
-                        placeholder="Your Last.fm username"
+                        placeholder="lottabase (or https://www.last.fm/user/lottabase)"
                         value={lastFmInput}
                         onChange={(e) => setLastFmInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleConnectLastFm()}

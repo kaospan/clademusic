@@ -1,8 +1,10 @@
-# CladeAI iOS App Repository Setup
+# Clade iOS App Repository Setup (Draft)
 
 ## Overview
 
-Complete guide for setting up the CladeAI iOS mobile app using React Native with TypeScript, including App Store submission and TestFlight beta testing.
+> **Status (2026-02-03):** This is a blueprint for a separate React Native repository. The `clademusic` repo currently contains the web app.
+
+Complete guide for setting up the Clade iOS mobile app using React Native with TypeScript, including App Store submission and TestFlight beta testing.
 
 ## Repository Structure
 
@@ -819,7 +821,7 @@ Ensure compliance with:
 
 ## Support & Resources
 
-- **Documentation**: https://docs.cladeai.com/ios
-- **Issues**: https://github.com/cladeai/cladeai-ios/issues
-- **Discord**: https://discord.gg/cladeai
-- **Email**: support@cladeai.com
+- **Documentation**: `docs/index.md` (this repo)
+- **Issues**: https://github.com/kaospan/clademusic/issues
+- **Discord**: (TBD)
+- **Email**: (TBD)

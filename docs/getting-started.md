@@ -1,9 +1,9 @@
 # Getting Started
 
 ## Prerequisites
-- Node.js 18+
-- Bun (optional) or bun/yarn
 - Git
+- Bun 1.x (required)
+- (Optional) Supabase CLI (for deploying migrations / Edge Functions)
 
 ## Installation
 1. Clone the repository:
@@ -14,22 +14,28 @@
 2. Install dependencies:
    ```bash
    bun install
-   # or: bun install
    ```
 
+## Run Locally
+```bash
+bun run dev
+```
+Open `http://localhost:8080/clademusic/`.
+
 ## Environment Variables
-1. Copy the example file:
-   ```bash
-   cp .env.example .env
-   ```
-2. Fill in your values in `.env`:
-   - Get Supabase keys from your Supabase dashboard.
-   - Get Spotify keys from your Spotify Developer Dashboard.
-   - For production:
-     ```
-     VITE_SPOTIFY_REDIRECT_URI=https://kaospan.github.io/clademusic/spotify-callback
-     ```
-   - For local development:
-     ```
-     VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/spotify-callback
-     ```
+
+This app uses Vite env vars (prefixed with `VITE_`). For local overrides, create a `.env.local` file in the project root.
+
+**Required**
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SPOTIFY_CLIENT_ID` (for Spotify connect)
+
+**Optional**
+- `VITE_SPOTIFY_REDIRECT_URI` (defaults to `${origin}${BASE_URL}spotify-callback`)
+- `VITE_LASTFM_API_KEY`
+- `VITE_YOUTUBE_API_KEY`
+
+### Spotify Redirect URI Examples
+- Production: `https://kaospan.github.io/clademusic/spotify-callback`
+- Local: `http://localhost:8080/clademusic/spotify-callback`

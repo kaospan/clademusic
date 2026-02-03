@@ -1,36 +1,37 @@
-# Edge Function: verify-2fa
+# Edge Function: verify_2fa
 
 ## Purpose
 Server-side 2FA verification to prevent client-side bypass attacks.
 
 ## Endpoint
-`POST /functions/v1/verify-2fa`
+`POST /functions/v1/verify_2fa`
 
 ## Request Body
 ```json
 {
-  "code": "123456",
-  "isBackupCode": false
+  "action": "verify_totp",
+  "code": "123456"
 }
 ```
 
 ## Response
 ```json
 {
-  "success": true,
-  "message": "2FA verified successfully"
+  "valid": true
 }
 ```
 
 ## Implementation Notes
-- Uses service_role key to access user_2fa_secrets table
-- Verifies TOTP code against stored secret
-- For backup codes: checks hash match and marks code as used
-- Returns 401 if verification fails
-- Rate-limited to 5 attempts per minute per user
+- Uses `service_role` key to look up the user’s `secure_2fa_secrets` row
+- `action: "verify_totp"` verifies a 6-digit TOTP code against the stored secret
+- `action: "verify_backup"` hashes the provided code server-side (SHA-256) and checks/consumes it
+- Returns 401 if missing/invalid auth
+- Returns 400 if 2FA is not configured or request is invalid
 
 ## Security
 - All verification happens server-side
 - Secrets never sent to client
 - Backup codes are hashed before storage
-- Failed attempts are logged for security monitoring
+
+## Migrations Required
+- `supabase/migrations/20260120_secure_2fa_secrets.sql`

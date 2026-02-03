@@ -1,9 +1,9 @@
-# CladeAI Feature Updates - January 22, 2026
+# Clade Feature Updates - January 22, 2026
 
 ## ✅ Completed Features
 
 ### 1. Queue System with Looping 🔄
-**Location:** [PlayerContext.tsx](d:\cladeai\src\player\PlayerContext.tsx)
+**Location:** [`src/player/PlayerContext.tsx`](../src/player/PlayerContext.tsx)
 
 - **Circular Navigation:** Queue loops from last → first track automatically
 - **Reverse Loop:** Press previous on first track → jumps to last track
@@ -18,7 +18,7 @@
 ---
 
 ### 2. Advanced Search Filters 🔍
-**Location:** [SearchPage.tsx](d:\cladeai\src\pages\SearchPage.tsx)
+**Location:** [`src/pages/SearchPage.tsx`](../src/pages/SearchPage.tsx)
 
 #### Genre Filters (13 Popular Genres)
 Clickable badges for instant filtering:
@@ -46,7 +46,7 @@ Clickable badges for instant filtering:
 ---
 
 ### 3. Expanded Chord Progressions 🎵
-**Location:** [seedTracks.ts](d:\cladeai\src\data\seedTracks.ts)
+**Location:** [`src/data/seedTracks.ts`](../src/data/seedTracks.ts)
 
 Increased from **8 to 35 chord progressions** across multiple categories:
 
@@ -100,8 +100,10 @@ Increased from **8 to 35 chord progressions** across multiple categories:
 ---
 
 ### 4. Live Real-time Chat System 💬
-**Migration:** [20260122_live_chat.sql](d:\cladeai\supabase\migrations\20260122_live_chat.sql)
-**Component:** [LiveChat.tsx](d:\cladeai\src\components\LiveChat.tsx)
+**Migration:** [`supabase/migrations/20260122_live_chat.sql`](../supabase/migrations/20260122_live_chat.sql)
+**Component:** [`src/components/LiveChat.tsx`](../src/components/LiveChat.tsx)
+
+> **Status note (2026-02-03):** The chat migration + component exist, but `LiveChat` is not currently mounted in any page. Album/Artist pages use `LiveCommentFeed` and tracks use `TrackComments`.
 
 #### Database Schema
 4 new tables with full RLS policies:
@@ -142,10 +144,7 @@ Increased from **8 to 35 chord progressions** across multiple categories:
   - Direct messages (future feature)
 
 #### Integration
-- Added to [FeedPage.tsx](d:\cladeai\src\pages\FeedPage.tsx) as right sidebar
-- Sticky positioning for persistent visibility
-- Only visible on desktop (lg+ breakpoint)
-- Height: `calc(100vh - 8rem)` for optimal viewing
+- (Planned) Add to Feed sidebar on desktop layouts
 
 #### Security
 - Full Row Level Security (RLS) policies

@@ -29,8 +29,8 @@
 |------|--------|
 | `index.html` | Title: "Clade - Find Your Harmony" |
 | `package.json` | Homepage: `kaospan.github.io/clademusic/` |
-| `vite.config.ts` | Base path: `/clade/` |
-| `src/App.tsx` | Router basename: `/clademusic` |
+| `vite.config.ts` | Base path: `/clademusic/` |
+| `src/App.tsx` | Router basename: `import.meta.env.BASE_URL` |
 | `src/lib/searchHistory.ts` | LocalStorage key: `clade_search_history` |
 | All docs | Updated references (17 files) |
 
@@ -41,7 +41,6 @@
 - ✅ CHANGELOG.md - Added rebrand entry
 - ✅ ARCHITECTURE_SUMMARY.md - Updated references
 - ✅ HARMONIC_ANALYSIS_ARCHITECTURE.md - Updated team name
-- ✅ UI-agent.agent.md - Complete rewrite with Clade brand identity
 
 ### URL Changes
 

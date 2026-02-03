@@ -1,6 +1,6 @@
 # 🗺️ Clade Development Roadmap
 
-**Last Updated**: January 22, 2026
+**Last Updated**: February 3, 2026
 
 This roadmap consolidates all pending tasks, user requests, and feature backlog into a prioritized development plan.
 
@@ -11,19 +11,19 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 ### Admin Dashboard System
 **Owner**: repoisrael@gmail.com  
 **Priority**: 🔴 URGENT  
-**Status**: Not Started
+**Status**: In Progress (core admin plumbing + dashboard shell implemented)
 
 #### 1.1 Admin Role Setup
 - [ ] Update `user_roles` table: Set repoisrael@gmail.com as admin
-- [ ] Create RLS policies for admin-only access
-- [ ] Add `useAdmin()` hook for role verification
-- [ ] Create `AdminRoute` wrapper component
+- [x] Create RLS policies for admin-only access (migrations)
+- [x] Add admin hook for role verification (`src/hooks/api/useAdmin.ts`)
+- [x] Create `AdminRoute` wrapper component (`src/components/AdminRoute.tsx`)
 
 #### 1.2 Admin Dashboard UI
-- [ ] Create `/admin` page with sidebar layout
-- [ ] Add subtle admin link in site settings (visible only to admin)
-- [ ] Implement dashboard home with key metrics
-- [ ] Add navigation: Users, Moderation, Analytics, Settings
+- [x] Create `/admin` page (tabs-based dashboard shell)
+- [x] Add subtle admin link in site settings (visible only to admin)
+- [x] Implement dashboard home with key metrics
+- [ ] Add richer analytics charts and system panels
 
 #### 1.3 User Management
 - [ ] User list with search/filter/pagination
@@ -67,14 +67,14 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 
 ### MySpace meets TikTok Profile Customization
 **Priority**: 🔴 URGENT  
-**Status**: Not Started
+**Status**: In Progress (theme editor + schema implemented)
 
 #### 2.1 Profile Theme Editor
-- [ ] Theme editor modal/page with live preview
-- [ ] Color pickers (background, accent, text)
-- [ ] Font family selector (5-7 options)
-- [ ] Preset templates: Minimal, Vibrant, Retro, Neon, Dark Academia
-- [ ] Custom CSS input (advanced users)
+- [x] Theme editor modal (`src/components/ThemeEditor.tsx`)
+- [x] Color pickers (background, accent, text, etc.)
+- [x] Font family selector
+- [x] Preset templates (theme presets)
+- [x] Custom CSS input (advanced users)
 - [ ] Theme reset to default button
 
 #### 2.2 Custom Profile Sections
@@ -86,7 +86,7 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 - [ ] Section visibility toggles
 
 #### 2.3 Database Schema
-- [ ] Create `user_themes` table:
+- [x] Create `user_themes` table:
   ```sql
   - id (uuid, pk)
   - user_id (uuid, fk → profiles)
@@ -98,8 +98,8 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
   - is_public (boolean): shareable?
   - created_at, updated_at
   ```
-- [ ] Add indexes on user_id, is_public
-- [ ] RLS policies: users edit own themes
+- [x] Add indexes on user_id, is_public
+- [x] RLS policies: users edit own themes
 
 #### 2.4 Social Enhancements
 - [ ] Profile banner image upload (1500x500px)
@@ -130,10 +130,10 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 
 ### Advanced Harmonic Features
 **Priority**: 🟠 HIGH  
-**Status**: Architecture Complete, Implementation Pending
+**Status**: In Progress (schema + job runner + realtime wiring implemented; ML pending)
 
 #### 3.1 Database Schema
-- [ ] Create `harmonic_fingerprints` table:
+- [x] Create `harmonic_fingerprints` table (migration)
   ```sql
   - id, track_id (fk → tracks)
   - progression (jsonb): Roman numeral array
@@ -143,7 +143,7 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
   - analysis_method (manual/ml/api)
   - analyzed_at
   ```
-- [ ] Create `analysis_jobs` table (queue management)
+- [x] Create `analysis_jobs` table (queue management)
 - [ ] Create `track_connections` table:
   ```sql
   - id, from_track_id, to_track_id
@@ -163,9 +163,9 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 - [ ] Confidence score calculation (cross-validation)
 
 #### 3.3 Background Processing
-- [ ] Supabase Edge Function for async analysis
+- [x] Supabase Edge Function for async analysis (`supabase/functions/harmonic-analysis`)
 - [ ] Job queue system (priority queue: user-requested > batch)
-- [ ] Real-time progress updates (WebSockets/polling)
+- [x] Real-time progress updates (Supabase Realtime)
 - [ ] Error handling and retry logic (3 attempts)
 - [ ] Rate limiting (100 jobs/hour per user)
 
@@ -561,6 +561,6 @@ This roadmap consolidates all pending tasks, user requests, and feature backlog 
 
 ---
 
-**Last Reviewed**: January 22, 2026  
-**Next Review**: February 1, 2026  
+**Last Reviewed**: February 3, 2026  
+**Next Review**: March 3, 2026  
 **Maintained By**: kaospan@gmail.com

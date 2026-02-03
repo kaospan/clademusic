@@ -1,13 +1,18 @@
 # Testing
 
-## Unit Tests
+## Unit Tests (Vitest)
 ```bash
-bun test
-# or: bun run test
+bun run test
+bun run test:watch
 ```
 
 ## End-to-End Tests (Cypress)
 ```bash
-bun cypress:open
-# or: bun run cypress:open
+bun run cypress:open
+bun run cypress:run
+```
+
+## Playwright (Universal Player)
+```bash
+bunx playwright test tests/*.spec.ts
 ```

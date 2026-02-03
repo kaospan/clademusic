@@ -13,14 +13,12 @@ This document outlines all mock/fake data currently in the codebase that needs t
 - Used as fallback data across the app
 - Contains 201 tracks with full chord progressions, Spotify/YouTube IDs
 
-**Database Status**: ❌ NOT seeded into database
+**Database Status**: ⚠️ Seed script exists; `SearchPage.tsx` still uses the in-memory array.
 
 **Migration Required**:
-1. Create migration script: `supabase/migrations/20260122_seed_tracks.sql`
-2. Insert all 201 tracks from seedTracks array into `tracks` table
-3. Update SearchPage to query database instead of importing array
-4. Create `useTracks()` hook with React Query for caching
-5. Keep seedTracks as offline fallback
+1. Seed Supabase using `scripts/seed.js` (or a migration-based seed)
+2. Update `SearchPage.tsx` to query the database (stop importing `seedTracks`)
+3. Keep `seedTracks` as an offline/dev fallback only
 
 **Estimated Impact**: HIGH - affects search, compare, feed, all track displays
 
@@ -75,12 +73,12 @@ const mockSamplesFrom: SampleConnection[] = [
 ];
 ```
 
-**Database Status**: ❌ Table `track_connections` exists but mock data shown
+**Database Status**: ✅ Table exists in migrations; UI still shows mock data
 
 **Migration Required**:
 1. Create real sample relationships in database
 2. Update component to query `track_connections` table
-3. Create `useSampleConnections()` hook
+3. Create `useSampleConnections()` hook (or reuse a real `useConnections` hook)
 
 **Estimated Impact**: MEDIUM - affects track detail pages
 
@@ -96,7 +94,7 @@ const mockNearbyListeners: NearbyListener[] = [
 ];
 ```
 
-**Database Status**: ⚠️ Hook exists (`useNearbyListeners`) but returns mock data in some cases
+**Database Status**: ⚠️ Hook exists (`useNearbyListeners`), but `NearbyListenersPanel` still uses mock data
 
 **Migration Required**:
 1. Verify `useNearbyListeners` hook fully connected to database
@@ -117,13 +115,12 @@ const mockComments: Comment[] = [
 ];
 ```
 
-**Database Status**: ❌ Comments table doesn't exist yet
+**Database Status**: ✅ Track comments exist (`supabase/migrations/20260122_track_comments.sql`), but this component still uses mock data
 
 **Migration Required**:
-1. Create comments system migration (Phase 5 roadmap)
-2. Tables: `comments`, `comment_likes`, `comment_reports`
-3. Update component to use database queries
-4. Create `useComments()` hook with real-time subscriptions
+1. Replace mock feed with real queries/subscriptions (either reuse `track_comments` or create entity-scoped comments)
+2. Decide schema: track-only vs (track/album/artist) polymorphic comments
+3. Wire realtime updates (Supabase Realtime) if needed
 
 **Estimated Impact**: HIGH - social feature, not yet deployed
 
@@ -132,7 +129,7 @@ const mockComments: Comment[] = [
 ### 8. **Seed Script** (Already Exists!)
 **Location**: `scripts/seed.js` (209 lines)
 
-**Status**: ✅ Complete, never run
+**Status**: ✅ Complete (requires correct Supabase credentials)
 
 **Features**:
 - Clears and resets data with `--reset` flag
@@ -149,14 +146,14 @@ const mockComments: Comment[] = [
 ## Migration Priority
 
 ### Phase 1: CRITICAL (Do Immediately)
-1. ✅ **Run seed script**: `node scripts/seed.js --reset`
+1. ✅ **Seed script exists**: `bun run seed:reset`
    - Populates `tracks` table with real data
    - Creates track connections
    - Creates feed items
 
 2. **Update SearchPage** to query database
    - Replace `import { seedTracks }` with database query
-   - Create `useTracks()` hook
+   - Reuse existing `src/hooks/api/useTracks.ts`
    - Add search indexing
 
 3. **Deploy pending migrations**:
@@ -190,6 +187,9 @@ const mockComments: Comment[] = [
 - `track_provider_links` - Spotify/YouTube links
 - `track_connections` - Sample/cover/remix relationships
 - `feed_items` - Social feed
+- `track_comments` - Track comments
+- `harmonic_fingerprints` - Harmonic analysis results
+- `analysis_jobs` - Harmonic analysis queue
 
 ### ⏸️ Migration Ready, Not Deployed
 - `playlists` - Needs migration run
@@ -199,10 +199,8 @@ const mockComments: Comment[] = [
 - `theme_presets` - Needs migration run
 
 ### ❌ Not Created Yet
-- `comments` - Phase 5 roadmap
-- `comment_likes` - Phase 5 roadmap
+- `comments` (multi-entity) - If we want album/artist comments beyond `track_comments`
 - `notifications` - Phase 5 roadmap
-- `harmonic_fingerprints` - Phase 3 roadmap
 
 ---
 
@@ -280,4 +278,4 @@ After migration complete:
 ---
 
 Generated: 2026-01-22
-Status: Planning Phase - Migration Not Started
+Status: Updated 2026-02-03 (mixed: several migrations exist; some UI still uses mock data)
