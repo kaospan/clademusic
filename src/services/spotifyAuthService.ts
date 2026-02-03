@@ -119,8 +119,8 @@ export async function getValidAccessToken(userId: string): Promise<string | null
   const bufferMs = 5 * 60 * 1000; // 5 minutes
 
   if (expiresAt.getTime() - now.getTime() < bufferMs) {
-    // Token expired or expiring soon, refresh it
-    return await refreshSpotifyToken(userId, credentials.refresh_token);
+    // Token expired or expiring soon, refresh it (will read refresh_token from DB if needed)
+    return await refreshSpotifyToken(userId);
   }
 
   return credentials.access_token;
