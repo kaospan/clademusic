@@ -1,4 +1,4 @@
-import { Home, Search, User, ListMusic, MessageSquare, Menu, X } from 'lucide-react';
+import { Home, Search, User, ListMusic, MessageSquare, Menu, X, Link2 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -8,6 +8,7 @@ const navItems = [
   { to: '/feed', icon: Home, label: 'Feed' },
   { to: '/forum', icon: MessageSquare, label: 'Forums' },
   { to: '/search', icon: Search, label: 'Search' },
+  { to: '/connections', icon: Link2, label: 'Connections' },
   { to: '/playlists', icon: ListMusic, label: 'Lists' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
