@@ -54,7 +54,7 @@ function extractMetrics(lhr) {
 
 function toCsvCell(value) {
   const s = value == null ? '' : String(value);
-  if (/[\",\\n]/.test(s)) return `\"${s.replace(/\\\"/g, '\"\"')}\"`;
+  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
@@ -79,7 +79,7 @@ async function main() {
   const chromeFlags = [
     '--headless=new',
     '--no-sandbox',
-    '--host-resolver-rules=MAP * 0.0.0.0, EXCLUDE kaospan.github.io, EXCLUDE *.supabase.co',
+    '--host-resolver-rules="MAP * 0.0.0.0, EXCLUDE kaospan.github.io, EXCLUDE *.supabase.co"',
   ].join(' ');
 
   const rows = [];
