@@ -237,21 +237,23 @@ export function QueueSheet({
   return (
     <>
       {/* Desktop/tablet: right sidebar */}
-      <div
-        className={`hidden md:flex fixed inset-y-0 right-0 z-[80] w-[420px] max-w-[40vw] border-l bg-background shadow-2xl transition-transform duration-200 flex-col ${
-          open ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        aria-hidden={!open}
-      >
-        {queueBody}
-      </div>
+      {open && (
+        <div
+          className="hidden md:flex fixed inset-y-0 right-0 z-[80] w-[420px] max-w-[40vw] border-l bg-background shadow-2xl flex-col"
+          aria-label="Queue sidebar"
+        >
+          {queueBody}
+        </div>
+      )}
 
       {/* Mobile: modal dialog */}
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="md:hidden p-0 max-w-[92vw] w-[92vw] h-[85vh] flex flex-col">
-          {queueBody}
-        </DialogContent>
-      </Dialog>
+      {open && (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent className="md:hidden p-0 max-w-[92vw] w-[92vw] h-[85vh] flex flex-col">
+            {queueBody}
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
