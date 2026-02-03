@@ -103,7 +103,8 @@ async function main() {
       execFileSync(lighthouseBin, args, { stdio: 'ignore' });
 
       const json = JSON.parse(fs.readFileSync(outPath, 'utf8'));
-      const metrics = extractMetrics(json.lhr);
+      const lhr = json?.lhr || json;
+      const metrics = extractMetrics(lhr);
       rows.push({ routePath, preset, url, ...metrics });
     }
   }
