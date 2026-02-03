@@ -2,7 +2,6 @@
  * Spotify User API Service
  * 
  * Fetches user-specific data from Spotify using their stored access token.
- * Handles token refresh automatically.
  */
 
 import { Track } from '@/types';
