@@ -1,0 +1,15 @@
+routePath,preset,url,perfScore,a11yScore,seoScore,bpScore,lcpMs,cls,tbtMs,inpMs,topOpportunities
+/,mobile,https://kaospan.github.io/clademusic/,0.72,0.82,1,0.96,2799,0,826,,unused-javascript(750ms); unminified-css; unminified-javascript; unused-css-rules
+/,desktop,https://kaospan.github.io/clademusic/,0.98,0.87,1,0.96,579,0,106,,unused-javascript(80ms); unminified-css; unminified-javascript; unused-css-rules
+/feed,mobile,https://kaospan.github.io/clademusic/feed,0.62,0.82,1,0.96,4381,0,690,,unused-javascript(570ms); unused-css-rules(190ms); unminified-css; unminified-javascript
+/feed,desktop,https://kaospan.github.io/clademusic/feed,0.98,0.82,1,0.96,1054,0,35,,unused-javascript(140ms); unminified-css; unminified-javascript; unused-css-rules
+/search,mobile,https://kaospan.github.io/clademusic/search,0.61,0.88,1,0.96,3492,0,1238,,unused-javascript(450ms); unminified-css; unminified-javascript; unused-css-rules
+/search,desktop,https://kaospan.github.io/clademusic/search,0.95,0.88,1,0.96,723,0,171,,unused-javascript(80ms); unminified-css; unminified-javascript; unused-css-rules
+/compare,mobile,https://kaospan.github.io/clademusic/compare,0.84,0.86,1,0.96,2641,0,399,,unused-javascript(600ms); unminified-css; unminified-javascript; unused-css-rules
+/compare,desktop,https://kaospan.github.io/clademusic/compare,1,0.81,1,0.96,597,0,44,,unused-javascript(80ms); unused-css-rules(40ms); unminified-css; unminified-javascript
+/track/demo-track,mobile,https://kaospan.github.io/clademusic/track/demo-track,0.83,0.9,1,0.96,3457,0,241,,unused-javascript(720ms); unminified-css; unminified-javascript; unused-css-rules
+/track/demo-track,desktop,https://kaospan.github.io/clademusic/track/demo-track,0.98,0.9,1,0.96,950,0,14,,unused-javascript(110ms); unminified-css; unminified-javascript; unused-css-rules
+/playlists,mobile,https://kaospan.github.io/clademusic/playlists,0.78,0.92,1,0.96,3314,0,314,,unused-javascript(580ms); unused-css-rules(110ms); unminified-css; unminified-javascript
+/playlists,desktop,https://kaospan.github.io/clademusic/playlists,0.99,0.87,1,0.96,964,0,7,,unused-javascript(90ms); unused-css-rules(10ms); unminified-css; unminified-javascript
+/forum,mobile,https://kaospan.github.io/clademusic/forum,0.8,0.94,1,0.96,3499,0,298,,unused-javascript(700ms); unminified-css; unminified-javascript; unused-css-rules
+/forum,desktop,https://kaospan.github.io/clademusic/forum,0.99,0.9,1,0.96,914,0,6,,unused-javascript(80ms); unminified-css; unminified-javascript; unused-css-rules

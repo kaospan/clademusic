@@ -38,6 +38,7 @@ export function TrackSections({ trackId }: TrackSectionsProps) {
     currentSectionId,
     setCurrentSection,
     isPlaying,
+    positionMs,
   } = usePlayer();
 
   useEffect(() => {
@@ -64,7 +65,9 @@ export function TrackSections({ trackId }: TrackSectionsProps) {
     <div className="mt-4">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {sections.map((section) => {
-          const active = currentSectionId === section.id;
+          const active = currentSectionId !== null
+            ? currentSectionId === section.id
+            : positionMs >= section.start_ms && positionMs < section.end_ms;
 
           return (
             <button
