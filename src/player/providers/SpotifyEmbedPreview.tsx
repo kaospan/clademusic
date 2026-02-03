@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePlayer } from '../PlayerContext';
-import { useAuth } from '@/hooks/useAuth';
 
 type SpotifyIframeApi = {
   createController: (
@@ -61,7 +60,6 @@ const loadIframeApi = () => {
 };
 
 export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedPreviewProps) {
-  const { user } = useAuth();
   const {
     provider,
     autoplaySpotify,
@@ -103,10 +101,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
 
   useEffect(() => {
     if (provider !== 'spotify' || !providerTrackId) return;
-    if (!user?.id) {
-      setErrorMessage('Sign in to connect Spotify for full-track playback.');
-      return;
-    }
 
     let cancelled = false;
 
@@ -196,7 +190,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     return () => {
       cancelled = true;
     };
-  }, [provider, providerTrackId, autoplay, autoplaySpotify, registerProviderControls, user?.id]);
+  }, [provider, providerTrackId, autoplay, autoplaySpotify, registerProviderControls]);
 
   useEffect(() => {
     if (provider === 'spotify') return;
