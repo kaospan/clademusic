@@ -119,6 +119,9 @@ export interface Track {
   
   // Metadata
   popularity_score?: number;
+
+  // Playback / history metadata
+  played_at?: string;
   created_at?: string;
   updated_at?: string;
 }

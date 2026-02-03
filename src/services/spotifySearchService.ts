@@ -7,27 +7,23 @@
 
 import { Track } from '@/types';
 import { getValidAccessToken } from './spotifyAuthService';
+import type { SpotifyApiTrack } from './spotifyTrackMapper';
+import { spotifyApiTrackToTrack } from './spotifyTrackMapper';
 
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 
 interface SpotifySearchResult {
   tracks: {
     items: Array<{
-      id: string;
-      name: string;
-      artists: Array<{ id: string; name: string }>;
-      album: {
-        id: string;
-        name: string;
-        images: Array<{ url: string; height: number; width: number }>;
-      };
-      duration_ms: number;
-      external_urls: { spotify: string };
-      uri: string;
-      preview_url?: string;
-      external_ids?: {
-        isrc?: string;
-      };
+      id: SpotifyApiTrack['id'];
+      name: SpotifyApiTrack['name'];
+      artists: SpotifyApiTrack['artists'];
+      album: SpotifyApiTrack['album'];
+      duration_ms: SpotifyApiTrack['duration_ms'];
+      external_urls: NonNullable<SpotifyApiTrack['external_urls']>;
+      uri: NonNullable<SpotifyApiTrack['uri']>;
+      preview_url?: SpotifyApiTrack['preview_url'];
+      external_ids?: SpotifyApiTrack['external_ids'];
     }>;
     total: number;
   };
@@ -46,7 +42,7 @@ export async function searchSpotify(
   
   if (!accessToken) {
     console.warn('No Spotify access token available - user may need to reconnect');
-    return [];
+    return { tracks: [], total: 0 };
   }
 
   try {
@@ -74,30 +70,14 @@ export async function searchSpotify(
       } else {
         console.error('Spotify search failed:', response.status, await response.text());
       }
-      return [];
+      return { tracks: [], total: 0 };
     }
 
     const data: SpotifySearchResult = await response.json();
 
     return {
       total: data.tracks.total,
-      tracks: data.tracks.items.map((track) => ({
-        id: `spotify:${track.id}`,
-        title: track.name,
-        artist: track.artists.map((a) => a.name).join(', '),
-        artists: track.artists.map((a) => a.name),
-        album: track.album.name,
-        cover_url: track.album.images[0]?.url,
-        artwork_url: track.album.images[0]?.url,
-        duration_ms: track.duration_ms,
-        preview_url: track.preview_url,
-        spotify_id: track.id,
-        url_spotify_web: track.external_urls.spotify,
-        url_spotify_app: track.uri,
-        provider: 'spotify' as const,
-        external_id: track.id,
-        isrc: track.external_ids?.isrc,
-      })),
+      tracks: data.tracks.items.map((track) => spotifyApiTrackToTrack(track)),
     };
   } catch (error) {
     console.error('Error searching Spotify:', error);
@@ -134,25 +114,8 @@ export async function getSpotifyTrack(
       return null;
     }
 
-    const track = await response.json();
-
-    return {
-      id: `spotify:${track.id}`,
-      title: track.name,
-      artist: track.artists.map((a: any) => a.name).join(', '),
-      artists: track.artists.map((a: any) => a.name),
-      album: track.album.name,
-      cover_url: track.album.images[0]?.url,
-      artwork_url: track.album.images[0]?.url,
-      duration_ms: track.duration_ms,
-      preview_url: track.preview_url,
-      spotify_id: track.id,
-      url_spotify_web: track.external_urls.spotify,
-      url_spotify_app: track.uri,
-      provider: 'spotify' as const,
-      external_id: track.id,
-      isrc: track.external_ids?.isrc,
-    };
+    const track: SpotifyApiTrack = await response.json();
+    return spotifyApiTrackToTrack(track);
   } catch (error) {
     console.error('Error fetching Spotify track:', error);
     return null;

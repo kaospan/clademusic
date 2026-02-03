@@ -5,8 +5,6 @@
  * Last.fm uses username-based lookup (no OAuth required).
  */
 
-import { supabase } from '@/integrations/supabase/client';
-
 const LASTFM_API_BASE = 'https://ws.audioscrobbler.com/2.0';
 
 export function normalizeLastFmUsername(input: string): string {

@@ -7,6 +7,7 @@
 
 import { Track } from '@/types';
 import { getValidAccessToken, refreshSpotifyToken, getSpotifyCredentials } from './spotifyAuthService';
+import { spotifyApiTrackToTrack } from './spotifyTrackMapper';
 
 // Once a top-metrics call returns 401/403, stop re-requesting to avoid noisy 403s and retries.
 let topMetricsDisabled = false;
@@ -43,26 +44,7 @@ interface SpotifyRecentlyPlayedResponse {
  * Transform Spotify track to our Track type
  */
 function transformSpotifyTrack(item: SpotifyPlayHistoryItem): Track {
-  const { track } = item;
-  const artwork = track.album.images.sort((a, b) => b.height - a.height)[0];
-
-  return {
-    id: `spotify:${track.id}`,
-    title: track.name,
-    artist: track.artists.map(a => a.name).join(', '),
-    artists: track.artists.map(a => a.name),
-    album: track.album.name,
-    cover_url: artwork?.url,
-    artwork_url: artwork?.url,
-    duration_ms: track.duration_ms,
-    spotify_id: track.id,
-    url_spotify_web: track.external_urls.spotify,
-    url_spotify_app: track.uri,
-    preview_url: track.preview_url,
-    provider: 'spotify',
-    external_id: track.id,
-    played_at: item.played_at,
-  };
+  return { ...spotifyApiTrackToTrack(item.track), played_at: item.played_at };
 }
 
 /**
