@@ -9,9 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   getLastFmUsername,
   getLastFmStats,
+  getLastFmRecentTracks,
   connectLastFm,
   disconnectLastFm,
   type LastFmStats,
+  type LastFmTrack,
 } from '@/services/lastfmService';
 
 /**
@@ -48,6 +50,23 @@ export function useLastFmStats() {
     queryFn: () => (username ? getLastFmStats(username) : null),
     enabled: !!user && !!username,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Hook to fetch recent Last.fm scrobbles (raw API tracks).
+ * Fetches `limit` most recent scrobbles; consumers can dedupe in UI as needed.
+ */
+export function useLastFmRecentTracks(limit = 200) {
+  const { user } = useAuth();
+  const { data: username } = useLastFmUsername();
+
+  return useQuery<LastFmTrack[]>({
+    queryKey: ['lastfm-recent', username, limit],
+    queryFn: () => (username ? getLastFmRecentTracks(username, limit) : []),
+    enabled: !!user && !!username,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
   });
 }
