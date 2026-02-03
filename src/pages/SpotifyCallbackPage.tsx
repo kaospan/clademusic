@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { getStoredOAuthState, clearOAuthState } from '@/hooks/api/useSpotifyConnect';
@@ -34,6 +35,7 @@ interface SpotifyUserProfile {
 export default function SpotifyCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -193,6 +195,18 @@ export default function SpotifyCallbackPage() {
           throw new Error('Failed to save Spotify connection');
         }
 
+        // Refresh cached "connected" state so the app doesn't keep prompting to reconnect
+        // until a hard refresh (React Query may have cached `false` with a long staleTime).
+        queryClient.setQueryData(['spotify-connected', user.id], true);
+        queryClient.invalidateQueries({ queryKey: ['spotify-connected'] });
+        queryClient.invalidateQueries({ queryKey: ['user-providers'] });
+        queryClient.invalidateQueries({ queryKey: ['spotify-profile'] });
+        queryClient.invalidateQueries({ queryKey: ['spotify-recently-played'] });
+        queryClient.invalidateQueries({ queryKey: ['spotify-top-tracks'] });
+        queryClient.invalidateQueries({ queryKey: ['spotify-top-artists'] });
+        queryClient.invalidateQueries({ queryKey: ['music-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['spotify-recommendations'] });
+
         // Clean up OAuth state
         setStatus('success');
         if (!profile) {
@@ -220,7 +234,7 @@ export default function SpotifyCallbackPage() {
     }
 
     handleCallback();
-  }, [searchParams, user, navigate]);
+  }, [searchParams, user, navigate, queryClient]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
