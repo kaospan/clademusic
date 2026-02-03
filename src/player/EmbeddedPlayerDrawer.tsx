@@ -149,7 +149,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const autoplay = isPlaying;
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
-  const [videoScale, setVideoScale] = useState(0.8); // start at a sensible size; user can resize
+  const [videoScale, setVideoScale] = useState(0.9); // slightly larger, cleaner default for the main player
   const resizeActiveRef = useRef(false);
   const lastClientXRef = useRef(0);
   const lastClientYRef = useRef(0);
@@ -526,12 +526,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           }
         }}
         data-player="universal"
-        className={`pointer-events-auto fixed z-[70] rounded-none md:w-[min(720px,calc(100vw-32px))] ${
+        className={`pointer-events-auto fixed z-[70] w-[min(720px,calc(100vw-32px))] ${
           isMini
             ? 'bottom-6 right-4 left-auto translate-x-0 w-[clamp(200px,80vw,360px)]'
             : isCompact
               ? 'top-0 left-0 translate-x-0 w-[min(460px,90vw)]'
-              : 'top-14 left-1/2 -translate-x-1/2 w-[90vw] max-w-[780px]'
+              : 'top-16 left-1/2 -translate-x-1/2 w-[92vw] max-w-[720px]'
         }`}
         style={{
           scale: isMini ? 0.5 : isCompact ? 0.7 : playerScale,
@@ -540,9 +540,9 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           y: isMini ? miniPosition.y : isCompact ? compactPosition.y : mainPosition.y,
         }}
       >
-          <div className={`overflow-hidden rounded-none md:rounded-2xl border border-border/50 bg-gradient-to-br ${meta.color} shadow-2xl backdrop-blur-xl`}>
+          <div className={`overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${meta.color} shadow-[0_18px_60px_-30px_rgba(0,0,0,0.75)] backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
-          <div className="flex items-center gap-3 px-3 py-2 md:px-4 md:py-2.5 bg-background/80 backdrop-blur">
+          <div className="flex items-center gap-3 px-3 py-2.5 md:px-5 md:py-3 bg-background/80 backdrop-blur">
             <span className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-background/80 text-lg md:text-xl shadow-inner">
               {meta.badge}
             </span>
@@ -553,7 +553,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </span>
             )}
             <div className="flex flex-col leading-tight flex-1 min-w-0">
-              <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Now Playing</span>
+              <span className="text-[9px] md:text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 font-medium">Now Playing</span>
               {resolvedTitle && (
                 <span className="text-xs md:text-sm font-bold text-foreground truncate" aria-label="Track title">{resolvedTitle}</span>
               )}
