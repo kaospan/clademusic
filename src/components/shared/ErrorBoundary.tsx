@@ -3,17 +3,17 @@ import React, { Component, ReactNode } from 'react';
 type FallbackRenderProps = {
   error: Error;
   resetErrorBoundary: () => void;
-};
+s};
 
 type Props = {
   children: ReactNode;
-  fallback?: ReactNode;
+s  fallback?: ReactNode;
   fallbackRender?: (props: FallbackRenderProps) => ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   resetKeys?: unknown[];
 };
 
-type State = {
+type State = {ss
   error: Error | null;
 };
 
