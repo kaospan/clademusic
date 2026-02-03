@@ -11,7 +11,7 @@ import { QueueProvider } from "@/contextss/QueueContext";
 import { EmbeddedPlayerDrawer } from "@/player/EmbeddedPlayerDrawer";
 import { ErrorBoundary, GlobalErrorHandlers, LoadingSpinner } from "@/components/shared";
 import { AdminRoute } from "@/components/AdminRoute";
-import { useAuth } from "@/hooks/useAuth";
+ßimport { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 // Lazy load pages for code splitting

@@ -2,8 +2,8 @@
 export { PageLayout } from './PageLayout';
 export { EmptyState } from './EmptyState';
 export { LoadingSpinner, ListItemSkeleton, CardSkeleton } from './LoadingSpinner';
-export { ProfileCircle } from './ProfileCircle';
-export { ErrorBoundary } from './ErrorBoundary';
+ßexport { ProfileCircle } from './ProfileCircle';
+export { ErrorBoundary } from './ErrorBßoundary';
 export { GlobalErrorHandlers } from './GlobalErrorHandlers';
 <<<<<<< HEAD
 ssß

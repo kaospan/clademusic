@@ -5,7 +5,7 @@ type FallbackRenderProps = {
   resetErrorBoundary: () => void;
 s};
 
-type Props = {
+type Props = {ß
   children: ReactNode;
 <<<<<<< HEAD
 sß  fallback?: ReactNode;
