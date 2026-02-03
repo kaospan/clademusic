@@ -56,7 +56,7 @@ cd cladeai-android
 # Initialize React Native project
 npx react-native@latest init CladeAI --template react-native-template-typescript
 
-# Initialize git
+# Initialize gita
 git init
 git remote add origin https://github.com/yourusername/cladeai-android.git
 ```
