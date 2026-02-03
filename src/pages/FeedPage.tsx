@@ -10,20 +10,20 @@ import { GuestBanner } from '@/components/GuestBanner';
 import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
 import { useFeedTracks } from '@/hooks/api/useTracks';
 import { useAuth } from '@/hooks/useAuth';
-import { useLastFmStats } from '@/hooks/api/useLastFm';
+import { useLastFmRecentTracks } from '@/hooks/api/useLastFm';
 import { useSpotifyRecommendations } from '@/hooks/api/useSpotifyUser';
 import { InteractionType, Track } from '@/types';
 import { ChevronUp, ChevronDown, LogIn, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePlayer } from '@/player/PlayerContext';
 import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
 
 export default function FeedPage() {
   const { user, loading: authLoading, guestMode, enterGuestMode } = useAuth();
-  const { data: lastfmStats } = useLastFmStats();
+  const { data: lastfmRecentRaw = [] } = useLastFmRecentTracks(200);
   const navigate = useNavigate();
   
   // Fetch from multiple sources
@@ -33,15 +33,43 @@ export default function FeedPage() {
   // Always show both recent feed tracks and personalized recommendations (if available and signed-in).
   const baseFeed = trackResult?.tracks ?? [];
   const personalizedRecs = user ? recommendations : [];
-  // Map Last.fm recent scrobbles to Track shape (no provider IDs; display-only)
-  const lastfmRecent: Track[] = (lastfmStats?.recentTracks ?? []).map((t, idx) => ({
-    id: `lastfm:${t.artist}-${t.name}-${t.playedAt?.getTime() ?? idx}`,
-    title: t.name,
-    artist: t.artist,
-    album: t.album,
-    cover_url: t.imageUrl,
-    // Keep order as returned (newest first), no provider IDs to avoid quick-stream confusion
-  }));
+  // Map the last 200 scrobbles to Track shape and dedupe by title+artist (newest wins).
+  const lastfmRecent: Track[] = useMemo(() => {
+    const getImageUrl = (images?: Array<{ '#text': string; size: string }>): string | undefined => {
+      if (!images || images.length === 0) return undefined;
+      const sizePriority = ['extralarge', 'large', 'medium', 'small'];
+      for (const size of sizePriority) {
+        const img = images.find((i) => i.size === size);
+        if (img?.['#text']) return img['#text'];
+      }
+      return images[0]?.['#text'] || undefined;
+    };
+
+    const seen = new Set<string>();
+    const out: Track[] = [];
+
+    for (let i = 0; i < lastfmRecentRaw.length; i++) {
+      const t = lastfmRecentRaw[i] as any;
+      const title = String(t?.name || '').trim();
+      const artist = String(t?.artist?.name || t?.artist?.['#text'] || '').trim();
+      if (!title || !artist) continue;
+
+      const key = `${title.toLowerCase()}|${artist.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const playedAtMs = t?.date?.uts ? Number(t.date.uts) * 1000 : undefined;
+      out.push({
+        id: `lastfm:${artist}-${title}-${playedAtMs ?? i}`,
+        title,
+        artist,
+        album: t?.album?.['#text'] || undefined,
+        cover_url: getImageUrl(t?.image),
+      });
+    }
+
+    return out;
+  }, [lastfmRecentRaw]);
 
   // Merge in priority order: scrobbles (newest), base feed, personalized recs; dedupe by provider id or title+artist
   const tracks: Track[] = (() => {
