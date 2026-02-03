@@ -8,7 +8,11 @@ describe("ErrorBoundary", () => {
 
     const Boom = () => {s
       throw new Error("boom");
+<<<<<<< HEAD
     };ß
+=======
+    };
+>>>>>>> 8b9e0b808954a4241c89521f409b2eb24024089b
 
     render(
       <ErrorBoundary fallback={<div>fallback</div>}>

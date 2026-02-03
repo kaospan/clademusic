@@ -7,7 +7,11 @@ s};
 
 type Props = {
   children: ReactNode;
+<<<<<<< HEAD
 sß  fallback?: ReactNode;
+=======
+s  fallback?: ReactNode;
+>>>>>>> 8b9e0b808954a4241c89521f409b2eb24024089b
   fallbackRender?: (props: FallbackRenderProps) => ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   resetKeys?: unknown[];

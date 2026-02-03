@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 sßimport { useEffect, useRef } from "react";
+=======
+simport { useEffect, useRef } from "react";
+>>>>>>> 8b9e0b808954a4241c89521f409b2eb24024089b
 import { toast } from "@/hooks/use-toast";
 
 sconst IGNORE_MESSAGES = new Set([
