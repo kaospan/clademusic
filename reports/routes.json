@@ -1,0 +1,405 @@
+{
+  "baseUrl": "https://kaospan.github.io/clademusic/",
+  "generatedAt": "2026-02-03T17:47:12.197Z",
+  "maxDepth": 3,
+  "routes": [
+    {
+      "path": "/",
+      "url": "https://kaospan.github.io/clademusic/",
+      "depth": 0,
+      "source": "seed",
+      "title": "Clade - Find Your Harmony",
+      "status": 200,
+      "screenshot": "artifacts/crawl/root.png"
+    },
+    {
+      "path": "/#demo",
+      "url": "https://kaospan.github.io/clademusic/#demo",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": null,
+      "screenshot": "artifacts/crawl/demo.png"
+    },
+    {
+      "path": "/#features",
+      "url": "https://kaospan.github.io/clademusic/#features",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 200,
+      "screenshot": "artifacts/crawl/features.png"
+    },
+    {
+      "path": "/about",
+      "url": "https://kaospan.github.io/clademusic/about",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/about.png"
+    },
+    {
+      "path": "/admin",
+      "url": "https://kaospan.github.io/clademusic/admin",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/admin.png"
+    },
+    {
+      "path": "/admin/performance",
+      "url": "https://kaospan.github.io/clademusic/admin/performance",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/admin_performance.png"
+    },
+    {
+      "path": "/album/:albumId",
+      "url": "https://kaospan.github.io/clademusic/album/:albumId",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/album_albumId.png"
+    },
+    {
+      "path": "/artist/:artistId",
+      "url": "https://kaospan.github.io/clademusic/artist/:artistId",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/artist_artistId.png"
+    },
+    {
+      "path": "/auth",
+      "url": "https://kaospan.github.io/clademusic/auth",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/auth.png"
+    },
+    {
+      "path": "/billing",
+      "url": "https://kaospan.github.io/clademusic/billing",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/billing.png"
+    },
+    {
+      "path": "/blog",
+      "url": "https://kaospan.github.io/clademusic/blog",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/blog.png"
+    },
+    {
+      "path": "/careers",
+      "url": "https://kaospan.github.io/clademusic/careers",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/careers.png"
+    },
+    {
+      "path": "/community",
+      "url": "https://kaospan.github.io/clademusic/community",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/community.png"
+    },
+    {
+      "path": "/community-guidelines",
+      "url": "https://kaospan.github.io/clademusic/community-guidelines",
+      "depth": 2,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/community-guidelines.png"
+    },
+    {
+      "path": "/compare",
+      "url": "https://kaospan.github.io/clademusic/compare",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/compare.png"
+    },
+    {
+      "path": "/connections/:trackId",
+      "url": "https://kaospan.github.io/clademusic/connections/:trackId",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/connections_trackId.png"
+    },
+    {
+      "path": "/contact",
+      "url": "https://kaospan.github.io/clademusic/contact",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/contact.png"
+    },
+    {
+      "path": "/cookies",
+      "url": "https://kaospan.github.io/clademusic/cookies",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/cookies.png"
+    },
+    {
+      "path": "/docs",
+      "url": "https://kaospan.github.io/clademusic/docs",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/docs.png"
+    },
+    {
+      "path": "/faq",
+      "url": "https://kaospan.github.io/clademusic/faq",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/faq.png"
+    },
+    {
+      "path": "/feed",
+      "url": "https://kaospan.github.io/clademusic/feed",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/feed.png"
+    },
+    {
+      "path": "/following",
+      "url": "https://kaospan.github.io/clademusic/following",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/following.png"
+    },
+    {
+      "path": "/forum",
+      "url": "https://kaospan.github.io/clademusic/forum",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/forum.png"
+    },
+    {
+      "path": "/forum/:forumName",
+      "url": "https://kaospan.github.io/clademusic/forum/:forumName",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/forum_forumName.png"
+    },
+    {
+      "path": "/forum/post/:postId",
+      "url": "https://kaospan.github.io/clademusic/forum/post/:postId",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/forum_post_postId.png"
+    },
+    {
+      "path": "/guide",
+      "url": "https://kaospan.github.io/clademusic/guide",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/guide.png"
+    },
+    {
+      "path": "/licenses",
+      "url": "https://kaospan.github.io/clademusic/licenses",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/licenses.png"
+    },
+    {
+      "path": "/login",
+      "url": "https://kaospan.github.io/clademusic/login",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/login.png"
+    },
+    {
+      "path": "/playlist/:playlistId",
+      "url": "https://kaospan.github.io/clademusic/playlist/:playlistId",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/playlist_playlistId.png"
+    },
+    {
+      "path": "/playlists",
+      "url": "https://kaospan.github.io/clademusic/playlists",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/playlists.png"
+    },
+    {
+      "path": "/pricing",
+      "url": "https://kaospan.github.io/clademusic/pricing",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/pricing.png"
+    },
+    {
+      "path": "/pricing#demo",
+      "url": "https://kaospan.github.io/clademusic/pricing#demo",
+      "depth": 2,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": null,
+      "screenshot": "artifacts/crawl/pricing_demo.png"
+    },
+    {
+      "path": "/pricing#features",
+      "url": "https://kaospan.github.io/clademusic/pricing#features",
+      "depth": 2,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/pricing_features.png"
+    },
+    {
+      "path": "/privacy",
+      "url": "https://kaospan.github.io/clademusic/privacy",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/privacy.png"
+    },
+    {
+      "path": "/profile",
+      "url": "https://kaospan.github.io/clademusic/profile",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/profile.png"
+    },
+    {
+      "path": "/search",
+      "url": "https://kaospan.github.io/clademusic/search",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/search.png"
+    },
+    {
+      "path": "/signup",
+      "url": "https://kaospan.github.io/clademusic/signup",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/signup.png"
+    },
+    {
+      "path": "/spotify-callback",
+      "url": "https://kaospan.github.io/clademusic/spotify-callback",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/spotify-callback.png"
+    },
+    {
+      "path": "/support",
+      "url": "https://kaospan.github.io/clademusic/support",
+      "depth": 1,
+      "source": "crawl",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/support.png"
+    },
+    {
+      "path": "/survey",
+      "url": "https://kaospan.github.io/clademusic/survey",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/survey.png"
+    },
+    {
+      "path": "/terms",
+      "url": "https://kaospan.github.io/clademusic/terms",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/terms.png"
+    },
+    {
+      "path": "/track/:trackId",
+      "url": "https://kaospan.github.io/clademusic/track/:trackId",
+      "depth": 1,
+      "source": "app",
+      "title": "Clade - Find Your Harmony",
+      "status": 404,
+      "screenshot": "artifacts/crawl/track_trackId.png"
+    }
+  ],
+  "blockedRequests": [
+    "https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022",
+    "https://i.scdn.co/image/ab67616d0000b2730153f5eb8cf3a7e2f2b2aecb",
+    "https://i.scdn.co/image/ab67616d0000b273a1b2c3d4e5f6a7b8c9d0e1f2",
+    "https://i.scdn.co/image/ab67616d0000b273cdb645498cd3d8a2db4d05e1",
+    "https://i.scdn.co/image/ab67616d0000b273d28d2ebdedb220e479743797",
+    "https://i.scdn.co/image/ab67616d0000b273d4f5a8e2c1a2e3b4c5d6e7f8",
+    "https://i.scdn.co/image/ab67616d0000b273d58e537cea05c2156792c53d",
+    "https://i.scdn.co/image/ab67616d0000b273e1e7e9cf0e30d7a5b1c2f0a8",
+    "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1504898770365-14faca6a7320?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=800&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1598387993441-a364f854c3e1?w=800&h=800&fit=crop"
+  ]
+}
