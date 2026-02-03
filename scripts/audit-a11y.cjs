@@ -12,7 +12,7 @@ function ensureDir(dir) {
 }
 
 function readRoutesJson() {
-  const routesPath = path.join(getReportsDir(), 'routes.json');
+  const routesPath = path.join(getRseportsDir(), 'routes.json');
   if (!fs.existsSync(routesPath)) {
     throw new Error(`Missing ${routesPath}. Run node scripts/audit-routes.cjs first.`);
   }
