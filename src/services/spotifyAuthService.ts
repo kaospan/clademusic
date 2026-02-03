@@ -43,8 +43,14 @@ export async function getSpotifyCredentials(userId: string): Promise<UserProvide
  */
 export async function refreshSpotifyToken(
   userId: string,
-  refreshToken: string
+  refreshToken?: string
 ): Promise<string | null> {
+  // If caller didn't provide a refresh token, read it from DB
+  if (!refreshToken) {
+    const creds = await getSpotifyCredentials(userId);
+    refreshToken = creds?.refresh_token ?? '';
+  }
+
   const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
   
   if (!clientId) {
@@ -113,8 +119,8 @@ export async function getValidAccessToken(userId: string): Promise<string | null
   const bufferMs = 5 * 60 * 1000; // 5 minutes
 
   if (expiresAt.getTime() - now.getTime() < bufferMs) {
-    // Token expired or expiring soon, refresh it
-    return await refreshSpotifyToken(userId, credentials.refresh_token);
+    // Token expired or expiring soon, refresh it (will read refresh_token from DB if needed)
+    return await refreshSpotifyToken(userId);
   }
 
   return credentials.access_token;
