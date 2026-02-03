@@ -136,6 +136,10 @@ export default function SpotifyCallbackPage() {
           console.warn('[Spotify Callback] Failed to clean URL', err);
         }
         const tokens: SpotifyTokenResponse = await tokenResponse.json();
+        console.log(
+          '[Spotify Callback] Token scope:',
+          typeof tokens.scope === 'string' ? tokens.scope : '(missing)'
+        );
 
         console.log('[Spotify Callback] Fetching Spotify profile...');
         // Get user's Spotify profile
@@ -146,7 +150,14 @@ export default function SpotifyCallbackPage() {
         });
 
         if (!profileResponse.ok) {
-          throw new Error('Failed to fetch Spotify profile');
+          const details = await profileResponse.json().catch(() => null);
+          console.error('[Spotify Callback] Profile fetch failed:', profileResponse.status, details);
+          const message =
+            (details as any)?.error?.message ||
+            (details as any)?.message ||
+            profileResponse.statusText ||
+            'Forbidden';
+          throw new Error(`Failed to fetch Spotify profile (${profileResponse.status}): ${message}`);
         }
 
         const profile: SpotifyUserProfile = await profileResponse.json();
