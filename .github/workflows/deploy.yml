@@ -51,7 +51,7 @@ jobs:
     environment: production
     if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     steps:
-WS      - name: Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Bun
