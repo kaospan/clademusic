@@ -786,37 +786,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 ) : (
                   <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
                 )}
-                {provider === 'youtube' && (
-                  <div
-                    className="absolute bottom-1 right-1 h-4 w-4 cursor-se-resize outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                    tabIndex={0}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleResizeStart(e.clientX, e.clientY);
-                    }}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      const touch = e.touches[0];
-                      const clientX = touch?.clientX ?? 0;
-                      const clientY = touch?.clientY ?? 0;
-                      handleResizeStart(clientX, clientY);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setVideoScale(1);
-                      }
-                    }}
-                    title="Drag to resize video"
-                    style={{
-                      borderBottom: '8px solid rgba(255,255,255,0.65)',
-                      borderRight: '8px solid rgba(255,255,255,0.65)',
-                      borderTop: '8px solid transparent',
-                      borderLeft: '8px solid transparent',
-                      borderBottomRightRadius: '4px',
-                    }}
-                  />
-                )}
               </div>
             </div>
           </VideoPanel>
