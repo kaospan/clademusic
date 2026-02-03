@@ -11,6 +11,9 @@ import { spotifyApiTrackToTrack } from './spotifyTrackMapper';
 
 // Once a top-metrics call returns 401/403, stop re-requesting to avoid noisy 403s and retries.
 let topMetricsDisabled = false;
+// Some Spotify tokens can be present but unusable (e.g. dev-mode allowlist issues, revoked access).
+// Once we detect hard failures (401/403/404) from Spotify Web API, stop spamming requests.
+let spotifyApiDisabled = false;
 
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 
@@ -331,6 +334,7 @@ export async function getAudioFeatures(
   trackIds: string[]
 ): Promise<AudioFeatures[]> {
   if (trackIds.length === 0) return [];
+  if (spotifyApiDisabled) return [];
   
   const accessToken = await getValidAccessToken(userId);
   if (!accessToken) return [];
@@ -343,7 +347,14 @@ export async function getAudioFeatures(
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403 || response.status === 404) {
+        spotifyApiDisabled = true;
+        topMetricsDisabled = true;
+        console.warn('[Spotify] audio-features blocked; disabling Spotify Web API calls', response.status);
+      }
+      return [];
+    }
 
     const data = await response.json();
     return data.audio_features.filter(Boolean);
@@ -425,6 +436,7 @@ export async function getRecommendations(
   seedArtistIds: string[] = [],
   limit = 20
 ): Promise<Track[]> {
+  if (spotifyApiDisabled) return [];
   const accessToken = await getValidAccessToken(userId);
   if (!accessToken) return [];
 
@@ -455,7 +467,15 @@ export async function getRecommendations(
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      // 404 is unexpected here; treat as a hard failure to avoid hammering Spotify while the app is misconfigured.
+      if (response.status === 401 || response.status === 403 || response.status === 404) {
+        spotifyApiDisabled = true;
+        topMetricsDisabled = true;
+        console.warn('[Spotify] recommendations blocked; disabling Spotify Web API calls', response.status);
+      }
+      return [];
+    }
 
     const data = await response.json();
     return data.tracks.map((track: SpotifyTopTrack) => ({
