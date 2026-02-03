@@ -1,18 +1,18 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+ßimport { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+simport { AuthProvider } from "@/hooks/useAuth";
 import { PlayerProvider } from "@/player/PlayerContext";
 import { YouTubePlayerProvider } from "@/contexts/YouTubePlayerContext";
-import { QueueProvider } from "@/contexts/QueueContext";
+import { QueueProvider } from "@/contextss/QueueContext";
 import { EmbeddedPlayerDrawer } from "@/player/EmbeddedPlayerDrawer";
-import { LoadingSpinner } from "@/components/shared";
+import { ErrorBoundary, GlobalErrorHandlers, LoadingSpinner } from "@/components/shared";
 import { AdminRoute } from "@/components/AdminRoute";
-import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index")); // Landing Page
@@ -58,12 +58,36 @@ const PageLoader = () => (
   </div>
 );
 
+const RouteErrorBoundary = ({ children }: { children: ReactNode }) => {
+  const location = useLocation();
+  return <ErrorBoundary resetKeys={[location.pathname]}>{children}</ErrorBoundary>;
+};
+
 const PlayerVisibilityGate = () => {
   const location = useLocation();
   const { user } = useAuth();
   const onLanding = location.pathname === '/' || location.pathname === '';
   if (!user && onLanding) return null;
-  return <EmbeddedPlayerDrawer />;
+  return (
+    <ErrorBoundary
+      resetKeys={[location.pathname]}
+      fallback={null}
+      onError={(error) => {
+        if (import.meta.env.MODE !== "production") {
+          console.error("[PlayerVisibilityGate] Player crashed:", error);
+        }
+        toast({
+          title: "Player temporarily unavailable",
+          description:
+            import.meta.env.MODE !== "production"
+              ? error.message || "Please reload the page to try again."
+              : "Please reload the page to try again.",
+        });
+      }}
+    >
+      <EmbeddedPlayerDrawer />
+    </ErrorBoundary>
+  );
 };
 
 const App = () => (
@@ -76,43 +100,46 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter basename={import.meta.env.BASE_URL}>
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/pricing" element={<PricingPage />} />
-                    <Route path="/billing" element={<BillingPage />} />
-                    <Route path="/feed" element={<FeedPage />} />
-                    <Route path="/auth" element={<AuthGatePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignUpPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/compare" element={<ComparePage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/following" element={<FollowingPage />} />
-                    <Route path="/connections/:trackId" element={<ConnectionsPage />} />
-                    <Route path="/spotify-callback" element={<SpotifyCallbackPage />} />
-                    <Route path="/album/:albumId" element={<AlbumPage />} />
-                    <Route path="/artist/:artistId" element={<ArtistPage />} />
-                    <Route path="/track/:trackId" element={<TrackDetailPage />} />
-                    <Route path="/playlists" element={<PlaylistsPage />} />
-                    <Route path="/playlist/:playlistId" element={<PlaylistDetailPage />} />
-                    <Route path="/forum" element={<ForumHomePage />} />
-                    <Route path="/forum/:forumName" element={<ForumHomePage />} />
-                    <Route path="/forum/post/:postId" element={<ForumHomePage />} />
-                    {/* Legal Pages */}
-                    <Route path="/terms" element={<TermsOfServicePage />} />
-                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                    {/* Onboarding */}
-                    <Route path="/survey" element={<MusicTasteSurvey />} />
-                    {/* Admin Routes - Protected */}
-                    <Route element={<AdminRoute />}>
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/admin/performance" element={<AdminPerformanceDashboard />} />
-                    </Route>
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
+                <GlobalErrorHandlers />
+                <RouteErrorBoundary>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/pricing" element={<PricingPage />} />
+                      <Route path="/billing" element={<BillingPage />} />
+                      <Route path="/feed" element={<FeedPage />} />
+                      <Route path="/auth" element={<AuthGatePage />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/signup" element={<SignUpPage />} />
+                      <Route path="/search" element={<SearchPage />} />
+                      <Route path="/compare" element={<ComparePage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
+                      <Route path="/following" element={<FollowingPage />} />
+                      <Route path="/connections/:trackId" element={<ConnectionsPage />} />
+                      <Route path="/spotify-callback" element={<SpotifyCallbackPage />} />
+                      <Route path="/album/:albumId" element={<AlbumPage />} />
+                      <Route path="/artist/:artistId" element={<ArtistPage />} />
+                      <Route path="/track/:trackId" element={<TrackDetailPage />} />
+                      <Route path="/playlists" element={<PlaylistsPage />} />
+                      <Route path="/playlist/:playlistId" element={<PlaylistDetailPage />} />
+                      <Route path="/forum" element={<ForumHomePage />} />
+                      <Route path="/forum/:forumName" element={<ForumHomePage />} />
+                      <Route path="/forum/post/:postId" element={<ForumHomePage />} />
+                      {/* Legal Pages */}
+                      <Route path="/terms" element={<TermsOfServicePage />} />
+                      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                      {/* Onboarding */}
+                      <Route path="/survey" element={<MusicTasteSurvey />} />
+                      {/* Admin Routes - Protected */}
+                      <Route element={<AdminRoute />}>
+                        <Route path="/admin" element={<AdminDashboard />} />
+                        <Route path="/admin/performance" element={<AdminPerformanceDashboard />} />
+                      </Route>
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </RouteErrorBoundary>
                 <PlayerVisibilityGate />
               </BrowserRouter>
             </QueueProvider>
