@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-simport App from "./App.tsx";
+import App from "./App.tsx";
 import "./index.css";
 import { ErrorBoundary } from "@/components/shared";
 s
@@ -8,4 +8,3 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </ErrorBoundary>,
 );
-ßß
