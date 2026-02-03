@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from './ProfileCircle';
 
 interface PageLayoutProps {
   /** Page title shown in header */
@@ -58,7 +59,10 @@ export function PageLayout({
                 <CladeLogoAnimated size={28} className="text-primary" />
                 <h1 className="text-xl font-bold">{title}</h1>
               </div>
-              {headerActions}
+              <div className="flex items-center gap-3">
+                {headerActions}
+                <ProfileCircle />
+              </div>
             </div>
           )}
         </div>

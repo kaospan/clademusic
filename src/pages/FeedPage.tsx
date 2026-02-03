@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { usePlayer } from '@/player/PlayerContext';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from '@/components/shared';
 
 export default function FeedPage() {
   const { user, loading: authLoading, guestMode, enterGuestMode } = useAuth();
@@ -198,7 +200,10 @@ export default function FeedPage() {
       <header className="fixed top-0 left-0 right-0 z-40 glass-strong safe-top">
         <ResponsiveContainer maxWidth="full">
           <div className="flex items-center justify-between py-3">
-            <h1 className="text-lg lg:text-xl font-bold gradient-text">HarmonyFeed</h1>
+            <div className="flex items-center gap-3">
+              <CladeLogoAnimated size={24} className="text-primary" />
+              <h1 className="text-lg lg:text-xl font-bold gradient-text">HarmonyFeed</h1>
+            </div>
             <div className="flex items-center gap-3 lg:gap-4">
               <span className="text-xs lg:text-sm text-muted-foreground flex items-center gap-1">
                 {currentIndex + 1} / {tracks.length}
@@ -228,6 +233,7 @@ export default function FeedPage() {
                   </Button>
                 </div>
               )}
+              <ProfileCircle />
             </div>
           </div>
         </ResponsiveContainer>
