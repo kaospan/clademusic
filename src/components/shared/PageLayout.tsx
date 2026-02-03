@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from './ProfileCircle';
+import { Link } from 'react-router-dom';
 
 interface PageLayoutProps {
   /** Page title shown in header */
@@ -45,21 +46,27 @@ export function PageLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none">
-        <CladeLogoAnimated size={44} className="drop-shadow-lg" />
-      </div>
       {/* Header */}
       <header className={`z-40 glass-strong safe-top ${headerPositionClass}`}>
         <div className={`px-4 py-4 ${containerWidth}`}>
           {headerContent ? (
             headerContent
           ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CladeLogoAnimated size={28} className="text-primary" />
-                <h1 className="text-xl font-bold">{title}</h1>
+            <div className="grid grid-cols-3 items-center">
+              <div className="flex items-center gap-3 justify-self-start min-w-0">
+                {title ? <h1 className="text-xl font-bold truncate">{title}</h1> : null}
               </div>
-              <div className="flex items-center gap-3">
+
+              <Link
+                to="/"
+                className="justify-self-center inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                aria-label="Clade home"
+                title="Clade"
+              >
+                <CladeLogoAnimated size={34} className="drop-shadow-sm" />
+              </Link>
+
+              <div className="flex items-center gap-3 justify-self-end">
                 {headerActions}
                 <ProfileCircle />
               </div>
