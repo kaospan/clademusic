@@ -93,18 +93,12 @@ export function QuickStreamButtons({
 
   const handleSpotifyClick = useCallback(() => {
     if (!hasSpotify || !spotifyTrackId) return;
-    if (!user) {
-      // Require authentication for full-track Spotify playback
-      navigate('/auth');
-      return;
-    }
-    if (isSpotifyConnected !== true) {
-      // Kick off Spotify OAuth connect flow if not connected yet
-      void connectSpotify.mutateAsync();
-      return;
-    }
-
     setPreferredProvider('spotify');
+
+    // Always allow Spotify to play *something* immediately:
+    // - Guest / not connected: Spotify embed preview
+    // - Connected: full Spotify Web Playback (if available)
+    // Reconnect is handled explicitly from the player UI (no surprise redirects here).
     openPlayer({
       canonicalTrackId,
       provider: 'spotify',
@@ -115,7 +109,7 @@ export function QuickStreamButtons({
       artist: trackArtist,
       startSec: currentPositionSec,
     });
-  }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId, user, isSpotifyConnected, connectSpotify, navigate]);
+  }, [hasSpotify, canonicalTrackId, trackTitle, trackArtist, openPlayer, currentPositionSec, spotifyTrackId]);
 
   const handleYouTubeClick = useCallback(async () => {
     setPreferredProvider('youtube');
