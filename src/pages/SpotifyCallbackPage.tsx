@@ -31,7 +31,7 @@ interface SpotifyUserProfile {
   images?: { url: string }[];
 }
 
-ssexport default function SpotifyCallbackPage() {
+export default function SpotifyCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
