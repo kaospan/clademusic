@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from '@/components/shared';
 
 interface SubscriptionRow {
   plan: string;
@@ -113,7 +115,13 @@ export default function BillingPage() {
     <div className="min-h-screen bg-[#0A0A0F] text-white">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold">Billing</h1>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <CladeLogoAnimated size={26} className="text-primary" />
+              <h1 className="text-3xl font-bold">Billing</h1>
+            </div>
+            <ProfileCircle />
+          </div>
           <p className="text-gray-400 mt-2">Manage your plan, credits, and renewals.</p>
         </header>
 
