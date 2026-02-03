@@ -7,6 +7,8 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BottomNav } from '@/components/BottomNav';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from '@/components/shared';
 import { useTrackConnections, TrackConnectionRow, ConnectionGraphData } from '@/hooks/api/useConnections';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,11 +46,15 @@ export default function ConnectionsPage() {
     return (
       <div className="min-h-screen bg-background pb-24">
         <header className="sticky top-0 z-40 glass-strong safe-top">
-          <div className="px-4 py-4 max-w-lg mx-auto flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-xl font-bold">Connections</h1>
+          <div className="px-4 py-4 max-w-lg mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <CladeLogoAnimated size={22} className="text-primary" />
+              <h1 className="text-xl font-bold">Connections</h1>
+            </div>
+            <ProfileCircle />
           </div>
         </header>
 
@@ -70,11 +76,15 @@ export default function ConnectionsPage() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
-        <div className="px-4 py-4 max-w-lg mx-auto flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-xl font-bold">Connections</h1>
+        <div className="px-4 py-4 max-w-lg mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <CladeLogoAnimated size={22} className="text-primary" />
+            <h1 className="text-xl font-bold">Connections</h1>
+          </div>
+          <ProfileCircle />
         </div>
       </header>
 

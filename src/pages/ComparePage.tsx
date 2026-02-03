@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BottomNav } from '@/components/BottomNav';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { ProfileCircle } from '@/components/shared';
 import { ChordBadge } from '@/components/ChordBadge';
 import { HarmonyCard } from '@/components/HarmonyCard';
 import { LineagePath } from '@/components/TrackLineageView';
@@ -104,7 +106,13 @@ export default function ComparePage() {
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
         <div className="px-4 py-4 max-w-lg mx-auto">
-          <h1 className="text-xl font-bold">Compare</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CladeLogoAnimated size={22} className="text-primary" />
+              <h1 className="text-xl font-bold">Compare</h1>
+            </div>
+            <ProfileCircle />
+          </div>
           <p className="text-sm text-muted-foreground">
             Compare the harmonic DNA of two songs
           </p>
