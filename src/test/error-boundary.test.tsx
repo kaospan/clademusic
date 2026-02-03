@@ -1,4 +1,4 @@
-ßimport { render, screen, waitFor } from "@testing-library/react";
+ָßimport { render, screen, waitFor } from "@testing-library/react";
 import { ErrorBoundary } from "@/components/shared";
 
 describe("ErrorBoundary", () => {
