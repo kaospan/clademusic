@@ -48,7 +48,7 @@ function extractMetrics(lhr) {
     opportunities.push({ id, title: a.title, savingsMs, savingsBytes, displayValue: a.displayValue });
   }
   opportunities.sort((a, b) => (b.savingsMs || 0) - (a.savingsMs || 0));
-
+s
   return { perfScore, a11yScore, seoScore, bpScore, lcpMs, cls, tbtMs, inpMs, opportunities: opportunities.slice(0, 8) };
 }
 
