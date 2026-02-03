@@ -356,7 +356,19 @@ export function SpotifyWebPlayer({ providerTrackId, autoplay }: SpotifyWebPlayer
   if (error) {
     return (
       <div className="space-y-2">
-        <div className="text-[11px] text-white/70">{error}</div>
+        <div className="text-[11px] text-white/70">
+          {error}
+          {error.includes('403') && (
+            <span>
+              {' '}
+              If your Spotify app is in dev mode, add your Spotify account under Spotify Developer Dashboard → Users and
+              Access, then reconnect.
+            </span>
+          )}
+          {error.toLowerCase().includes('premium') && (
+            <span> Full tracks require Spotify Premium. Guest mode will use the embed preview.</span>
+          )}
+        </div>
         <SpotifyEmbedPreview providerTrackId={providerTrackId} autoplay={shouldAutoplay} />
       </div>
     );
