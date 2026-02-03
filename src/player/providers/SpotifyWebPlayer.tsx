@@ -352,7 +352,8 @@ export function SpotifyWebPlayer({ providerTrackId, autoplay }: SpotifyWebPlayer
 
   if (provider !== 'spotify' || !providerTrackId) return null;
 
-  // When Web Playback SDK isn't available (or user isn't premium), fall back to the embed preview.
+  // When full playback can't start (auth/dev-mode/premium/device), fall back to the embed preview.
+  if (error) {
     return (
       <div className="space-y-2">
         <div className="text-[11px] text-white/70">

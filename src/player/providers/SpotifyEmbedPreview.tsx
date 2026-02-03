@@ -133,6 +133,15 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
               lastTrackIdRef.current = providerTrackId;
               setReady(true);
 
+              // Try to start immediately; on some browsers the "ready" event can be too late to count as user gesture.
+              if (shouldAutoplay) {
+                try {
+                  controller.play();
+                } catch {
+                  // ignore; we'll retry on "ready"
+                }
+              }
+
               controller.addListener('ready', () => {
                 if (shouldAutoplay) controller.play();
               });
