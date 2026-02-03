@@ -224,7 +224,6 @@ export default function FeedPage() {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
                     onClick={() => navigate('/auth')}
                     className="gap-1.5"
                   >
