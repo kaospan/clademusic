@@ -276,6 +276,15 @@ export async function connectLastFm(userId: string, username: string): Promise<v
     throw new Error('Last.fm username not found. Please check the username and try again.');
   }
 
+  const updateMetadata = async () => {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { lastfm_username: username },
+    });
+    if (error || !data?.user) {
+      throw new Error('Failed to save Last.fm connection');
+    }
+  };
+
   // Store in user_providers (or a dedicated lastfm_connections table)
   // Using the provider_user_id field to store the username
   const { error } = await supabase
@@ -294,8 +303,10 @@ export async function connectLastFm(userId: string, username: string): Promise<v
     });
 
   if (error) {
-    console.error('Failed to store Last.fm connection:', error);
-    throw new Error('Failed to save Last.fm connection');
+    console.error('Failed to store Last.fm connection (user_providers):', error);
+    // Fallback to auth user metadata when the DB schema/policies do not allow lastfm.
+    await updateMetadata();
+    return;
   }
 }
 
@@ -310,11 +321,18 @@ export async function getLastFmUsername(userId: string): Promise<string | null> 
     .eq('provider', 'lastfm')
     .maybeSingle();
 
-  if (error || !data) {
-    return null;
+  if (!error && data?.provider_user_id) {
+    return data.provider_user_id;
   }
 
-  return data.provider_user_id;
+  // Fallback to auth metadata when lastfm isn't stored in user_providers
+  const { data: userData } = await supabase.auth.getUser();
+  const meta = userData?.user?.user_metadata as { lastfm_username?: string } | undefined;
+  if (userData?.user?.id === userId && meta?.lastfm_username) {
+    return meta.lastfm_username;
+  }
+
+  return null;
 }
 
 /**
@@ -328,6 +346,13 @@ export async function disconnectLastFm(userId: string): Promise<void> {
     .eq('provider', 'lastfm');
 
   if (error) {
+    console.warn('Failed to remove Last.fm from user_providers:', error);
+  }
+
+  const { error: metaError } = await supabase.auth.updateUser({
+    data: { lastfm_username: null },
+  });
+  if (metaError) {
     throw new Error('Failed to disconnect Last.fm');
   }
 }

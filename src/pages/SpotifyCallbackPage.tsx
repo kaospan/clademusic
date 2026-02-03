@@ -37,6 +37,7 @@ export default function SpotifyCallbackPage() {
   const { user } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [warningMessage, setWarningMessage] = useState<string>('');
   const handledRef = useRef(false);
   const consumedCodeKeyRef = useRef<string | null>(null);
 
@@ -141,8 +142,10 @@ export default function SpotifyCallbackPage() {
           typeof tokens.scope === 'string' ? tokens.scope : '(missing)'
         );
 
+        let profile: SpotifyUserProfile | null = null;
         console.log('[Spotify Callback] Fetching Spotify profile...');
-        // Get user's Spotify profile
+        // Get user's Spotify profile (best-effort). Some Spotify apps in dev mode return 403 for non-whitelisted users.
+        // We still store tokens so the user can retry/reconnect after fixing Spotify dashboard settings.
         const profileResponse = await fetch('https://api.spotify.com/v1/me', {
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,
@@ -152,15 +155,10 @@ export default function SpotifyCallbackPage() {
         if (!profileResponse.ok) {
           const details = await profileResponse.json().catch(() => null);
           console.error('[Spotify Callback] Profile fetch failed:', profileResponse.status, details);
-          const message =
-            (details as any)?.error?.message ||
-            (details as any)?.message ||
-            profileResponse.statusText ||
-            'Forbidden';
-          throw new Error(`Failed to fetch Spotify profile (${profileResponse.status}): ${message}`);
+          // Continue; store tokens with a placeholder provider_user_id.
+        } else {
+          profile = await profileResponse.json();
         }
-
-        const profile: SpotifyUserProfile = await profileResponse.json();
 
         // Calculate token expiry time
         const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
@@ -177,7 +175,7 @@ export default function SpotifyCallbackPage() {
         } = {
           user_id: user.id,
           provider: 'spotify',
-          provider_user_id: profile.id,
+          provider_user_id: profile?.id || `unknown_${user.id}`,
           access_token: tokens.access_token,
           expires_at: expiresAt,
           connected_at: new Date().toISOString(),
@@ -197,6 +195,14 @@ export default function SpotifyCallbackPage() {
 
         // Clean up OAuth state
         setStatus('success');
+        if (!profile) {
+          console.warn(
+            '[Spotify Callback] Connected, but profile fetch failed. This often means the Spotify app is in dev mode and the user is not added as an allowed user in the Spotify dashboard.'
+          );
+          setWarningMessage(
+            'Connected, but Spotify profile fetch was blocked (403). If your Spotify app is in dev mode, add your account as an allowed user in the Spotify dashboard, then reconnect.'
+          );
+        }
 
         // Redirect to profile after a moment
         setTimeout(() => {
@@ -234,6 +240,9 @@ export default function SpotifyCallbackPage() {
             </div>
             <h2 className="text-xl font-semibold text-green-500">Spotify Connected!</h2>
             <p className="text-muted-foreground">Redirecting to your profile...</p>
+            {warningMessage && (
+              <p className="text-sm text-amber-500/90">{warningMessage}</p>
+            )}
           </div>
         )}
 

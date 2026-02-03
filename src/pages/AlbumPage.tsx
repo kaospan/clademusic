@@ -19,6 +19,7 @@ import { LiveCommentFeed } from '@/components/LiveCommentFeed';
 import { SampleConnections } from '@/components/SampleConnections';
 import { NearbyListenersPanel } from '@/components/NearbyListenersPanel';
 import { cn } from '@/lib/utils';
+import { formatDurationFull } from '@/lib/timeFormat';
 import type { Album, Track } from '@/types';
 
 // Mock album data

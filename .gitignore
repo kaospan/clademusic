@@ -38,3 +38,9 @@ dist-ssr
 cypress/videos
 cypress/screenshots
 cypress/downloads
+
+# Local QA / audits / test artifacts
+artifacts/
+reports/
+test-results/
+playwright-report/

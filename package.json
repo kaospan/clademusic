@@ -9,7 +9,7 @@
     "node": ">=0.0.0"
   },
   "scripts": {
-    "preinstall": "node ./scripts/abort-if-not-bun.cjs",
+    "preinstall": "bun ./scripts/abort-if-not-bun.cjs",
     "dev": "vite",
     "build": "vite build",
     "predeploy": "bun run build && echo . > dist/.nojekyll",

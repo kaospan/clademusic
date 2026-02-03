@@ -94,14 +94,14 @@ export async function getRecentlyPlayedTracks(
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Token invalid, try to refresh
-        const newToken = await refreshSpotifyToken(userId, '');
-        if (!newToken) {
-          console.error('Spotify token refresh failed');
-          return null;
+        // Token invalid, try to refresh using stored refresh token
+        const creds = await getSpotifyCredentials(userId);
+        const newToken = creds?.refresh_token ? await refreshSpotifyToken(userId, creds.refresh_token) : null;
+        if (newToken) {
+          return getRecentlyPlayedTracks(userId, limit);
         }
-        // Retry with new token
-        return getRecentlyPlayedTracks(userId, limit);
+        console.error('Spotify token refresh failed (missing/invalid refresh token)');
+        return null;
       }
       console.error('Failed to fetch recently played:', response.status);
       return null;
@@ -133,8 +133,33 @@ export async function getRecentlyPlayedTracks(
  * Check if user has Spotify connected
  */
 export async function isSpotifyConnected(userId: string): Promise<boolean> {
-  const token = await getValidAccessToken(userId);
-  return Boolean(token);
+  const accessToken = await getValidAccessToken(userId);
+  if (!accessToken) return false;
+
+  // Validate token against /me to avoid noisy 403 loops when the token is unusable.
+  try {
+    const res = await fetch(`${SPOTIFY_API_BASE}/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (res.ok) return true;
+    if (res.status === 401) {
+      const creds = await getSpotifyCredentials(userId);
+      const refreshed = creds?.refresh_token ? await refreshSpotifyToken(userId, creds.refresh_token) : null;
+      if (!refreshed) return false;
+      const retry = await fetch(`${SPOTIFY_API_BASE}/me`, {
+        headers: { Authorization: `Bearer ${refreshed}` },
+      });
+      return retry.ok;
+    }
+
+    // Common causes: dev-mode app without whitelisted user, revoked permissions, missing scopes.
+    if (res.status === 403) return false;
+    return false;
+  } catch (err) {
+    console.warn('[Spotify] isSpotifyConnected validation failed', err);
+    return false;
+  }
 }
 
 /**

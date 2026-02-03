@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
+import { SpotifyWebPlayer } from './providers/SpotifyWebPlayer';
 import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
@@ -777,7 +778,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 }}
               >
                 {provider === 'spotify' ? (
-                  <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
+                  user && isSpotifyConnected === true ? (
+                    <SpotifyWebPlayer providerTrackId={trackId} autoplay={autoplay} />
+                  ) : (
+                    <SpotifyEmbedPreview providerTrackId={trackId} autoplay={autoplay} />
+                  )
                 ) : (
                   <YouTubePlayer providerTrackId={trackId} autoplay={autoplay} />
                 )}
