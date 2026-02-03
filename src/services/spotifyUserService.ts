@@ -95,7 +95,7 @@ export async function getRecentlyPlayedTracks(
     if (!response.ok) {
       if (response.status === 401) {
         // Token invalid, try to refresh
-        const newToken = await refreshSpotifyToken(userId, '');
+        const newToken = await refreshSpotifyToken(userId);
         if (!newToken) {
           console.error('Spotify token refresh failed');
           return null;
