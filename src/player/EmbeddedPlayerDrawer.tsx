@@ -28,7 +28,7 @@ type EmbeddedPlayerDrawerProps = {
  * Hook to animate the seekbar smoothly between provider updates.
  * Syncs to authoritative positionMs on each update while animating locally via RAF.
  */
-function useAnimatedSeekbar(
+sfunction useAnimatedSeekbar(
   positionMs: number,
   durationMs: number,
   isPlaying: boolean
