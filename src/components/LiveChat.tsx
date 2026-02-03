@@ -46,6 +46,7 @@ export function LiveChat({
   className = '' 
 }: LiveChatProps) {
   const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+  const disabled = chatDisabled || chatSchemaMissing;
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -55,16 +56,9 @@ export function LiveChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  if (chatDisabled) {
-    return null;
-  }
-
-  if (chatSchemaMissing) {
-    return null;
-  }
-
   // Get or create room
   useEffect(() => {
+    if (disabled) return;
     if (!user) return;
 
     const initRoom = async () => {
@@ -153,6 +147,7 @@ export function LiveChat({
 
   // Subscribe to new messages
   useEffect(() => {
+    if (disabled) return;
     if (!user) return;
 
     const channel = supabase
@@ -192,6 +187,7 @@ export function LiveChat({
 
   // Subscribe to user presence
   useEffect(() => {
+    if (disabled) return;
     if (!user) return;
 
     const presenceChannel = supabase.channel('online-users', {
@@ -221,6 +217,7 @@ export function LiveChat({
 
   // Update presence on mount/unmount
   useEffect(() => {
+    if (disabled) return;
     if (!user) return;
 
     const updatePresence = async (status: 'online' | 'offline') => {
@@ -268,6 +265,8 @@ export function LiveChat({
       console.error('Error sending message:', error);
     }
   };
+
+  if (disabled) return null;
 
   if (!user) {
     return (

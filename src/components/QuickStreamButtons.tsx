@@ -56,16 +56,7 @@ export function QuickStreamButtons({
   const youtubeLink = links.find((l) => l.provider === 'youtube');
   const preferredProvider = getPreferredProvider();
   const { openPlayer, positionMs, provider: currentProvider, canonicalTrackId: currentTrackId, trackId: currentProviderTrackId } = usePlayer();
-  // Safe navigate for test environments where Router isn't mounted
-  const navigate = (() => {
-    try {
-      return useNavigate();
-    } catch {
-      return (to: string) => {
-        window.location.href = to;
-      };
-    }
-  })();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: isSpotifyConnected } = useSpotifyConnected();
   const connectSpotify = useConnectSpotify();

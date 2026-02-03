@@ -29,19 +29,13 @@ export function ScrollingComments({
   scrollSpeed = 5000,
 }: ScrollingCommentsProps) {
   const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+  const disabled = chatDisabled || (!trackId && chatSchemaMissing);
   const [comments, setComments] = useState<Comment[]>([]);
   const [visibleComments, setVisibleComments] = useState<Comment[]>([]);
 
-  if (chatDisabled) {
-    return null;
-  }
-
-  if (!trackId && chatSchemaMissing) {
-    return null;
-  }
-
   // Subscribe to real-time comments
   useEffect(() => {
+    if (disabled) return;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const setupSubscription = async () => {
@@ -140,6 +134,7 @@ export function ScrollingComments({
 
   // Manage visible comments with auto-scroll
   useEffect(() => {
+    if (disabled) return;
     if (comments.length === 0) return;
     if (maxVisible <= 0 || scrollSpeed <= 0) return;
 
@@ -164,6 +159,7 @@ export function ScrollingComments({
 
   // Auto-remove old comments after they fade
   useEffect(() => {
+    if (disabled) return;
     if (visibleComments.length === 0) return;
 
     const timeout = setTimeout(() => {
@@ -172,6 +168,8 @@ export function ScrollingComments({
 
     return () => clearTimeout(timeout);
   }, [visibleComments, scrollSpeed]);
+
+  if (disabled) return null;
 
   return (
     <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none px-4 md:px-8">

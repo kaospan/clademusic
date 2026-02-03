@@ -43,11 +43,13 @@ describe('Navigation & quicklinks regressions', () => {
 
   it('renders Spotify + YouTube quicklinks and triggers universal player', () => {
     render(
-      <QuickStreamButtons
-        track={{ spotifyId: 's1', youtubeId: 'y1' }}
-        trackTitle="Title"
-        trackArtist="Artist"
-      />
+      <MemoryRouter>
+        <QuickStreamButtons
+          track={{ spotifyId: 's1', youtubeId: 'y1' }}
+          trackTitle="Title"
+          trackArtist="Artist"
+        />
+      </MemoryRouter>
     );
 
     const spotifyBtn = screen.getByLabelText(/spotify/i);
