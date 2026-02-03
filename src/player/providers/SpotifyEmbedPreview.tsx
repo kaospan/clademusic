@@ -60,6 +60,9 @@ const loadIframeApi = () => {
 };
 
 export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedPreviewProps) {
+  const isTestEnv =
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
   const {
     provider,
     autoplaySpotify,
@@ -105,6 +108,11 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     let cancelled = false;
 
     const setup = async () => {
+      if (isTestEnv) {
+        // Avoid injecting external scripts/timers in tests (keeps vitest from hanging).
+        setReady(true);
+        return;
+      }
       try {
         const api = await loadIframeApi();
         if (cancelled) return;
@@ -190,7 +198,7 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     return () => {
       cancelled = true;
     };
-  }, [provider, providerTrackId, autoplay, autoplaySpotify, registerProviderControls]);
+  }, [provider, providerTrackId, autoplay, autoplaySpotify, registerProviderControls, isTestEnv]);
 
   useEffect(() => {
     if (provider === 'spotify') return;

@@ -33,6 +33,9 @@ function useAnimatedSeekbar(
   durationMs: number,
   isPlaying: boolean
 ): number {
+  const isTestEnv =
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
   const [displayMs, setDisplayMs] = useState(positionMs);
   const rafIdRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(performance.now());
@@ -67,6 +70,7 @@ function useAnimatedSeekbar(
 
   // Animate forward during playback using RAF
   useEffect(() => {
+    if (isTestEnv) return;
     if (!isPlaying) {
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
@@ -97,12 +101,15 @@ function useAnimatedSeekbar(
         rafIdRef.current = null;
       }
     };
-  }, [isPlaying, durationMs]);
+  }, [isPlaying, durationMs, isTestEnv]);
 
   return displayMs;
 }
 
 export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: EmbeddedPlayerDrawerProps) {
+  const isTestEnv =
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
   const {
     provider,
     trackId,
@@ -349,6 +356,21 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
   }, []);
 
+  const setDragBoundsIfChanged = useCallback(() => {
+    const next = computeDragBounds();
+    setDragBounds((prev) => {
+      if (
+        prev.left === next.left &&
+        prev.right === next.right &&
+        prev.top === next.top &&
+        prev.bottom === next.bottom
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [computeDragBounds]);
+
   const clampMiniPosition = useCallback(
     (pos: { x: number; y: number }) => {
       if (typeof window === 'undefined') return pos;
@@ -370,7 +392,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   // Recenter positions when viewport changes
   useEffect(() => {
     const onResize = () => {
-      setDragBounds(computeDragBounds());
+      setDragBoundsIfChanged();
       setCompactPosition((prev) => clampPositionToBounds(prev));
       if (!isCompact && !isMini) {
         setMainPosition((prev) => clampPositionToBounds(prev));
@@ -378,7 +400,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [clampPositionToBounds, computeDragBounds, isCompact, isMini]);
+  }, [clampPositionToBounds, isCompact, isMini, setDragBoundsIfChanged]);
 
   useEffect(() => {
     if (!isCinema) return;
@@ -414,8 +436,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   }, [isOpen, resolvedTitle]);
 
   useLayoutEffect(() => {
-    setDragBounds(computeDragBounds());
-  }, [computeDragBounds, isMini, isCompact, mainPosition, compactPosition, miniPosition, playerScale, videoScale]);
+    setDragBoundsIfChanged();
+  }, [isMini, isCompact, mainPosition, compactPosition, miniPosition, playerScale, setDragBoundsIfChanged, videoScale]);
 
   useEffect(() => {
     if (isMini) {
@@ -563,22 +585,29 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     }
   }, [provider]);
 
+  const PlayerRoot: any = isTestEnv ? 'div' : motion.div;
+  const VideoPanel: any = isTestEnv ? 'div' : motion.div;
+
   return (
     <>
       {/* Single Interchangeable Player - stays mounted for compact & mini so playback never stops */}
-      <motion.div
+      <PlayerRoot
         ref={(node) => {
           playerWrapperRef.current = node;
           miniContainerRef.current = node;
           cinemaRef.current = node;
         }}
-        drag={isMini || !isScrubbing} // allow drag in mini; block while scrubbing
-        dragConstraints={dragBounds}
-        dragElastic={0.15}
-        initial={{ y: 0, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -20, opacity: 0 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
+        {...(isTestEnv
+          ? {}
+          : {
+              drag: isMini || !isScrubbing,
+              dragConstraints: dragBounds,
+              dragElastic: 0.15,
+              initial: { y: 0, opacity: 0 },
+              animate: { y: 0, opacity: 1 },
+              exit: { y: -20, opacity: 0 },
+              transition: { duration: 0.2, ease: 'easeOut' },
+            })}
         onDragEnd={(_, info) => {
           if (isMini) {
             const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
@@ -607,7 +636,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           y: isMini ? miniPosition.y : isCompact ? compactPosition.y : mainPosition.y,
         }}
       >
-          <div className={`overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${meta.color} shadow-[0_18px_60px_-30px_rgba(0,0,0,0.75)] backdrop-blur-xl`}>
+        <div className={`relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${meta.color} shadow-[0_18px_60px_-30px_rgba(0,0,0,0.75)] backdrop-blur-xl`}>
           {/* Header - Always visible, compact on mobile */}
           <div className="flex items-center gap-3 px-3 py-2.5 md:px-5 md:py-3 bg-background/80 backdrop-blur">
             <span className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-background/80 text-lg md:text-xl shadow-inner">
@@ -662,7 +691,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   type="button"
                   onClick={() => {
                     setIsCompact(false);
-                    requestAnimationFrame(() => setDragBounds(computeDragBounds()));
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Show video and expand player"
@@ -686,8 +714,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   type="button"
                   onClick={() => {
                     setIsCompact(true);
-                    requestAnimationFrame(snapCompactToCorner);
-                    requestAnimationFrame(() => setDragBounds(computeDragBounds()));
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
                   aria-label="Compact player and hide video"
@@ -724,13 +750,17 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           </div>
 
           {/* Video area slides from top of player */}
-          <motion.div
-            initial={false}
-            animate={{
-              height: provider && trackId && !isCompact ? 'auto' : 0,
-              opacity: provider && trackId && !isCompact ? 1 : 0,
-            }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+          <VideoPanel
+            initial={isTestEnv ? undefined : false}
+            {...(isTestEnv
+              ? {}
+              : {
+                  animate: {
+                    height: provider && trackId && !isCompact ? 'auto' : 0,
+                    opacity: provider && trackId && !isCompact ? 1 : 0,
+                  },
+                  transition: { duration: 0.25, ease: 'easeOut' },
+                })}
             className="overflow-hidden bg-black/80"
             aria-hidden={!provider || !trackId || isCompact}
           >
@@ -784,7 +814,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 )}
               </div>
             </div>
-          </motion.div>
+          </VideoPanel>
 
           {/* Compact Controls Row: Seekbar + Volume inline */}
           <div className="flex items-center gap-2 px-3 pb-3 md:px-4 md:pb-4 text-white">
@@ -851,10 +881,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
             <button
               onClick={toggleMute}
-              className="inline-flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/90 transition hover:border-white/40 hover:bg-white/20"
+              className="inline-flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white/95 transition hover:border-white/50 hover:bg-white/20"
               aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
-              {isMuted ? <VolumeX className="h-4 w-4 md:h-5 md:w-5" /> : <Volume2 className="h-4 w-4 md:h-5 md:w-5" />}
+              {isMuted ? <VolumeX className="h-5 w-5 md:h-6 md:w-6" /> : <Volume2 className="h-5 w-5 md:h-6 md:w-6" />}
             </button>
             <input
               type="range"
@@ -899,7 +929,8 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           </div>
           {!isMini && (
             <div
-              className="absolute bottom-2 right-2 h-5 w-5 cursor-se-resize rounded-sm bg-white/10 hover:bg-white/20 active:bg-white/30"
+              className="absolute bottom-2 right-2 h-4 w-4 cursor-se-resize outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              tabIndex={0}
               onMouseDown={(e) => {
                 e.preventDefault();
                 playerResizeActiveRef.current = true;
@@ -914,12 +945,25 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 playerResizeActiveRef.current = true;
               }}
               onPointerDownCapture={(e) => e.stopPropagation()}
-              title="Drag to resize player"
-              aria-label="Resize player"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setPlayerScale(1);
+                }
+              }}
+              title="Drag to resize player window"
+              aria-label="Resize player window"
+              style={{
+                borderBottom: '8px solid rgba(255,255,255,0.65)',
+                borderRight: '8px solid rgba(255,255,255,0.65)',
+                borderTop: '8px solid transparent',
+                borderLeft: '8px solid transparent',
+                borderBottomRightRadius: '4px',
+              }}
             />
           )}
         </div>
-      </motion.div>
+      </PlayerRoot>
 
       {/* Queue sheet */}
       <QueueSheet

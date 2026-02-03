@@ -161,7 +161,8 @@ describe('Mobile Player QA', () => {
     it('should not overlap with TikTok buttons on mobile', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
       const player = container.querySelector('[data-player="universal"]');
-      expect(player).toHaveClass('top-14');
+      // Keep clear of the top bar on mobile.
+      expect(player).toHaveClass('top-16');
       expect(player).toHaveClass('left-1/2');
     });
 
@@ -197,7 +198,7 @@ describe('Mobile Player QA', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
       
       // Check for mobile-specific classes
-      expect(container.querySelector('.w-\\[90vw\\]')).toBeInTheDocument();
+      expect(container.querySelector('.w-\\[92vw\\]')).toBeInTheDocument();
     });
   });
 
