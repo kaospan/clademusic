@@ -179,6 +179,19 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const [compactPosition, setCompactPosition] = useState<{ x: number; y: number }>(() => getDefaultCompactPosition());
   const [dragBounds, setDragBounds] = useState({ left: -1000, right: 1000, top: -1000, bottom: 1000 });
   const layoutStorageKey = 'player_layout_v1';
+  const cookieKey = 'player_positions_v1';
+  const readCookie = useCallback((key: string) => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(
+      new RegExp(`(?:^|; )${key.replace(/[-[\]{}()*+?.,\\^$|#\\s]/g, '\\$&')}=([^;]*)`)
+    );
+    return match ? decodeURIComponent(match[1]) : null;
+  }, []);
+  const writeCookie = useCallback((key: string, value: string) => {
+    if (typeof document === 'undefined') return;
+    const maxAge = 60 * 60 * 24 * 365;
+    document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}`;
+  }, []);
   const clampPositionToBounds = useCallback(
     (pos: { x: number; y: number }) => {
       return {
@@ -291,6 +304,31 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     }
   }, [isCompact, videoScale, playerScale]);
 
+  // Hydrate positions from cookie
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = readCookie(cookieKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<{
+        mainPosition: { x: number; y: number };
+        compactPosition: { x: number; y: number };
+        miniPosition: { x: number; y: number };
+      }>;
+      if (parsed.mainPosition) setMainPosition(parsed.mainPosition);
+      if (parsed.compactPosition) setCompactPosition(parsed.compactPosition);
+      if (parsed.miniPosition) setMiniPosition(parsed.miniPosition);
+    } catch (err) {
+      console.warn('Failed to hydrate player positions', err);
+    }
+  }, [readCookie]);
+
+  // Persist positions to cookie
+  useEffect(() => {
+    const payload = JSON.stringify({ mainPosition, compactPosition, miniPosition });
+    writeCookie(cookieKey, payload);
+  }, [compactPosition, mainPosition, miniPosition, writeCookie]);
+
   useEffect(() => {
     setScrubSec(null);
   }, [provider, trackId]);
@@ -314,15 +352,15 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   // Recenter positions when viewport changes
   useEffect(() => {
     const onResize = () => {
-      setCompactPosition(getDefaultCompactPosition());
-      if (!isCompact && !isMini) {
-        setMainPosition({ x: 0, y: 0 });
-      }
       setDragBounds(computeDragBounds());
+      setCompactPosition((prev) => clampPositionToBounds(prev));
+      if (!isCompact && !isMini) {
+        setMainPosition((prev) => clampPositionToBounds(prev));
+      }
     };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [computeDragBounds, getDefaultCompactPosition, isCompact, isMini]);
+  }, [clampPositionToBounds, computeDragBounds, isCompact, isMini]);
 
   useEffect(() => {
     if (!isCinema) return;
@@ -624,12 +662,11 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                   type="button"
                   onClick={() => {
                     setIsCompact(false);
-                    setMainPosition({ x: 0, y: 0 });
                     requestAnimationFrame(() => setDragBounds(computeDragBounds()));
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                  aria-label="Restore compact player"
-                  title="Restore compact"
+                  aria-label="Show video and expand player"
+                  title="Show video"
                 >
                   <ChevronUp className="h-3 w-3 md:h-4 md:w-4" />
                 </button>
@@ -648,15 +685,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
                 <button
                   type="button"
                   onClick={() => {
-                    setMainPosition({ x: 0, y: 0 });
-                    setCompactPosition(getDefaultCompactPosition());
                     setIsCompact(true);
                     requestAnimationFrame(snapCompactToCorner);
                     requestAnimationFrame(() => setDragBounds(computeDragBounds()));
                   }}
                   className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                  aria-label="Compact player"
-                  title="Compact"
+                  aria-label="Compact player and hide video"
+                  title="Compact (hide video)"
                 >
                   <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
                 </button>
@@ -691,10 +726,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           {/* Video area slides from top of player */}
           <motion.div
             initial={false}
-            animate={{ height: provider && trackId ? 'auto' : 0, opacity: provider && trackId ? 1 : 0 }}
+            animate={{
+              height: provider && trackId && !isCompact ? 'auto' : 0,
+              opacity: provider && trackId && !isCompact ? 1 : 0,
+            }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
             className="overflow-hidden bg-black/80"
-            aria-hidden={!provider || !trackId}
+            aria-hidden={!provider || !trackId || isCompact}
           >
             <div className="relative flex justify-center px-2 py-2">
               <div
