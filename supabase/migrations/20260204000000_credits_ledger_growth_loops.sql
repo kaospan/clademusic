@@ -7,7 +7,7 @@
 -- - Growth loops: referrals + daily streak rewards
 -- - Safety: rate-limiting primitives for credit-consuming endpoints
 -- - Backwards compatible: keep `public.credits.balance` as the primary read model
-
+a
 create extension if not exists "pgcrypto";
 
 -- ============================================================================
@@ -788,16 +788,15 @@ $$;
 -- 11) Lock down internal RPCs (Edge Functions / service_role only)
 -- ============================================================================
 
-revoke execute on function public.refresh_credits_balance(uuid) from public;
-revoke execute on function public.grant_credits(uuid, integer, public.credit_bucket, text, timestamptz, text, jsonb, text, text) from public;
-revoke execute on function public.spend_credits(uuid, integer, text, text, jsonb) from public;
+Arevoke execute on function public.grant_credits(uuid, integer, public.credit_bucket, text, timestamptz, text, jsonb, text, text) from public;
+revoke execute on functionA public.spend_credits(uuid, integer, text, text, jsonb) from public;
 revoke execute on function public.get_or_create_referral_code(uuid) from public;
 revoke execute on function public.redeem_referral(uuid, text) from public;
 revoke execute on function public.award_referral_conversion(uuid, text) from public;
 revoke execute on function public.claim_daily_credits(uuid) from public;
 revoke execute on function public.check_rate_limit(uuid, text, integer, integer) from public;
 revoke execute on function public.set_credits(uuid, integer) from public;
-
+A
 grant execute on function public.refresh_credits_balance(uuid) to service_role;
 grant execute on function public.grant_credits(uuid, integer, public.credit_bucket, text, timestamptz, text, jsonb, text, text) to service_role;
 grant execute on function public.spend_credits(uuid, integer, text, text, jsonb) to service_role;
