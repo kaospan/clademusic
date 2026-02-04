@@ -313,6 +313,12 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     [seekToMs]
   );
 
+  const restoreToDocked = useCallback(() => {
+    setIsCompact(false);
+    setMainPosition({ x: 0, y: 0 });
+    restoreFromMini();
+  }, [restoreFromMini]);
+
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
   const safeMs = (value: number) => (Number.isFinite(value) ? Math.max(0, value) : 0);
@@ -770,18 +776,20 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           }
         }}
         data-player="universal"
-        className={`pointer-events-auto fixed z-[110] w-[min(720px,calc(100vw-32px))] ${
+        aria-hidden={isMini}
+        className={`fixed z-[60] ${isMini ? 'pointer-events-none opacity-0' : 'pointer-events-auto'} ${
           isMini
-            ? 'bottom-6 right-4 left-auto translate-x-0 w-[clamp(200px,80vw,360px)]'
+            ? 'top-0 left-1/2 -translate-x-1/2 w-[min(720px,calc(100vw-32px))]'
             : isCompact
               ? 'top-0 left-0 translate-x-0 w-[min(460px,90vw)]'
               : 'top-16 left-1/2 -translate-x-1/2 w-[92vw] max-w-[720px]'
         }`}
         style={{
-          scale: isMini ? 0.5 : isCompact ? 0.7 : playerScale,
-          transformOrigin: isMini ? 'bottom right' : isCompact ? 'top left' : 'top center',
-          x: isMini ? miniPosition.x : isCompact ? compactPosition.x : mainPosition.x,
-          y: isMini ? miniPosition.y : isCompact ? compactPosition.y : mainPosition.y,
+          scale: isMini ? 0.9 : isCompact ? 0.7 : playerScale,
+          transformOrigin: isMini ? 'center' : isCompact ? 'top left' : 'top center',
+          x: isMini ? -2000 : isCompact ? compactPosition.x : mainPosition.x,
+          y: isMini ? -2000 : isCompact ? compactPosition.y : mainPosition.y,
+          visibility: isMini ? 'hidden' : 'visible',
         }}
       >
         <div className={`relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${meta.color} shadow-[0_18px_60px_-30px_rgba(0,0,0,0.75)] backdrop-blur-xl`}>
@@ -1172,6 +1180,48 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           )}
         </div>
       </PlayerRoot>
+
+      {isMini && (
+        <motion.div
+          drag
+          dragElastic={0.2}
+          dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
+          onDragEnd={(_, info) => {
+            const next = { x: miniPosition.x + info.offset.x, y: miniPosition.y + info.offset.y };
+            setMiniPosition(clampMiniPosition(next));
+          }}
+          style={{ x: miniPosition.x, y: miniPosition.y }}
+          role="region"
+          aria-label="Mini player"
+          aria-live="polite"
+          className="pointer-events-auto fixed bottom-4 right-4 z-[65] w-[260px] max-w-[85vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+        >
+          <div className="flex items-center justify-between px-3 py-2 gap-2">
+            <div className="flex flex-col min-w-0">
+              {resolvedTitle && <span className="text-sm font-semibold text-white truncate" aria-label="Mini player track title">{resolvedTitle}</span>}
+              {resolvedArtist && <span className="text-xs text-white/70 truncate" aria-label="Mini player artist">{resolvedArtist}</span>}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={restoreToDocked}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                aria-label="Restore full player"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Queue sheet */}
       <QueueSheet
