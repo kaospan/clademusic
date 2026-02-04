@@ -46,19 +46,43 @@ export function ScrollingComments({
 
     const setupSubscription = async () => {
       let disableRealtime = false;
+      let effectiveRoomId = roomId;
+
+      // Resolve the UUID room id for "global" (migrations create a UUID id, not the literal string "global").
+      if (!trackId && roomId === 'global') {
+        try {
+          const { data: globalRoom, error } = await supabase
+            .from('chat_rooms')
+            .select('id')
+            .eq('type', 'global')
+            .limit(1)
+            .maybeSingle();
+
+          if (error) throw error;
+          if (!globalRoom?.id) {
+            throw new Error('Global chat room not found');
+          }
+          effectiveRoomId = globalRoom.id;
+        } catch (error) {
+          console.warn('[ScrollingComments] failed to resolve global chat room id; disabling global comments', error);
+          chatSchemaMissing = true;
+          return;
+        }
+      }
+
       try {
         // Fetch recent comments
         const query = trackId
           ? supabase
               .from('track_comments')
-              .select('id, content, profiles(full_name), created_at')
+              .select('id, comment, user_id, created_at, profiles(display_name)')
               .eq('track_id', trackId)
               .order('created_at', { ascending: false })
               .limit(20)
           : supabase
               .from('chat_messages')
-              .select('id, content, profiles(full_name), created_at')
-              .eq('room_id', roomId)
+              .select('id, message, user_id, created_at, profiles(display_name)')
+              .eq('room_id', effectiveRoomId)
               .order('created_at', { ascending: false })
               .limit(20);
 
@@ -77,8 +101,8 @@ export function ScrollingComments({
         if (data) {
           const formattedComments: Comment[] = data.map((item: any) => ({
             id: item.id,
-            content: item.content,
-            author: item.profiles?.full_name || 'Anonymous',
+            content: item.comment ?? item.message ?? item.content ?? '',
+            author: item.profiles?.display_name || 'Anonymous',
             created_at: item.created_at,
           }));
           setComments(formattedComments.reverse());
@@ -101,22 +125,22 @@ export function ScrollingComments({
             event: 'INSERT',
             schema: 'public',
             table,
-            filter: trackId ? `track_id=eq.${trackId}` : `room_id=eq.${roomId}`,
+            filter: trackId ? `track_id=eq.${trackId}` : `room_id=eq.${effectiveRoomId}`,
           },
           async (payload) => {
             try {
               // Fetch the author name
               const { data: profileData, error } = await supabase
                 .from('profiles')
-                .select('full_name')
+                .select('display_name')
                 .eq('id', payload.new.user_id)
                 .single();
               if (error) throw error;
 
               const newComment: Comment = {
                 id: payload.new.id,
-                content: payload.new.content,
-                author: profileData?.full_name || 'Anonymous',
+                content: payload.new.comment ?? payload.new.message ?? payload.new.content ?? '',
+                author: profileData?.display_name || 'Anonymous',
                 created_at: payload.new.created_at,
               };
 

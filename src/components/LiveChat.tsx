@@ -47,6 +47,7 @@ export function LiveChat({
 }: LiveChatProps) {
   const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
   const { user } = useAuth();
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +72,26 @@ export function LiveChat({
       try {
         // For global room, use default
         if (roomType === 'global') {
-          loadMessages('global');
+          if (roomId !== 'global') {
+            setActiveRoomId(roomId);
+            loadMessages(roomId);
+            return;
+          }
+
+          const { data: globalRoom, error } = await supabase
+            .from('chat_rooms')
+            .select('id')
+            .eq('type', 'global')
+            .limit(1)
+            .maybeSingle();
+
+          if (error) throw error;
+          if (!globalRoom?.id) {
+            throw new Error('Global chat room not found');
+          }
+
+          setActiveRoomId(globalRoom.id);
+          loadMessages(globalRoom.id);
           return;
         }
 
@@ -85,6 +105,7 @@ export function LiveChat({
             .single();
 
           if (existingRoom) {
+            setActiveRoomId(existingRoom.id);
             loadMessages(existingRoom.id);
           } else {
             const { data: newRoom } = await supabase
@@ -98,6 +119,7 @@ export function LiveChat({
               .single();
 
             if (newRoom) {
+              setActiveRoomId(newRoom.id);
               loadMessages(newRoom.id);
             }
           }
@@ -108,7 +130,7 @@ export function LiveChat({
     };
 
     initRoom();
-  }, [user, roomType, trackId]);
+  }, [user, roomId, roomType, trackId]);
 
   // Load messages
   const loadMessages = async (chatRoomId: string) => {
@@ -153,17 +175,17 @@ export function LiveChat({
 
   // Subscribe to new messages
   useEffect(() => {
-    if (!user) return;
+    if (!user || !activeRoomId) return;
 
     const channel = supabase
-      .channel(`chat:${roomId}`)
+      .channel(`chat:${activeRoomId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
+          filter: `room_id=eq.${activeRoomId}`,
         },
         async (payload) => {
           // Fetch user info for the new message
@@ -188,7 +210,7 @@ export function LiveChat({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, roomId]);
+  }, [user, activeRoomId]);
 
   // Subscribe to user presence
   useEffect(() => {
@@ -249,11 +271,11 @@ export function LiveChat({
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim() || !user || !activeRoomId) return;
 
     try {
       const { error } = await supabase.from('chat_messages').insert({
-        room_id: roomId,
+        room_id: activeRoomId,
         user_id: user.id,
         message: newMessage.trim(),
         reply_to: replyingTo?.id || null,

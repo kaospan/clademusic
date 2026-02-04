@@ -17,7 +17,7 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <div className="fixed top-0 left-0 z-[70] p-3 md:p-4">
+    <div className="fixed top-0 left-0 z-[80] p-3 md:p-4">
       <Sheet>
         <SheetTrigger asChild>
           <Button

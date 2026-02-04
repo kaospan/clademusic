@@ -777,7 +777,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         }}
         data-player="universal"
         aria-hidden={isMini}
-        className={`fixed z-[60] ${isMini ? 'pointer-events-none opacity-0' : 'pointer-events-auto'} ${
+        className={`fixed z-[70] ${isMini ? 'pointer-events-none opacity-0' : 'pointer-events-auto'} ${
           isMini
             ? 'top-0 left-1/2 -translate-x-1/2 w-[min(720px,calc(100vw-32px))]'
             : isCompact

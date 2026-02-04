@@ -24,6 +24,33 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+function useHasNonZeroSize<T extends HTMLElement>() {
+  const ref = React.useRef<T | null>(null);
+  const [hasSize, setHasSize] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      setHasSize(rect.width > 0 && rect.height > 0);
+    };
+
+    measure();
+
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => measure());
+    resizeObserver.observe(el);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  return { ref, hasSize };
+}
+
 interface PerformanceSummary {
   total_tests: number;
   passed_tests: number;
@@ -112,6 +139,9 @@ export default function AdminPerformanceDashboard() {
       typeof h.tested_at === 'string' &&
       h.tested_at.trim().length > 0
   );
+
+  const trendsChart = useHasNonZeroSize<HTMLDivElement>();
+  const historyChart = useHasNonZeroSize<HTMLDivElement>();
 
   useEffect(() => {
     loadPerformanceData();
@@ -352,25 +382,27 @@ export default function AdminPerformanceDashboard() {
               <CardContent>
                 {hasTrends ? (
                   <ChartErrorBoundary>
-                    <div className="w-full" role="presentation" aria-hidden>
-                      <ResponsiveContainer width="100%" height={420}>
-                        <BarChart data={safeTrends.slice(0, 15)}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            dataKey="test_name"
-                            angle={-45}
-                            textAnchor="end"
-                            height={100}
-                            interval={0}
-                            tick={{ fontSize: 12 }}
-                          />
-                          <YAxis label={{ value: 'Duration (ms)', angle: -90, position: 'insideLeft' }} />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="avg_duration" fill="#8884d8" name="Avg Duration" />
-                          <Bar dataKey="max_duration" fill="#82ca9d" name="Max Duration" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                    <div ref={trendsChart.ref} className="w-full h-[420px]" role="presentation" aria-hidden>
+                      {trendsChart.hasSize ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={safeTrends.slice(0, 15)}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                              dataKey="test_name"
+                              angle={-45}
+                              textAnchor="end"
+                              height={100}
+                              interval={0}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <YAxis label={{ value: 'Duration (ms)', angle: -90, position: 'insideLeft' }} />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="avg_duration" fill="#8884d8" name="Avg Duration" isAnimationActive={false} />
+                            <Bar dataKey="max_duration" fill="#82ca9d" name="Max Duration" isAnimationActive={false} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : null}
                     </div>
                   </ChartErrorBoundary>
                 ) : (
@@ -429,35 +461,41 @@ export default function AdminPerformanceDashboard() {
                 {safeHistory.length > 0 ? (
                   <ChartErrorBoundary>
                     <>
-                      <ResponsiveContainer width="100%" height={320}>
-                        <LineChart data={safeHistory}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="tested_at"
-                          tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                        />
-                        <YAxis label={{ value: 'Duration (ms)', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip
-                          labelFormatter={(value) => new Date(value).toLocaleString()}
-                          formatter={(value: number) => [`${value}ms`, 'Duration']}
-                        />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="duration_ms"
-                          stroke="#8884d8"
-                          strokeWidth={2}
-                          name="Duration"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="threshold_ms"
-                          stroke="#ff7300"
-                          strokeDasharray="5 5"
-                          name="Threshold"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                      <div ref={historyChart.ref} className="w-full h-[320px]">
+                        {historyChart.hasSize ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={safeHistory}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="tested_at"
+                                tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                              />
+                              <YAxis label={{ value: 'Duration (ms)', angle: -90, position: 'insideLeft' }} />
+                              <Tooltip
+                                labelFormatter={(value) => new Date(value).toLocaleString()}
+                                formatter={(value: number) => [`${value}ms`, 'Duration']}
+                              />
+                              <Legend />
+                              <Line
+                                type="monotone"
+                                dataKey="duration_ms"
+                                stroke="#8884d8"
+                                strokeWidth={2}
+                                name="Duration"
+                                isAnimationActive={false}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="threshold_ms"
+                                stroke="#ff7300"
+                                strokeDasharray="5 5"
+                                name="Threshold"
+                                isAnimationActive={false}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : null}
+                      </div>
 
                     <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                       <div>

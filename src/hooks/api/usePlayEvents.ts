@@ -1,8 +1,7 @@
 /**
  * React hooks for play events tracking
  * 
- * NOTE: These hooks are stubs until the play_events table is created.
- * For MVP, we track plays via user_interactions table instead.
+ * Uses the `play_events` table (see Supabase migrations).
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -31,20 +30,24 @@ interface PlayEventData {
   context?: string;
 }
 
-// Only allow interaction types that the user_interactions check constraint accepts.
-// Known enum (see supabase): like | save | skip | more_harmonic | more_vibe | share
-const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', 'more_vibe', 'share']);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-let interactionsDisabled = false;
-let interactionsWarned = false;
-let interactionsDisabledReason: string | null = null;
+let playEventsDisabled = false;
+let playEventsWarned = false;
+let playEventsDisabledReason: string | null = null;
 
-function disableInteractions(reason: string) {
-  interactionsDisabled = true;
-  interactionsDisabledReason = reason;
-  if (!interactionsWarned) {
-    console.warn('[PlayEvents] disabled user_interactions:', reason);
-    interactionsWarned = true;
+function shouldDisablePlayEvents(error: any): boolean {
+  const code = String(error?.code ?? '');
+  const message = String(error?.message ?? '');
+  return code.startsWith('PGRST') || message.includes('Supabase is not configured') || message.includes('supabaseUrl is required');
+}
+
+function disablePlayEvents(reason: string) {
+  playEventsDisabled = true;
+  playEventsDisabledReason = reason;
+  if (!playEventsWarned) {
+    console.warn('[PlayEvents] disabled play_events inserts:', reason);
+    playEventsWarned = true;
   }
 }
 
@@ -58,7 +61,7 @@ export function useRecordPlayEvent() {
 
   return useMutation({
     mutationFn: async (params: RecordPlayEventParams): Promise<PlayEventData> => {
-      if (interactionsDisabled) {
+      if (playEventsDisabled) {
         return {
           id: crypto.randomUUID(),
           user_id: user?.id,
@@ -70,35 +73,38 @@ export function useRecordPlayEvent() {
         };
       }
 
-      // Record as interaction instead until play_events table exists
-      if (user) {
-        const interaction_type = `play_${params.action}`;
+      // Only write play events for canonical DB tracks (UUID ids). Seed tracks use non-UUID ids.
+      if (!UUID_RE.test(params.track_id)) {
+        return {
+          id: crypto.randomUUID(),
+          user_id: user?.id,
+          track_id: params.track_id,
+          provider: params.provider,
+          action: params.action,
+          played_at: new Date().toISOString(),
+          context: params.context,
+        };
+      }
 
-        // If the enum/check constraint doesn't allow this interaction, skip insert to avoid 400s
-        if (!ALLOWED_INTERACTIONS.has(interaction_type)) {
-          disableInteractions(`unsupported interaction_type ${interaction_type}`);
-          return {
-            id: crypto.randomUUID(),
-            user_id: user.id,
-            track_id: params.track_id,
-            provider: params.provider,
-            action: params.action,
-            played_at: new Date().toISOString(),
-            context: params.context,
-          };
-        }
+      // Insert play event (user_id may be null for anonymous/guest sessions)
+      const { error } = await supabase
+        .from('play_events')
+        .insert({
+          user_id: user?.id ?? null,
+          track_id: params.track_id,
+          provider: params.provider,
+          action: params.action,
+          context: params.context ?? null,
+          device: params.device ?? null,
+          metadata: params.metadata ?? {},
+        } as any);
 
-        const { error } = await supabase
-          .from('user_interactions')
-          .insert({
-            user_id: user.id,
-            track_id: params.track_id,
-            interaction_type,
-          });
-        
-        if (error) {
-          const reason = error.message || error.code || 'unknown';
-          disableInteractions(`insert failed (${reason})`);
+      if (error) {
+        const reason = error.message || error.code || 'unknown';
+        if (shouldDisablePlayEvents(error)) {
+          disablePlayEvents(`insert failed (${reason})`);
+        } else {
+          console.warn('[PlayEvents] insert failed:', reason);
         }
       }
 
@@ -115,7 +121,7 @@ export function useRecordPlayEvent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['play-history'] });
-      queryClient.invalidateQueries({ queryKey: ['user-interactions'] });
+      queryClient.invalidateQueries({ queryKey: ['play-stats'] });
     },
   });
 }
@@ -142,17 +148,18 @@ export function usePlayHistory(params: PlayHistoryParams = {}) {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('user_interactions')
+        .from('play_events')
         .select(`
           id,
           user_id,
           track_id,
-          interaction_type,
-          created_at
+          provider,
+          action,
+          played_at,
+          context
         `)
         .eq('user_id', user.id)
-        .like('interaction_type', 'play_%')
-        .order('created_at', { ascending: false })
+        .order('played_at', { ascending: false })
         .limit(limit);
 
       if (error) {
@@ -160,14 +167,14 @@ export function usePlayHistory(params: PlayHistoryParams = {}) {
         return [];
       }
 
-      // Map interactions to play event shape
       return (data || []).map(row => ({
         id: row.id,
         user_id: row.user_id,
         track_id: row.track_id,
-        provider: 'spotify' as const,
-        action: row.interaction_type.replace('play_', ''),
-        played_at: row.created_at,
+        provider: row.provider,
+        action: row.action,
+        played_at: row.played_at,
+        context: row.context ?? undefined,
       }));
     },
     enabled: !!user,
@@ -186,10 +193,9 @@ export function usePlayStats() {
       if (!user) return null;
 
       const { count } = await supabase
-        .from('user_interactions')
+        .from('play_events')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .like('interaction_type', 'play_%');
+        .eq('user_id', user.id);
 
       return {
         totalPlays: count || 0,

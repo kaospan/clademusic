@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal Player</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: transparent;
+      }
+      #root {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #provider {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: transparent;
+      }
+      #placeholder {
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+        padding: 12px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" aria-label="Universal player frame">
+      <div id="placeholder">Select a provider to start playback.</div>
+    </div>
+
+    <script>
+      (() => {
+        const root = document.getElementById('root');
+        const placeholder = document.getElementById('placeholder');
+        let providerFrame = null;
+        let current = { provider: null, id: null, src: null, requestId: 0 };
+
+        const ensureProviderFrame = () => {
+          if (providerFrame) return providerFrame;
+          providerFrame = document.createElement('iframe');
+          providerFrame.id = 'provider';
+          providerFrame.title = 'Provider player';
+          providerFrame.allow =
+            'autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write';
+          providerFrame.setAttribute('referrerpolicy', 'origin-when-cross-origin');
+          providerFrame.setAttribute('loading', 'eager');
+          providerFrame.setAttribute('tabindex', '0');
+          providerFrame.src = 'about:blank';
+          root.appendChild(providerFrame);
+          if (placeholder) placeholder.remove();
+          return providerFrame;
+        };
+
+        const swapSrc = (next) => {
+          const frame = ensureProviderFrame();
+          // Hard-stop previous provider by unloading.
+          frame.src = 'about:blank';
+          requestAnimationFrame(() => {
+            frame.src = next.src;
+          });
+        };
+
+        window.addEventListener('message', (event) => {
+          // Only accept messages from the embedding page (parent).
+          if (!event || event.source !== window.parent) return;
+          const data = event && event.data;
+          if (!data || typeof data !== 'object') return;
+          if (data.type !== 'universal-player:play') return;
+
+          const next = data.payload;
+          if (!next || typeof next !== 'object') return;
+
+          const provider = next.provider;
+          const id = next.id;
+          const src = next.src;
+          const requestId = typeof next.requestId === 'number' ? next.requestId : 0;
+
+          if (!provider || !id || !src) return;
+          // Ignore out-of-order (debounced) updates.
+          if (requestId < current.requestId) return;
+
+          if (provider === current.provider && id === current.id && src === current.src) {
+            current.requestId = requestId;
+            return;
+          }
+
+          current = { provider, id, src, requestId };
+          swapSrc(current);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -17,21 +17,24 @@ interface RecordPlayEventParams {
   metadata?: Record<string, unknown>;
 }
 
-// Only allow interaction types that the user_interactions check constraint accepts.
-// Known enum (see types/index.ts): like | save | skip | more_harmonic | more_vibe | share
-// Play events are tracked elsewhere; avoid writing incompatible play_* rows that 400.
-const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', 'more_vibe', 'share']);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-let interactionsDisabled = false;
-let interactionsDisabledReason: string | null = null;
-let interactionsWarned = false;
+let playEventsDisabled = false;
+let playEventsDisabledReason: string | null = null;
+let playEventsWarned = false;
 
-function disableInteractions(reason: string) {
-  interactionsDisabled = true;
-  interactionsDisabledReason = reason;
-  if (!interactionsWarned) {
-    console.warn('[PlayEvents] disabled user_interactions:', reason);
-    interactionsWarned = true;
+function shouldDisablePlayEvents(error: any): boolean {
+  const code = String(error?.code ?? '');
+  const message = String(error?.message ?? '');
+  return code.startsWith('PGRST') || message.includes('Supabase is not configured') || message.includes('supabaseUrl is required');
+}
+
+function disablePlayEvents(reason: string) {
+  playEventsDisabled = true;
+  playEventsDisabledReason = reason;
+  if (!playEventsWarned) {
+    console.warn('[PlayEvents] disabled play_events inserts:', reason);
+    playEventsWarned = true;
   }
 }
 
@@ -39,32 +42,34 @@ function disableInteractions(reason: string) {
  * Record a play event (non-hook version for use outside React components)
  */
 export async function recordPlayEvent(params: RecordPlayEventParams): Promise<void> {
-  if (interactionsDisabled) return;
+  if (playEventsDisabled) return;
+
+  // Only write play events for canonical DB tracks (UUID ids). Seed tracks use non-UUID ids.
+  if (!UUID_RE.test(params.track_id)) return;
 
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      // If the table enforces a strict interaction_type enum, skip incompatible play_* values to avoid 400s
-      const interaction_type = `play_${params.action}`;
-      if (!ALLOWED_INTERACTIONS.has(interaction_type)) {
-        disableInteractions(`unsupported interaction_type ${interaction_type}`);
-        return;
-      }
 
-      const { error } = await supabase.from('user_interactions').insert({
-        user_id: user.id,
-        track_id: params.track_id,
-        interaction_type,
-      });
+    const { error } = await supabase.from('play_events').insert({
+      user_id: user?.id ?? null,
+      track_id: params.track_id,
+      provider: params.provider,
+      action: params.action,
+      context: params.context ?? null,
+      device: params.device ?? null,
+      metadata: params.metadata ?? {},
+    } as any);
 
-      if (error) {
-        // Common causes: missing track row (FK), RLS, or anon session
-        const reason = error.message || error.code || 'unknown';
-        disableInteractions(`insert failed (${reason})`);
+    if (error) {
+      const reason = error.message || error.code || 'unknown';
+      if (shouldDisablePlayEvents(error)) {
+        disablePlayEvents(`insert failed (${reason})`);
+      } else {
+        console.warn('[PlayEvents] insert failed:', reason);
       }
     }
   } catch (error) {
-    disableInteractions(error?.message ? `exception: ${error.message}` : 'exception during insert');
+    const reason = error instanceof Error ? error.message : 'exception during insert';
+    disablePlayEvents(`exception: ${reason}`);
   }
 }

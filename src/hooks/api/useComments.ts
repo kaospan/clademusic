@@ -15,6 +15,26 @@ export interface Comment {
   user_avatar_url?: string;
 }
 
+function normalizeTrackComment(row: any): Comment {
+  return {
+    id: row.id,
+    track_id: row.track_id,
+    user_id: row.user_id,
+    content: row.content ?? row.comment ?? '',
+    parent_id: row.parent_id ?? row.reply_to ?? null,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    user_display_name: row.user_display_name ?? 'Anonymous',
+    user_avatar_url: row.user_avatar_url ?? undefined,
+  };
+}
+
+function isSchemaCacheError(error: any): boolean {
+  const code = String(error?.code ?? '');
+  const message = String(error?.message ?? '').toLowerCase();
+  return code.startsWith('PGRST') || message.includes('schema cache') || message.includes('could not find');
+}
+
 export function useTrackComments(trackId: string) {
   return useQuery({
     queryKey: ['track-comments', trackId],
@@ -31,11 +51,7 @@ export function useTrackComments(trackId: string) {
           return [];
         }
 
-        return (data || []).map((comment: any) => ({
-          ...comment,
-          user_display_name: 'Anonymous',
-          user_avatar_url: undefined,
-        })) as Comment[];
+        return (data || []).map(normalizeTrackComment);
       } catch (error) {
         console.error('Failed to load track comments:', error);
         return [];
@@ -62,16 +78,34 @@ export function useAddComment() {
       try {
         if (!user) throw new Error('Must be logged in to comment');
 
-        const { data, error } = await supabase
-          .from('track_comments')
-          .insert({
-            track_id: trackId,
-            user_id: user.id,
-            content,
-            parent_id: parentId || null,
-          })
-          .select()
-          .single();
+        const tryNewSchema = async () =>
+          await supabase
+            .from('track_comments')
+            .insert({
+              track_id: trackId,
+              user_id: user.id,
+              comment: content,
+              reply_to: parentId || null,
+            } as any)
+            .select()
+            .single();
+
+        const tryLegacySchema = async () =>
+          await supabase
+            .from('track_comments')
+            .insert({
+              track_id: trackId,
+              user_id: user.id,
+              content,
+              parent_id: parentId || null,
+            } as any)
+            .select()
+            .single();
+
+        let { data, error } = await tryNewSchema();
+        if (error && isSchemaCacheError(error)) {
+          ({ data, error } = await tryLegacySchema());
+        }
 
         if (error) throw error;
         return data;
