@@ -1,4 +1,4 @@
-ָßimport { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { ErrorBoundary } from "@/components/shared";
 
 describe("ErrorBoundary", () => {
@@ -6,7 +6,7 @@ describe("ErrorBoundary", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const Boom = () => {s
+    const Boom = () => {
       throw new Error("boom");
     };
 
@@ -51,4 +51,3 @@ describe("ErrorBoundary", () => {
     errorSpy.mockRestore();
   });
 });
-
