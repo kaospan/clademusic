@@ -33,6 +33,8 @@ interface SpotifySearchResult {
   };
 }
 
+type SpotifyTrackItem = SpotifySearchResult['tracks']['items'][number];
+
 /**
  * Search Spotify for any song
  */
@@ -46,7 +48,7 @@ export async function searchSpotify(
   
   if (!accessToken) {
     console.warn('No Spotify access token available - user may need to reconnect');
-    return [];
+    return { tracks: [], total: 0 };
   }
 
   try {
@@ -74,7 +76,7 @@ export async function searchSpotify(
       } else {
         console.error('Spotify search failed:', response.status, await response.text());
       }
-      return [];
+      return { tracks: [], total: 0 };
     }
 
     const data: SpotifySearchResult = await response.json();
@@ -134,13 +136,13 @@ export async function getSpotifyTrack(
       return null;
     }
 
-    const track = await response.json();
+    const track = (await response.json()) as SpotifyTrackItem;
 
     return {
       id: `spotify:${track.id}`,
       title: track.name,
-      artist: track.artists.map((a: any) => a.name).join(', '),
-      artists: track.artists.map((a: any) => a.name),
+      artist: track.artists.map((a) => a.name).join(', '),
+      artists: track.artists.map((a) => a.name),
       album: track.album.name,
       cover_url: track.album.images[0]?.url,
       artwork_url: track.album.images[0]?.url,

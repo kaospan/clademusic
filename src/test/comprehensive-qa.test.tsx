@@ -189,9 +189,10 @@ describe('Mobile Player QA', () => {
 
     it('should have proper z-index hierarchy', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
-      const player = container.querySelector('.z-\\[70\\]');
+      const player = container.querySelector('[data-player="universal"]');
       
       expect(player).toBeInTheDocument();
+      expect(player).toHaveClass('z-[110]');
     });
 
     it('should be compact on mobile', () => {

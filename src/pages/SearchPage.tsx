@@ -10,15 +10,16 @@ import { Track } from '@/types';
 import { Search, Music, TrendingUp, ArrowRight, Play, ExternalLink, Loader2, Clock, X, Filter, Zap, Heart, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { navigateToTrack } from '@/lib/navigation';
-import { openProviderLink, getProviderLinks } from '@/lib/providers';
 import { useAuth } from '@/hooks/useAuth';
 import { searchSpotify } from '@/services/spotifySearchService';
 import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
+import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
 import { ResponsiveContainer, ResponsiveGrid } from '@/components/layout/ResponsiveLayout';
 import { QuickStreamButtons } from '@/components/QuickStreamButtons';
 import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
+import { usePlayer } from '@/player/PlayerContext';
 import { 
   getSearchHistory, 
   addToSearchHistory, 
@@ -30,6 +31,8 @@ export default function SearchPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: isSpotifyConnected } = useSpotifyConnected();
+  const connectSpotify = useConnectSpotify();
+  const { openPlayer } = usePlayer();
   const [query, setQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'song' | 'chord'>('song');
   const [spotifyResults, setSpotifyResults] = useState<Track[]>([]);
@@ -218,6 +221,39 @@ export default function SearchPage() {
     return filtered;
   }, [query, searchMode, selectedGenres, energyFilter, moodFilter]);
 
+  const normalizeSpotifyTrackId = (raw?: string | null) => {
+    if (!raw) return null;
+    if (raw.startsWith('spotify:track:')) return raw.split(':').pop() || null;
+    if (raw.startsWith('spotify:')) return raw.split(':').pop() || null;
+    const match = raw.match(/track\/([A-Za-z0-9]+)/);
+    if (match?.[1]) return match[1];
+    if (raw.includes('?')) return raw.split('?')[0].split('/').pop() || null;
+    return raw;
+  };
+
+  const normalizeYouTubeVideoId = (raw?: string | null) => {
+    if (!raw) return null;
+    const direct = raw.trim();
+    if (direct.startsWith('youtube:')) {
+      const candidate = direct.split(':').pop() || '';
+      if (/^[A-Za-z0-9_-]{11}$/.test(candidate)) return candidate;
+    }
+    if (/^[A-Za-z0-9_-]{11}$/.test(direct)) return direct;
+    const shortMatch = direct.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+    if (shortMatch?.[1]) return shortMatch[1];
+    const paramMatch = direct.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+    if (paramMatch?.[1]) return paramMatch[1];
+    return null;
+  };
+
+  const handleOpenDetails = (track: Track, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const trackId = track.id || track.spotify_id || track.external_id;
+    if (trackId) {
+      navigateToTrack(navigate, trackId);
+    }
+  };
+
   const handlePlayOnProvider = (track: Track) => {
     // Add to search history
     if (query.trim()) {
@@ -229,7 +265,105 @@ export default function SearchPage() {
       setSearchHistory(getSearchHistory());
     }
     
-    // Navigate to track detail page with proper ID encoding
+    const spotifyTrackId = normalizeSpotifyTrackId(
+      track.spotify_id ||
+        (track.id?.startsWith('spotify:') ? track.id : null) ||
+        track.url_spotify_web ||
+        track.url_spotify_app ||
+        null
+    );
+    const youtubeVideoId = normalizeYouTubeVideoId(
+      track.youtube_id ||
+        (track.id?.startsWith('youtube:') ? track.id : null) ||
+        track.url_youtube ||
+        null
+    );
+
+    if (track.provider === 'youtube' && youtubeVideoId) {
+      openPlayer({
+        canonicalTrackId: track.id,
+        provider: 'youtube',
+        providerTrackId: youtubeVideoId,
+        autoplay: true,
+        context: 'search-result',
+        title: track.title,
+        artist: track.artist,
+      });
+      return;
+    }
+
+    if (track.provider === 'spotify' && spotifyTrackId) {
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+      if (isSpotifyConnected !== true) {
+        void connectSpotify.mutateAsync();
+        return;
+      }
+
+      openPlayer({
+        canonicalTrackId: track.id,
+        provider: 'spotify',
+        providerTrackId: spotifyTrackId,
+        autoplay: true,
+        context: 'search-result',
+        title: track.title,
+        artist: track.artist,
+      });
+      return;
+    }
+
+    // Generic fallback: prefer Spotify if connected, otherwise YouTube if available.
+    if (spotifyTrackId && user && isSpotifyConnected === true) {
+      openPlayer({
+        canonicalTrackId: track.id,
+        provider: 'spotify',
+        providerTrackId: spotifyTrackId,
+        autoplay: true,
+        context: 'search-result',
+        title: track.title,
+        artist: track.artist,
+      });
+      return;
+    }
+
+    if (youtubeVideoId) {
+      openPlayer({
+        canonicalTrackId: track.id,
+        provider: 'youtube',
+        providerTrackId: youtubeVideoId,
+        autoplay: true,
+        context: 'search-result',
+        title: track.title,
+        artist: track.artist,
+      });
+      return;
+    }
+
+    if (spotifyTrackId) {
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+      if (isSpotifyConnected !== true) {
+        void connectSpotify.mutateAsync();
+        return;
+      }
+
+      openPlayer({
+        canonicalTrackId: track.id,
+        provider: 'spotify',
+        providerTrackId: spotifyTrackId,
+        autoplay: true,
+        context: 'search-result',
+        title: track.title,
+        artist: track.artist,
+      });
+      return;
+    }
+
+    // Fallback to track detail page with proper ID encoding
     const trackId = track.id || track.spotify_id || track.external_id;
     if (trackId) {
       navigateToTrack(navigate, trackId);
@@ -244,7 +378,7 @@ export default function SearchPage() {
 
   const handleHistoryClick = (item: SearchHistoryItem) => {
     if (item.track) {
-      navigateToTrack(navigate, item.track.id);
+      handlePlayOnProvider(item.track);
     } else {
       setQuery(item.query);
       setSearchMode(item.type);
@@ -385,7 +519,7 @@ export default function SearchPage() {
                           key={option.value}
                           variant={energyFilter === option.value ? 'default' : 'outline'}
                           className="cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => setEnergyFilter(option.value as any)}
+                          onClick={() => setEnergyFilter(option.value as typeof energyFilter)}
                         >
                           {option.label}
                         </Badge>
@@ -410,7 +544,7 @@ export default function SearchPage() {
                           key={option.value}
                           variant={moodFilter === option.value ? 'default' : 'outline'}
                           className="cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => setMoodFilter(option.value as any)}
+                          onClick={() => setMoodFilter(option.value as typeof moodFilter)}
                         >
                           {typeof option.icon === 'string' ? option.icon : ''} {option.label}
                         </Badge>
@@ -517,7 +651,7 @@ export default function SearchPage() {
         )}
 
         {/* No results message */}
-        {query && spotifyResults.length === 0 && results.length === 0 && !isSearching && (
+        {query && spotifyResults.length === 0 && youtubeResults.length === 0 && results.length === 0 && !isSearching && (
           <section>
             <div className="glass rounded-2xl p-8 text-center space-y-4">
               <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto">
@@ -576,14 +710,17 @@ export default function SearchPage() {
         )}
 
         {/* Search results */}
-        {(spotifyResults.length > 0 || results.length > 0) && (
+        {(spotifyResults.length > 0 || youtubeResults.length > 0 || results.length > 0) && (
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2 flex-wrap">
-                Results ({spotifyResults.length + results.length})
+                Results ({spotifyResults.length + youtubeResults.length + results.length})
                 {isSearching && <Loader2 className="w-3 h-3 animate-spin" />}
                 {spotifyResults.length > 0 && (
                   <span className="text-[#1DB954] text-xs">via Spotify</span>
+                )}
+                {youtubeResults.length > 0 && (
+                  <span className="text-xs text-red-500">via YouTube</span>
                 )}
                 {results.length > 0 && (
                   <span className="text-xs text-purple-500">via Local DB</span>
@@ -670,12 +807,22 @@ export default function SearchPage() {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-full"
+                        onClick={(e) => handleOpenDetails(track, e)}
+                        title="Details"
+                        aria-label={`Open details for ${track.title}`}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </Button>
                       <QuickStreamButtons
                         track={{
                           spotifyId: track.spotify_id ?? track.id,
                           youtubeId: track.youtube_id,
-                          urlSpotifyWeb: track.external_url,
+                          urlSpotifyWeb: track.url_spotify_web,
                         }}
                         canonicalTrackId={track.id}
                         trackTitle={track.title}
@@ -723,7 +870,17 @@ export default function SearchPage() {
                         {track.artist}
                       </p>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-full"
+                        onClick={(e) => handleOpenDetails(track, e)}
+                        title="Details"
+                        aria-label={`Open details for ${track.title}`}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </Button>
                       <QuickStreamButtons
                         track={{
                           youtubeId: track.youtube_id,
@@ -747,7 +904,8 @@ export default function SearchPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="p-4 glass rounded-xl"
+                  className="p-4 glass rounded-xl cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handlePlayOnProvider(track)}
                 >
                   <div className="flex gap-4">
                     {track.cover_url && (
@@ -773,9 +931,19 @@ export default function SearchPage() {
                             />
                           ))}
                         </div>
-                      )}
+                        )}
                     </div>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-full"
+                        onClick={(e) => handleOpenDetails(track, e)}
+                        title="Details"
+                        aria-label={`Open details for ${track.title}`}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </Button>
                         <QuickStreamButtons
                           track={{
                             spotifyId: track.spotify_id,
@@ -797,16 +965,6 @@ export default function SearchPage() {
           </section>
         )}
 
-        {/* No results */}
-        {query && spotifyResults.length === 0 && results.length === 0 && !isSearching && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No results found for "{query}"</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {!isSpotifyConnected && user ? 'Connect Spotify for full catalog access' : 'Try a different search term'}
-            </p>
-          </div>
-        )}
-
         {/* Trending section when no query */}
         {!query && searchMode === 'song' && (
           <section>
@@ -820,7 +978,8 @@ export default function SearchPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="p-4 glass rounded-xl"
+                  className="p-4 glass rounded-xl cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handlePlayOnProvider(track)}
                 >
                   <div className="flex gap-4">
                     <div className="flex items-center justify-center w-8 text-lg font-bold text-muted-foreground">
@@ -839,18 +998,30 @@ export default function SearchPage() {
                         {track.artist}
                       </p>
                     </div>
-                    <QuickStreamButtons
-                      track={{
-                        spotifyId: track.spotify_id,
-                        youtubeId: track.youtube_id,
-                        urlYoutube: track.url_youtube,
-                        urlSpotifyWeb: track.url_spotify_web,
-                      }}
-                      canonicalTrackId={track.id}
-                      trackTitle={track.title}
-                      trackArtist={track.artist}
-                      size="sm"
-                    />
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={(e) => handleOpenDetails(track, e)}
+                        title="Details"
+                        aria-label={`Open details for ${track.title}`}
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                      <QuickStreamButtons
+                        track={{
+                          spotifyId: track.spotify_id,
+                          youtubeId: track.youtube_id,
+                          urlYoutube: track.url_youtube,
+                          urlSpotifyWeb: track.url_spotify_web,
+                        }}
+                        canonicalTrackId={track.id}
+                        trackTitle={track.title}
+                        trackArtist={track.artist}
+                        size="sm"
+                      />
+                    </div>
                   </div>
                 </motion.div>
               ))}

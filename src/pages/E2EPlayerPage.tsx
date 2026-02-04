@@ -3,7 +3,7 @@ import { usePlayer } from '@/player/PlayerContext';
 export default function E2EPlayerPage() {
   const { openPlayer } = usePlayer();
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-6" data-e2e-player>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-6" data-e2e-player="true">
       <h1 className="text-2xl font-semibold">E2E Player Harness</h1>
       <div className="h-6 w-24 rounded bg-muted/60" data-feed />
       <div className="rounded-xl border border-border/60 bg-muted/40 p-6">

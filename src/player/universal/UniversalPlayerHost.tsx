@@ -21,8 +21,8 @@ export function UniversalPlayerHost(props: { request: UniversalPlayerRequest | n
   const pendingPayloadRef = useRef<unknown | null>(null);
 
   const hostSrc = useMemo(() => {
-    const base = (import.meta as any).env?.BASE_URL ?? '/';
-    return `${base}${String(base).endsWith('/') ? '' : '/'}universal-player.html`;
+    const base = import.meta.env.BASE_URL ?? '/';
+    return `${base}${base.endsWith('/') ? '' : '/'}universal-player.html`;
   }, []);
 
   const deepLink = useMemo(() => {
@@ -86,8 +86,8 @@ export function UniversalPlayerHost(props: { request: UniversalPlayerRequest | n
             src={hostSrc}
             className="w-full h-full"
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            // Avoid allow-same-origin to keep the sandbox meaningful.
-            sandbox="allow-scripts allow-forms allow-popups allow-presentation"
+            // YouTube embeds break under an opaque origin ("null"), so we allow same-origin.
+            sandbox="allow-scripts allow-forms allow-popups allow-presentation allow-same-origin"
             onLoad={() => {
               const payload = pendingPayloadRef.current;
               if (!payload) return;
