@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PlayerProvider } from "@/player/PlayerContext";
-import { YouTubePlayerProvider } from "@/contexts/YouTubePlayerContext";
 import { EmbeddedPlayerDrawer } from "@/player/EmbeddedPlayerDrawer";
 import { ErrorBoundary, GlobalErrorHandlers, LoadingSpinner } from "@/components/shared";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -93,8 +92,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <YouTubePlayerProvider>
-          <PlayerProvider>
+        <PlayerProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -141,7 +139,6 @@ const App = () => (
                 <PlayerVisibilityGate />
               </BrowserRouter>
         </PlayerProvider>
-      </YouTubePlayerProvider>
     </AuthProvider>
   </TooltipProvider>
 </QueryClientProvider>
