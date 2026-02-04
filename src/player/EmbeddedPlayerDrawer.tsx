@@ -4,7 +4,7 @@ import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
 import { SpotifyWebPlayer } from './providers/SpotifyWebPlayer';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw, Repeat } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw, Repeat, Sparkles, ArrowLeftRight } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
 import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
@@ -13,6 +13,9 @@ import { useTrackSections } from '@/hooks/api/useTrackSections';
 import { getSectionDisplayLabel } from '@/lib/sections';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useTrack } from '@/hooks/api/useTracks';
+import { useHarmonicFingerprint } from '@/hooks/api/useHarmonicFingerprint';
+import { ChordBadge } from '@/components/ChordBadge';
 
 const providerMeta = {
   spotify: { label: 'Spotify', badge: '🎧', color: 'bg-black/90', Icon: SpotifyIcon },
@@ -22,6 +25,45 @@ const providerMeta = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (value: string | null | undefined) => Boolean(value && UUID_RE.test(value));
+
+const getCadenceLabel = (cadence: string | null | undefined) => {
+  if (!cadence) return null;
+  if (cadence === 'none') return null;
+  return cadence.replace(/_/g, ' ');
+};
+
+const describeSectionWhy = (params: {
+  sectionLabel: string;
+  cadenceType?: string | null;
+  isLooping?: boolean;
+}) => {
+  const { sectionLabel, cadenceType, isLooping } = params;
+  const base: Record<string, string> = {
+    intro: 'Sets the tonal center and groove.',
+    verse: 'Builds tension and sets up the hook.',
+    'pre-chorus': 'Ramps into the release.',
+    chorus: 'Main hook — usually the most stable resolution.',
+    bridge: 'Contrast section — often shifts harmonic color.',
+    breakdown: 'Pulls back texture to build anticipation.',
+    drop: 'Peak energy release.',
+    outro: 'Closure and release.',
+  };
+
+  const cadence: Record<string, string> = {
+    authentic: 'Strong resolution (authentic cadence).',
+    plagal: 'Warm resolution (plagal cadence).',
+    deceptive: 'Fake-out resolution (deceptive cadence).',
+    half: 'Unresolved — hangs on dominant (half cadence).',
+    loop: 'Circular loop — no final cadence.',
+    modal: 'Modal harmony — color over functional resolution.',
+  };
+
+  const parts: string[] = [];
+  if (isLooping) parts.push('Looping enabled.');
+  parts.push(base[sectionLabel] ?? 'Section context.');
+  if (cadenceType && cadence[cadenceType]) parts.push(cadence[cadenceType]);
+  return parts.join(' ');
+};
 
 type EmbeddedPlayerDrawerProps = {
   onNext?: () => void;
@@ -162,13 +204,45 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const { data: isSpotifyConnected } = useSpotifyConnected();
   const connectSpotify = useConnectSpotify();
 
-  const sectionsTrackId = !isTestEnv && isUuid(canonicalTrackId) ? canonicalTrackId : undefined;
-  const sectionsQuery = useTrackSections(sectionsTrackId);
+  const analysisTrackId = !isTestEnv && isUuid(canonicalTrackId) ? canonicalTrackId : undefined;
+  const sectionsQuery = useTrackSections(analysisTrackId);
   const sections = useMemo(() => {
     const raw = sectionsQuery.data;
     if (!Array.isArray(raw)) return [];
     return [...raw].sort((a, b) => a.start_ms - b.start_ms);
   }, [sectionsQuery.data]);
+
+  const trackQuery = useTrack(analysisTrackId, !!analysisTrackId);
+  const fingerprintQuery = useHarmonicFingerprint(analysisTrackId);
+  const harmony = useMemo(() => {
+    const track = trackQuery.data ?? null;
+    const fingerprint = fingerprintQuery.data ?? null;
+
+    const detectedKey = (fingerprint as any)?.detected_key ?? (track as any)?.detected_key ?? null;
+    const detectedMode = (fingerprint as any)?.detected_mode ?? (track as any)?.detected_mode ?? null;
+    const cadenceType = (fingerprint as any)?.cadence_type ?? (track as any)?.cadence_type ?? null;
+    const confidenceScore =
+      typeof (fingerprint as any)?.confidence_score === 'number'
+        ? (fingerprint as any).confidence_score
+        : typeof (track as any)?.confidence_score === 'number'
+          ? (track as any).confidence_score
+          : null;
+
+    const fromTrack: string[] = Array.isArray((track as any)?.progression_roman) ? (track as any).progression_roman : [];
+    const fromFingerprint: string[] = Array.isArray((fingerprint as any)?.roman_progression)
+      ? (fingerprint as any).roman_progression.map((c: any) => c?.numeral).filter(Boolean)
+      : [];
+
+    const progression = fromTrack.length ? fromTrack : fromFingerprint;
+
+    return {
+      detectedKey,
+      detectedMode,
+      cadenceType,
+      confidenceScore,
+      progression,
+    };
+  }, [fingerprintQuery.data, trackQuery.data]);
 
   const safeQueue = Array.isArray(queue) ? queue : [];
   const safeQueueIndex = typeof queueIndex === 'number' ? queueIndex : -1;
@@ -297,6 +371,15 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     const fallback = { label: 'Now Playing', badge: '♪', color: 'bg-neutral-900/90', Icon: null as React.ComponentType<{ className?: string }> | null };
     return provider ? providerMeta[provider as keyof typeof providerMeta] ?? fallback : fallback;
   }, [provider]);
+
+  const sectionWhy = useMemo(() => {
+    if (!activeSection) return null;
+    return describeSectionWhy({
+      sectionLabel: activeSection.label,
+      cadenceType: harmony.cadenceType,
+      isLooping: loopSectionId === activeSection.id,
+    });
+  }, [activeSection, harmony.cadenceType, loopSectionId]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
