@@ -51,7 +51,7 @@ export function ScrollingComments({
               .limit(20)
           : supabase
               .from('chat_messages')
-              .select('id, content, profiles(full_name), created_at')
+              .select('id, message, profiles(full_name), created_at')
               .eq('room_id', roomId)
               .order('created_at', { ascending: false })
               .limit(20);
@@ -71,7 +71,7 @@ export function ScrollingComments({
         if (data) {
           const formattedComments: Comment[] = data.map((item: any) => ({
             id: item.id,
-            content: item.content,
+            content: item.content ?? item.message ?? '',
             author: item.profiles?.full_name || 'Anonymous',
             created_at: item.created_at,
           }));
@@ -109,7 +109,7 @@ export function ScrollingComments({
 
               const newComment: Comment = {
                 id: payload.new.id,
-                content: payload.new.content,
+                content: payload.new.content ?? payload.new.message ?? '',
                 author: profileData?.full_name || 'Anonymous',
                 created_at: payload.new.created_at,
               };

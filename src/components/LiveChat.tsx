@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Users, X, Smile, Reply } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
+import { useLocalBotChat } from '@/chat/useLocalBotChat';
 
 interface ChatMessage {
   id: string;
@@ -48,6 +49,7 @@ export function LiveChat({
   const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
   const disabled = chatDisabled || chatSchemaMissing;
   const { user } = useAuth();
+  const demoEnabled = disabled || !user;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -56,8 +58,20 @@ export function LiveChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const demoRoomKey = useMemo(() => {
+    if (roomType === 'track' && trackId) return `track:${trackId}`;
+    return `room:${roomId}`;
+  }, [roomId, roomType, trackId]);
+
+  const demo = useLocalBotChat({
+    enabled: demoEnabled,
+    roomKey: demoRoomKey,
+    localDisplayName: (user as any)?.user_metadata?.full_name || (user as any)?.email || 'You',
+  });
+
   // Get or create room
   useEffect(() => {
+    if (demoEnabled) return;
     if (disabled) return;
     if (!user) return;
 
@@ -147,6 +161,7 @@ export function LiveChat({
 
   // Subscribe to new messages
   useEffect(() => {
+    if (demoEnabled) return;
     if (disabled) return;
     if (!user) return;
 
@@ -187,6 +202,7 @@ export function LiveChat({
 
   // Subscribe to user presence
   useEffect(() => {
+    if (demoEnabled) return;
     if (disabled) return;
     if (!user) return;
 
@@ -217,6 +233,7 @@ export function LiveChat({
 
   // Update presence on mount/unmount
   useEffect(() => {
+    if (demoEnabled) return;
     if (disabled) return;
     if (!user) return;
 
@@ -246,7 +263,17 @@ export function LiveChat({
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim()) return;
+
+    if (demoEnabled) {
+      demo.sendLocalMessage(newMessage, replyingTo?.id || null);
+      setNewMessage('');
+      setReplyingTo(null);
+      inputRef.current?.focus();
+      return;
+    }
+
+    if (!user) return;
 
     try {
       const { error } = await supabase.from('chat_messages').insert({
@@ -266,18 +293,8 @@ export function LiveChat({
     }
   };
 
-  if (disabled) return null;
-
-  if (!user) {
-    return (
-      <div className={`glass rounded-xl p-6 text-center ${className}`}>
-        <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">
-          Sign in to chat with other music lovers
-        </p>
-      </div>
-    );
-  }
+  const activeUserId = demoEnabled ? demo.localUserId : user?.id;
+  const effectiveMessages = (demoEnabled ? (demo.messages as any) : messages) as ChatMessage[];
 
   return (
     <div className={`flex flex-col glass rounded-xl overflow-hidden ${className}`}>
@@ -288,36 +305,41 @@ export function LiveChat({
           <h3 className="font-semibold">
             {roomType === 'global' ? 'Global Chat' : 'Track Chat'}
           </h3>
+          {demoEnabled && (
+            <Badge variant="secondary" className="text-xs">
+              Demo
+            </Badge>
+          )}
           <Badge variant="secondary" className="text-xs">
-            {onlineUsers.length} online
+            {(demoEnabled ? demo.onlineUsers.length : onlineUsers.length)} online
           </Badge>
         </div>
       </div>
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4 h-[400px]">
-        {isLoading ? (
+        {!demoEnabled && isLoading ? (
           <div className="text-center py-8">
             <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : messages.length === 0 ? (
+        ) : effectiveMessages.length === 0 ? (
           <div className="text-center py-8">
             <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
             <p className="text-sm text-muted-foreground">
-              No messages yet. Start the conversation!
+              {demoEnabled ? 'Demo chat is warming up…' : 'No messages yet. Start the conversation!'}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {messages.map((msg) => (
+              {effectiveMessages.map((msg) => (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className={`flex gap-3 ${
-                    msg.user_id === user.id ? 'flex-row-reverse' : ''
+                    activeUserId && msg.user_id === activeUserId ? 'flex-row-reverse' : ''
                   }`}
                 >
                   <Avatar className="w-8 h-8 flex-shrink-0">
@@ -332,7 +354,7 @@ export function LiveChat({
 
                   <div
                     className={`flex-1 min-w-0 ${
-                      msg.user_id === user.id ? 'text-right' : ''
+                      activeUserId && msg.user_id === activeUserId ? 'text-right' : ''
                     }`}
                   >
                     <div className="flex items-baseline gap-2 mb-1">
@@ -363,7 +385,7 @@ export function LiveChat({
                       <p className="text-sm">{msg.message}</p>
                     </div>
 
-                    {msg.user_id !== user.id && (
+                    {activeUserId && msg.user_id !== activeUserId && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -405,7 +427,7 @@ export function LiveChat({
         <form onSubmit={sendMessage} className="flex gap-2">
           <Input
             ref={inputRef}
-            placeholder="Type a message..."
+            placeholder={demoEnabled ? 'Type a message (demo)…' : 'Type a message…'}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             className="flex-1"
@@ -415,6 +437,11 @@ export function LiveChat({
             <Send className="w-4 h-4" />
           </Button>
         </form>
+        {demoEnabled && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Demo mode uses local bot users. Sign in + enable Supabase chat tables for real-time chat.
+          </p>
+        )}
       </div>
     </div>
   );
