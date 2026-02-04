@@ -242,12 +242,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const resolvedTitle = trackTitle ?? lastKnownTitle ?? '';
   const resolvedArtist = trackArtist ?? lastKnownArtist ?? '';
   const safeMs = (value: number) => (Number.isFinite(value) ? Math.max(0, value) : 0);
+  const durationMsSafe = safeMs(durationMs);
   
   // Use animated seekbar for smooth visual updates
-  const animatedPositionMs = useAnimatedSeekbar(safeMs(positionMs), safeMs(durationMs), isPlaying);
+  const animatedPositionMs = useAnimatedSeekbar(safeMs(positionMs), durationMsSafe, isPlaying);
   const positionSec = Math.max(0, animatedPositionMs / 1000);
   const effectivePositionSec = scrubSec ?? positionSec;
-  const durationSec = Math.max(0, safeMs(durationMs) / 1000);
+  const durationSec = Math.max(0, durationMsSafe / 1000);
   const seekMaxSecRaw = durationSec > 0 ? durationSec : Math.max(1, positionSec);
   const seekMaxSec = Number.isFinite(seekMaxSecRaw) && seekMaxSecRaw > 0 ? seekMaxSecRaw : 1;
   const seekStepSec = Math.max(0.01, seekMaxSec / 1200); // finer granularity: ~1200 steps across track
@@ -953,6 +954,61 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </>
             )}
           </div>
+
+          {!isMini && !isCompact && sections.length > 0 && (
+            <div className="px-3 pb-3 md:px-4 md:pb-4">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                  {sections.map((section) => {
+                    const isActive = currentSectionId === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        type="button"
+                        onClick={() => {
+                          if (typeof setCurrentSection === 'function') {
+                            setCurrentSection(section.id);
+                          }
+                          seekToMs(section.start_ms);
+                        }}
+                        className={[
+                          'flex-shrink-0 rounded-full px-3 py-1 text-[11px] md:text-xs font-semibold transition border',
+                          isActive
+                            ? 'bg-primary text-primary-foreground border-primary/50'
+                            : 'bg-white/10 text-white/85 border-white/15 hover:bg-white/15',
+                        ].join(' ')}
+                        aria-label={`Jump to ${getSectionDisplayLabel(section.label)}`}
+                        title={`Jump to ${getSectionDisplayLabel(section.label)}`}
+                      >
+                        {getSectionDisplayLabel(section.label)}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {activeSection && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof setLoopSection !== 'function') return;
+                      const next = loopSectionId === activeSection.id ? null : activeSection.id;
+                      setLoopSection(next);
+                    }}
+                    className={[
+                      'inline-flex h-8 w-8 items-center justify-center rounded-full border transition',
+                      loopSectionId === activeSection.id
+                        ? 'border-primary/50 bg-primary/20 text-primary-foreground'
+                        : 'border-white/20 bg-white/10 text-white/90 hover:bg-white/15 hover:border-white/35',
+                    ].join(' ')}
+                    aria-label={loopSectionId === activeSection.id ? 'Disable section loop' : 'Loop section'}
+                    title={loopSectionId === activeSection.id ? 'Disable section loop' : 'Loop section'}
+                  >
+                    <Repeat className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           {!isMini && (
             <div
               className="absolute bottom-2 right-2 h-4 w-4 cursor-se-resize outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
