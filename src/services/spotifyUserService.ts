@@ -70,10 +70,18 @@ function transformSpotifyTrack(item: SpotifyPlayHistoryItem): Track {
  */
 export async function getRecentlyPlayedTracks(
   userId: string,
-  limit = 20
+  limit = 20,
+  attempt = 0
 ): Promise<{ tracks: Track[]; source: 'spotify' } | null> {
-  const accessToken = await getValidAccessToken(userId);
-  
+  const tokenFromStore = await getValidAccessToken(userId);
+
+  let accessToken = tokenFromStore;
+
+  // If we failed to get a token but have a refresh token in DB, try one proactive refresh before giving up.
+  if (!accessToken && attempt === 0) {
+    accessToken = await refreshSpotifyToken(userId);
+  }
+
   if (!accessToken) {
     return null;
   }
@@ -93,16 +101,16 @@ export async function getRecentlyPlayedTracks(
     );
 
     if (!response.ok) {
-      if (response.status === 401) {
-        // Token invalid, try to refresh
+      if ((response.status === 401 || response.status === 403) && attempt === 0) {
+        // Token invalid/expired or scope revoked: attempt a single refresh and retry once.
         const newToken = await refreshSpotifyToken(userId);
         if (!newToken) {
           console.error('Spotify token refresh failed');
           return null;
         }
-        // Retry with new token
-        return getRecentlyPlayedTracks(userId, limit);
+        return getRecentlyPlayedTracks(userId, limit, attempt + 1);
       }
+
       console.error('Failed to fetch recently played:', response.status);
       return null;
     }
