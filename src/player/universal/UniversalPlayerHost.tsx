@@ -78,7 +78,7 @@ export function UniversalPlayerHost(props: { request: UniversalPlayerRequest | n
   return (
     <div className={className}>
       <div className="relative w-full overflow-hidden rounded-lg bg-black/40 border border-white/10">
-        <div className="w-full aspect-video">
+        <div className="w-full h-[152px] sm:h-[168px]">
           <iframe
             ref={iframeRef}
             id={IFRAME_ID}
@@ -115,4 +115,3 @@ export function UniversalPlayerHost(props: { request: UniversalPlayerRequest | n
     </div>
   );
 }
-

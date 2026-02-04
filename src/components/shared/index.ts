@@ -3,3 +3,4 @@ export { PageLayout } from './PageLayout';
 export { EmptyState } from './EmptyState';
 export { LoadingSpinner, ListItemSkeleton, CardSkeleton } from './LoadingSpinner';
 export { ProfileCircle } from './ProfileCircle';
+export { CladeWordmark } from './CladeWordmark';
