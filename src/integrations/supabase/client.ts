@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 const IS_TEST =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
   (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
@@ -11,11 +11,65 @@ const IS_TEST =
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    // In tests, disable session persistence and token auto-refresh timers so vitest can exit cleanly.
-    storage: IS_TEST ? undefined : localStorage,
-    persistSession: !IS_TEST,
-    autoRefreshToken: !IS_TEST,
-  }
-});
+const hasSupabaseConfig =
+  typeof SUPABASE_URL === 'string' &&
+  SUPABASE_URL.length > 0 &&
+  typeof SUPABASE_KEY === 'string' &&
+  SUPABASE_KEY.length > 0;
+
+const createDisabledClient = (reason: string) => {
+  const error = { message: reason };
+  const result = { data: null, error };
+
+  const createChain = () =>
+    new Proxy(
+      {
+        then: (onFulfilled: unknown, onRejected: unknown) =>
+          Promise.resolve(result).then(onFulfilled as never, onRejected as never),
+      },
+      {
+        get: (target, prop) => {
+          if (prop in target) return (target as any)[prop];
+          return () => createChain();
+        },
+      },
+    ) as any;
+
+  const auth = {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    getUser: async () => ({ data: { user: null }, error: null }),
+    onAuthStateChange: () => ({
+      data: { subscription: { unsubscribe: () => {} } },
+    }),
+    signUp: async () => ({ data: { user: null, session: null }, error }),
+    signInWithPassword: async () => ({ data: { user: null, session: null }, error }),
+    signOut: async () => ({ error: null }),
+  };
+
+  return new Proxy(
+    {
+      auth,
+      from: () => createChain(),
+      rpc: async () => result,
+    },
+    {
+      get: (target, prop) => {
+        if (prop in target) return (target as any)[prop];
+        return () => createChain();
+      },
+    },
+  ) as any;
+};
+
+export const supabase = hasSupabaseConfig
+  ? createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        // In tests, disable session persistence and token auto-refresh timers so vitest can exit cleanly.
+        storage: IS_TEST ? undefined : localStorage,
+        persistSession: !IS_TEST,
+        autoRefreshToken: !IS_TEST,
+      },
+    })
+  : createDisabledClient(
+      'Supabase is not configured (missing VITE_SUPABASE_URL and VITE_SUPABASE_*_KEY).',
+    );
