@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
-import { Volume2, VolumeX, Maximize2, X, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, Repeat, Sparkles, ArrowLeftRight } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, Repeat, Sparkles, ArrowLeftRight } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
 import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
@@ -830,6 +830,22 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               <button
                 type="button"
                 onClick={() => {
+                  if (isCompact) {
+                    setIsCompact(false);
+                    return;
+                  }
+                  setIsCompact(true);
+                  requestAnimationFrame(snapCompactToCorner);
+                }}
+                className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
+                aria-label={isCompact ? 'Show video and expand player' : 'Hide video (floating player)'}
+                title={isCompact ? 'Show video' : 'Hide video'}
+              >
+                {isCompact ? <ChevronUp className="h-3 w-3 md:h-4 md:w-4" /> : <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
                   // Collapse to mini but keep playback alive.
                   setIsCompact(false);
                   const targetPos = clampMiniPosition(getDefaultMiniPosition());
@@ -852,13 +868,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               ? {}
               : {
                   animate: {
-                    height: provider && trackId ? 'auto' : 0,
-                    opacity: provider && trackId ? 1 : 0,
+                    height: provider && trackId && !isCompact ? 'auto' : 0,
+                    opacity: provider && trackId && !isCompact ? 1 : 0,
                   },
                   transition: { duration: 0.25, ease: 'easeOut' },
                 })}
             className="overflow-hidden bg-black/80"
-            aria-hidden={!provider || !trackId}
+            aria-hidden={!provider || !trackId || isCompact}
           >
             <div className="relative flex justify-center px-2 py-2">
               <div className="w-full relative">

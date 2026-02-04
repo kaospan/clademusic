@@ -132,18 +132,12 @@ ALTER TABLE performance_test_results ENABLE ROW LEVEL SECURITY;
 -- Admins can view all performance results
 CREATE POLICY "Admins can view performance results"
   ON performance_test_results FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'admin'
-    )
-  );
+  USING (public.has_role(auth.uid(), 'admin'));
 
 -- Service role can insert results
 CREATE POLICY "Service role can insert performance results"
   ON performance_test_results FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (auth.role() = 'service_role');
 
 -- Comments
 COMMENT ON TABLE performance_test_results IS 'Automated performance test results for monitoring feature speed';

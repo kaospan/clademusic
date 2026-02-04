@@ -169,15 +169,6 @@ export function QuickStreamButtons({
     lg: 'w-6 h-6',
   } as const;
 
-  if (unavailable) {
-    return (
-      <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
-        <Music className="w-4 h-4" />
-        <span className="text-sm">No streaming links</span>
-      </div>
-    );
-  }
-
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <motion.button
@@ -203,12 +194,15 @@ export function QuickStreamButtons({
       <motion.button
         whileHover={{ scale: hasYouTube ? 1.05 : 1 }}
         whileTap={{ scale: hasYouTube ? 0.97 : 1 }}
-        onClick={handleYouTubeClick}
+        onClick={hasYouTube ? handleYouTubeClick : undefined}
         data-provider="youtube"
+        disabled={!hasYouTube}
         className={cn(
           sizeClasses[size],
           'rounded-full flex items-center justify-center transition-all',
-          'bg-gradient-to-br from-[#FF0000] to-[#CC0000] text-white shadow-lg hover:shadow-xl hover:from-[#FF0000] hover:to-[#EE0000] cursor-pointer',
+          hasYouTube
+            ? 'bg-gradient-to-br from-[#FF0000] to-[#CC0000] text-white shadow-lg hover:shadow-xl hover:from-[#FF0000] hover:to-[#EE0000] cursor-pointer'
+            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60',
           currentProvider === 'youtube' && isCurrentTrack && 'ring-2 ring-white ring-offset-2 ring-offset-background'
         )}
         title={hasYouTube ? 'Play on YouTube' : 'Find on YouTube'}
@@ -216,6 +210,12 @@ export function QuickStreamButtons({
       >
         <YouTubeIcon className={iconSizes[size]} />
       </motion.button>
+      {unavailable && (
+        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+          <Music className="w-3 h-3" />
+          No streaming links
+        </span>
+      )}
     </div>
   );
 }

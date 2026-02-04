@@ -33,6 +33,7 @@ const ArtistPage = lazy(() => import("./pages/ArtistPage"));
 const TrackDetailPage = lazy(() => import("./pages/TrackDetailPage"));
 const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
 const PlaylistDetailPage = lazy(() => import("./pages/PlaylistDetailPage"));
+const E2EPlayerPage = lazy(() => import("./pages/E2EPlayerPage"));
 const ForumHomePage = lazy(() =>
   import("./pages/ForumHomePage").then((module) => ({ default: module.ForumHomePage }))
 );
@@ -99,6 +100,7 @@ const App = () => (
                     <Route path="/forum" element={<ForumHomePage />} />
                     <Route path="/forum/:forumName" element={<ForumHomePage />} />
                     <Route path="/forum/post/:postId" element={<ForumHomePage />} />
+                    <Route path="/__e2e__/player" element={<E2EPlayerPage />} />
                     {/* Legal Pages */}
                     <Route path="/terms" element={<TermsOfServicePage />} />
                     <Route path="/privacy" element={<PrivacyPolicyPage />} />
