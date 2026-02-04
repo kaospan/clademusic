@@ -4,8 +4,8 @@ import path from "path";
 
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  base: mode === "test" ? "/" : "/clademusic/",
+export default defineConfig(() => ({
+  base: "/clademusic/",
   server: {
     host: "::",
     port: 8080,
