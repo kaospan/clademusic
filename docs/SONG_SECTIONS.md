@@ -7,7 +7,7 @@ This document describes the new song sections feature that allows tracks to have
 
 ### 1. YouTube Background for Watch Button
 When users click the "Watch" button on a track card:
-- The YouTube video plays as the full background
+- The YouTube video plays  
 - UI elements remain visible with a gradient overlay
 - Button changes to "Hide" to dismiss the video
 - Creates an immersive music video experience
