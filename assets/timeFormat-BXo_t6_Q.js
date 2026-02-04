@@ -1,0 +1,1 @@
+function s(o){const t=Math.floor(o/1e3),n=Math.floor(t/60),r=t%60;return`${n}:${r.toString().padStart(2,"0")}`}function a(o){const t=Math.floor(o/60),n=Math.floor(o%60);return`${t}:${n.toString().padStart(2,"0")}`}function e(o){const t=Math.floor(o/1e3);if(t<60)return`${t}s`;const n=Math.floor(t/60),r=t%60;return r===0?`${n}m`:`${n}m ${r}s`}export{s as a,e as b,a as f};
