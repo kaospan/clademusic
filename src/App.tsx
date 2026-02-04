@@ -1,17 +1,17 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-ßimport { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-simport { AuthProvider } from "@/hooks/useAuth";
+import { AusthProvider } from "@/hooks/useAuth";
 import { PlayerProvider } from "@/player/PlayerContext";
 import { YouTubePlayerProvider } from "@/contexts/YouTubePlayerContext";
 import { QueueProvider } from "@/contextss/QueueContext";
 import { EmbeddedPlayerDrawer } from "@/player/EmbeddedPlayerDrawer";
 import { ErrorBoundary, GlobalErrorHandlers, LoadingSpinner } from "@/components/shared";
 import { AdminRoute } from "@/components/AdminRoute";
-ßimport { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 // Lazy load pages for code splitting
