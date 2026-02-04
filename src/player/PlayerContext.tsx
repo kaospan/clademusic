@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, useState, useCallback, useEffect, u
 import { recordPlayEvent } from '@/api/playEvents';
 import { MusicProvider } from '@/types';
 import { getPreferredProvider } from '@/lib/preferences';
+import type { ProviderControls } from './providers/adapter';
 
 interface ConnectedProviders {
   spotify?: { connected: boolean };
@@ -40,15 +41,6 @@ export interface PlayerState {
   queue: import('@/types').Track[];
   queueIndex: number;
 }
-
-type ProviderControls = {
-  play: (startSec?: number | null) => Promise<void> | void;
-  pause: () => Promise<void> | void;
-  seekTo: (seconds: number) => Promise<void> | void;
-  setVolume: (volume: number) => Promise<void> | void; // 0..1
-  setMute: (muted: boolean) => Promise<void> | void;
-  teardown?: () => Promise<void> | void;
-};
 
 const stopActiveProvider = async (
   active: MusicProvider | null,
