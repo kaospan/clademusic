@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('Spotify embed fallback for guests', () => {
   test('renders a single Spotify embed iframe after clicking Spotify quickstream', async ({ page }) => {
-    await page.goto('/__e2e__/player');
+    await page.goto('__e2e__/player');
 
     await page.waitForSelector('[data-e2e-player]');
     const spotifyBtn = page.locator('[data-provider="spotify"]').first();

@@ -13,7 +13,7 @@ async function expectSinglePlayer(page) {
 
 test.describe('Universal Player Singleton Enforcement', () => {
   test('only one playback surface exists at all times', async ({ page }) => {
-    await page.goto('/__e2e__/player');
+    await page.goto('/clademusic/__e2e__/player');
 
     await page.waitForSelector('[data-e2e-player]');
     await page.waitForSelector(providerSelectors.spotify);
