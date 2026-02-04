@@ -385,7 +385,7 @@ export function TrackCard({
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex items-center justify-between pt-4 relative z-20"
+          className="flex items-center justify-center gap-2 sm:gap-3 pt-4 relative z-20"
         >
           {/* Skip - always clickable */}
           <ActionButton
@@ -496,7 +496,7 @@ function ActionButton({ icon: Icon, label, isActive, onClick, variant }: ActionB
       whileTap={{ scale: 0.9 }}
       onClick={onClick}
       className={cn(
-        'flex flex-col items-center gap-1 p-3 rounded-xl transition-all',
+        'flex flex-col items-center gap-1 p-2 rounded-xl transition-all',
         isActive && variant === 'accent' && 'text-accent glow-accent',
         isActive && variant === 'primary' && 'text-primary glow-primary',
         isActive && variant === 'muted' && 'text-foreground',
@@ -505,16 +505,16 @@ function ActionButton({ icon: Icon, label, isActive, onClick, variant }: ActionB
     >
       <div
         className={cn(
-          'p-3 rounded-full transition-all',
+          'p-2 rounded-full transition-all',
           isActive && variant === 'accent' && 'bg-accent/20',
           isActive && variant === 'primary' && 'bg-primary/20',
           isActive && variant === 'muted' && 'bg-muted',
           !isActive && 'bg-muted/50 hover:bg-muted'
         )}
       >
-        <Icon className={cn('w-6 h-6', isActive && variant === 'accent' && 'fill-current')} />
+        <Icon className={cn('w-5 h-5', isActive && variant === 'accent' && 'fill-current')} />
       </div>
-      <span className="text-xs font-medium">{label}</span>
+      <span className="text-[11px] font-medium">{label}</span>
     </motion.button>
   );
 }

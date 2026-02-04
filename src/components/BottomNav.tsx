@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { CladeWordmark } from '@/components/shared';
+import { CladeWordmark } from '@/components/shared/CladeWordmark';
 
 const navItems = [
   { to: '/feed', icon: Home, label: 'Feed' },

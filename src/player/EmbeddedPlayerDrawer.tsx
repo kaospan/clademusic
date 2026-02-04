@@ -250,10 +250,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const canSeekInEmbed = false;
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
-  const [videoScale, setVideoScale] = useState(0.9); // slightly larger, cleaner default for the main player
-  const resizeActiveRef = useRef(false);
-  const lastClientXRef = useRef(0);
-  const lastClientYRef = useRef(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [playerScale, setPlayerScale] = useState(1);
   const playerResizeActiveRef = useRef(false);
@@ -303,7 +299,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     [dragBounds]
   );
 
-  const clampScale = useCallback((scale: number) => Math.min(Math.max(scale, 0.3), 1.6), []);
   const commitSeek = useCallback(
     (sec: number) => {
       if (!Number.isFinite(sec)) return;
@@ -428,31 +423,30 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [enterCinema, exitCinema]);
 
-  // Hydrate persisted layout (compact flag + scales)
+  // Hydrate persisted layout (compact flag + scale)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const raw = localStorage.getItem(layoutStorageKey);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<{ isCompact: boolean; videoScale: number; playerScale: number }>;
+      const parsed = JSON.parse(raw) as Partial<{ isCompact: boolean; playerScale: number }>;
       if (typeof parsed.isCompact === 'boolean') setIsCompact(parsed.isCompact);
-      if (Number.isFinite(parsed.videoScale)) setVideoScale(clampScale(parsed.videoScale!));
       if (Number.isFinite(parsed.playerScale)) setPlayerScale(clampPlayerScale(parsed.playerScale!));
     } catch (err) {
       console.warn('Failed to hydrate player layout', err);
     }
-  }, [clampPlayerScale, clampScale]);
+  }, [clampPlayerScale]);
 
   // Persist layout whenever it changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const payload = JSON.stringify({ isCompact, videoScale, playerScale });
+    const payload = JSON.stringify({ isCompact, playerScale });
     try {
       localStorage.setItem(layoutStorageKey, payload);
     } catch (err) {
       console.warn('Failed to persist player layout', err);
     }
-  }, [isCompact, videoScale, playerScale]);
+  }, [isCompact, playerScale]);
 
   // Hydrate positions from cookie
   useEffect(() => {
@@ -481,6 +475,14 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
   useEffect(() => {
     setScrubSec(null);
+  }, [provider, trackId]);
+
+  // Quickstream YouTube should open with video visible by default.
+  // Users can still hide it via the compact toggle, but we reset on track changes.
+  useEffect(() => {
+    if (provider !== 'youtube') return;
+    if (!trackId) return;
+    setIsCompact(false);
   }, [provider, trackId]);
 
   const computeDragBounds = useCallback(() => {
@@ -639,41 +641,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
       onNext();
     }
   }, [safeQueueIndex, safeQueue.length, playFromQueue, onNext]);
-
-  // Drag-to-resize for video: adjust scale based on diagonal drag of the handle
-  const handleResizeStart = useCallback((clientX: number, clientY: number) => {
-    resizeActiveRef.current = true;
-    lastClientXRef.current = clientX;
-    lastClientYRef.current = clientY;
-  }, []);
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent | TouchEvent) => {
-      if (!resizeActiveRef.current) return;
-      const point = 'touches' in e ? e.touches[0] : (e as MouseEvent);
-      const clientX = point?.clientX ?? lastClientXRef.current;
-      const clientY = point?.clientY ?? lastClientYRef.current;
-      const deltaX = clientX - lastClientXRef.current;
-      const deltaY = clientY - lastClientYRef.current;
-      lastClientXRef.current = clientX;
-      lastClientYRef.current = clientY;
-      const delta = (deltaX + deltaY) * 0.0025; // respond to diagonal drag
-      setVideoScale((prev) => clampScale(prev + delta));
-    };
-    const onUp = () => {
-      resizeActiveRef.current = false;
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchend', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchend', onUp);
-    };
-  }, [clampScale]);
 
   // Player shell resize (width/height via scale)
   useEffect(() => {
