@@ -161,6 +161,15 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const navigate = useNavigate();
   const { data: isSpotifyConnected } = useSpotifyConnected();
   const connectSpotify = useConnectSpotify();
+
+  const sectionsTrackId = !isTestEnv && isUuid(canonicalTrackId) ? canonicalTrackId : undefined;
+  const sectionsQuery = useTrackSections(sectionsTrackId);
+  const sections = useMemo(() => {
+    const raw = sectionsQuery.data;
+    if (!Array.isArray(raw)) return [];
+    return [...raw].sort((a, b) => a.start_ms - b.start_ms);
+  }, [sectionsQuery.data]);
+
   const safeQueue = Array.isArray(queue) ? queue : [];
   const safeQueueIndex = typeof queueIndex === 'number' ? queueIndex : -1;
   const cinemaRef = useRef<HTMLDivElement | null>(null);
