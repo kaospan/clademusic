@@ -1,0 +1,46 @@
+[
+  {
+    "id": "merch-001",
+    "name": "Spectrum Vinyl",
+    "description": "Limited edition 180g vinyl of the Spectrum album",
+    "price": 35,
+    "currency": "USD",
+    "image": "/placeholder.svg",
+    "url": "https://shop.example.com/spectrum-vinyl",
+    "category": "Music",
+    "inStock": true
+  },
+  {
+    "id": "merch-002",
+    "name": "Clade Logo Tee",
+    "description": "Black tee with gradient Clade logo",
+    "price": 28,
+    "currency": "USD",
+    "image": "/placeholder.svg",
+    "url": "https://shop.example.com/logo-tee",
+    "category": "Apparel",
+    "inStock": true
+  },
+  {
+    "id": "merch-003",
+    "name": "Harmonic Drift Poster",
+    "description": "24x36 art print of the EP artwork",
+    "price": 20,
+    "currency": "USD",
+    "image": "/placeholder.svg",
+    "url": "https://shop.example.com/poster",
+    "category": "Art",
+    "inStock": true
+  },
+  {
+    "id": "merch-004",
+    "name": "Clade Beanie",
+    "description": "Embroidered beanie with subtle Clade mark",
+    "price": 25,
+    "currency": "USD",
+    "image": "/placeholder.svg",
+    "url": "https://shop.example.com/beanie",
+    "category": "Apparel",
+    "inStock": false
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "upcoming": [
+    {
+      "id": "event-001",
+      "title": "Harmonic Sessions Live",
+      "date": "2025-03-15",
+      "time": "20:00",
+      "venue": "The Echo Chamber",
+      "city": "Los Angeles",
+      "country": "USA",
+      "description": "An intimate evening of live electronic performance and visual art.",
+      "ticketUrl": "https://tickets.example.com/event-001",
+      "price": "$25"
+    },
+    {
+      "id": "event-002",
+      "title": "SXSW 2025 Showcase",
+      "date": "2025-03-22",
+      "time": "23:00",
+      "venue": "Cedar Street Courtyard",
+      "city": "Austin",
+      "country": "USA",
+      "description": "Official SXSW showcase performance.",
+      "ticketUrl": "https://sxsw.com/showcase",
+      "price": "Badge Required"
+    }
+  ],
+  "past": [
+    {
+      "id": "event-past-001",
+      "title": "Spectrum Album Release",
+      "date": "2024-05-10",
+      "venue": "Warehouse Live",
+      "city": "Houston",
+      "country": "USA"
+    },
+    {
+      "id": "event-past-002",
+      "title": "Ambient Night",
+      "date": "2024-03-20",
+      "venue": "The Loft",
+      "city": "New York",
+      "country": "USA"
+    }
+  ]
+}

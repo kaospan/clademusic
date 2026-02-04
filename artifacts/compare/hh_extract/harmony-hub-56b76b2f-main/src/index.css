@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Clade Music Design System - Dark theme with motion aesthetics */
+
+@layer base {
+  :root {
+    /* Light mode (fallback) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 187 100% 50%;
+    --primary-foreground: 240 10% 3.9%;
+
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 35 100% 55%;
+    --accent-foreground: 240 10% 3.9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 187 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Custom Clade colors */
+    --clade-cyan: 187 100% 50%;
+    --clade-magenta: 320 100% 60%;
+    --clade-orange: 35 100% 55%;
+    --clade-purple: 270 100% 65%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--clade-cyan)), hsl(var(--clade-magenta)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--clade-magenta)), hsl(var(--clade-orange)));
+    --gradient-hero: radial-gradient(ellipse at 50% 0%, hsl(var(--clade-cyan) / 0.15) 0%, transparent 50%),
+                     radial-gradient(ellipse at 80% 50%, hsl(var(--clade-magenta) / 0.1) 0%, transparent 40%),
+                     radial-gradient(ellipse at 20% 80%, hsl(var(--clade-purple) / 0.1) 0%, transparent 40%);
+    
+    /* Shadows */
+    --shadow-glow-cyan: 0 0 40px hsl(var(--clade-cyan) / 0.3);
+    --shadow-glow-magenta: 0 0 40px hsl(var(--clade-magenta) / 0.3);
+
+    --sidebar-background: 240 10% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 187 100% 50%;
+    --sidebar-primary-foreground: 240 10% 3.9%;
+    --sidebar-accent: 240 5% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 5% 18%;
+    --sidebar-ring: 187 100% 50%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 5%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 5%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 187 100% 50%;
+    --primary-foreground: 240 10% 3.9%;
+
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 35 100% 55%;
+    --accent-foreground: 240 10% 3.9%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 187 100% 50%;
+
+    --sidebar-background: 240 10% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 187 100% 50%;
+    --sidebar-primary-foreground: 240 10% 3.9%;
+    --sidebar-accent: 240 5% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 5% 18%;
+    --sidebar-ring: 187 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image: var(--gradient-hero);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background-color: hsl(var(--clade-cyan) / 0.3);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer components {
+  /* Gradient text utility */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-accent {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glow effects */
+  .glow-cyan {
+    box-shadow: var(--shadow-glow-cyan);
+  }
+
+  .glow-magenta {
+    box-shadow: var(--shadow-glow-magenta);
+  }
+
+  /* Glass morphism card */
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+  }
+
+  /* Animated underline for links */
+  .animated-underline {
+    @apply relative;
+  }
+
+  .animated-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 origin-left scale-x-0 transition-transform duration-300;
+    background: var(--gradient-primary);
+  }
+
+  .animated-underline:hover::after {
+    @apply scale-x-100;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

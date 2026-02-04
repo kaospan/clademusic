@@ -1,0 +1,23 @@
+{
+  "siteName": "Clade",
+  "tagline": "Find Your Harmony",
+  "description": "A music label and harmony analysis platform exploring the connections between sound, emotion, and creativity.",
+  "email": {
+    "general": "hello@clade.music",
+    "booking": "booking@clade.music"
+  },
+  "socials": {
+    "spotify": "https://open.spotify.com/artist/clade",
+    "appleMusic": "https://music.apple.com/artist/clade",
+    "youtube": "https://youtube.com/@clade",
+    "soundcloud": "https://soundcloud.com/clade",
+    "instagram": "https://instagram.com/clade.music",
+    "twitter": "https://twitter.com/clademusic",
+    "tidal": "https://tidal.com/artist/clade",
+    "deezer": "https://deezer.com/artist/clade",
+    "amazon": "https://music.amazon.com/artists/clade",
+    "lastfm": "https://last.fm/music/clade"
+  },
+  "formspreeId": "",
+  "copyright": "Clade Music"
+}

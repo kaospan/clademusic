@@ -78,7 +78,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   await upsertSubscription(userId, customerId, subscription, plan);
-  await setCredits(userId, CREDIT_ALLOWANCE[plan] ?? CREDIT_ALLOWANCE.free);
+  await grantSubscriptionAllowance({
+    userId,
+    plan,
+    subscription,
+    providerReference: session.id,
+  });
   await logEvent(userId, 'checkout.session.completed', session.id, session);
 }
 
@@ -94,7 +99,13 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   if (!userId || !customerId) return;
 
   await upsertSubscription(userId, customerId, subscription, plan);
-  await setCredits(userId, CREDIT_ALLOWANCE[plan] ?? CREDIT_ALLOWANCE.free);
+  await grantSubscriptionAllowance({
+    userId,
+    plan,
+    subscription,
+    providerReference: invoice.id,
+  });
+  await awardReferralConversion(userId, invoice.id);
   await logEvent(userId, 'invoice.paid', invoice.id, invoice);
 }
 
@@ -156,8 +167,56 @@ async function upsertSubscription(
     }, { onConflict: 'user_id' });
 }
 
-async function setCredits(userId: string, balance: number) {
-  await service.rpc('set_credits', { p_user_id: userId, p_balance: balance });
+async function grantSubscriptionAllowance(params: {
+  userId: string;
+  plan: string;
+  subscription: Stripe.Subscription;
+  providerReference: string;
+}) {
+  const { userId, plan, subscription, providerReference } = params;
+
+  const amount = CREDIT_ALLOWANCE[plan] ?? CREDIT_ALLOWANCE.free;
+  const periodStart = subscription.current_period_start ?? null;
+  const periodEnd = subscription.current_period_end ?? null;
+  const expiresAt = periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
+
+  const idempotencyKey = periodStart
+    ? `sub_allowance:${subscription.id}:${periodStart}`
+    : `sub_allowance:${subscription.id}:${providerReference}`;
+
+  const { error } = await service.rpc('grant_credits', {
+    p_user_id: userId,
+    p_amount: amount,
+    p_bucket: 'allowance',
+    p_source: 'subscription_allowance',
+    p_expires_at: expiresAt,
+    p_idempotency_key: idempotencyKey,
+    p_metadata: {
+      plan,
+      stripe_subscription_id: subscription.id,
+      current_period_start: periodStart,
+      current_period_end: periodEnd,
+      provider_reference: providerReference,
+    },
+    p_provider: 'stripe',
+    p_provider_reference: providerReference,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function awardReferralConversion(refereeUserId: string, providerReference: string) {
+  const { error } = await service.rpc('award_referral_conversion', {
+    p_referee_user_id: refereeUserId,
+    p_provider_reference: providerReference,
+  });
+
+  if (error) {
+    // Never fail billing because referral reward failed.
+    console.warn('Referral conversion award failed', error);
+  }
 }
 
 async function logEvent(userId: string | null, type: string, providerId: string, payload: unknown) {

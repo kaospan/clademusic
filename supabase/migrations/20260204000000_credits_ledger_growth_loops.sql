@@ -796,6 +796,7 @@ revoke execute on function public.redeem_referral(uuid, text) from public;
 revoke execute on function public.award_referral_conversion(uuid, text) from public;
 revoke execute on function public.claim_daily_credits(uuid) from public;
 revoke execute on function public.check_rate_limit(uuid, text, integer, integer) from public;
+revoke execute on function public.set_credits(uuid, integer) from public;
 
 grant execute on function public.refresh_credits_balance(uuid) to service_role;
 grant execute on function public.grant_credits(uuid, integer, public.credit_bucket, text, timestamptz, text, jsonb, text, text) to service_role;
@@ -805,3 +806,4 @@ grant execute on function public.redeem_referral(uuid, text) to service_role;
 grant execute on function public.award_referral_conversion(uuid, text) to service_role;
 grant execute on function public.claim_daily_credits(uuid) to service_role;
 grant execute on function public.check_rate_limit(uuid, text, integer, integer) to service_role;
+grant execute on function public.set_credits(uuid, integer) to service_role;

@@ -1,0 +1,121 @@
+[
+  {
+    "id": "release-001",
+    "title": "Harmonic Drift",
+    "artist": "Clade",
+    "type": "EP",
+    "releaseDate": "2024-12-15",
+    "artwork": "/placeholder.svg",
+    "description": "A journey through evolving soundscapes and shifting harmonies.",
+    "genres": ["Electronic", "Ambient"],
+    "tracks": [
+      { "title": "Phase Shift", "duration": "4:23" },
+      { "title": "Resonance", "duration": "5:12" },
+      { "title": "Drift", "duration": "6:01" },
+      { "title": "Harmonic Return", "duration": "4:45" }
+    ],
+    "links": {
+      "spotify": "https://open.spotify.com/album/placeholder",
+      "appleMusic": "https://music.apple.com/album/placeholder",
+      "youtube": "https://youtube.com/watch?v=placeholder",
+      "soundcloud": "https://soundcloud.com/clade/sets/harmonic-drift",
+      "tidal": "https://tidal.com/album/placeholder",
+      "deezer": "https://deezer.com/album/placeholder",
+      "amazon": "https://music.amazon.com/albums/placeholder"
+    },
+    "embedUrl": "https://open.spotify.com/embed/album/placeholder",
+    "featured": true
+  },
+  {
+    "id": "release-002",
+    "title": "Parallel Lines",
+    "artist": "Clade",
+    "type": "Single",
+    "releaseDate": "2024-10-20",
+    "artwork": "/placeholder.svg",
+    "description": "Two melodies intertwined, never quite meeting.",
+    "genres": ["Electronic", "Downtempo"],
+    "tracks": [
+      { "title": "Parallel Lines", "duration": "4:56" }
+    ],
+    "links": {
+      "spotify": "https://open.spotify.com/track/placeholder",
+      "appleMusic": "https://music.apple.com/album/placeholder",
+      "youtube": "https://youtube.com/watch?v=placeholder",
+      "soundcloud": "https://soundcloud.com/clade/parallel-lines"
+    },
+    "embedUrl": "https://open.spotify.com/embed/track/placeholder",
+    "featured": false
+  },
+  {
+    "id": "release-003",
+    "title": "Nocturne",
+    "artist": "Clade",
+    "type": "Single",
+    "releaseDate": "2024-08-05",
+    "artwork": "/placeholder.svg",
+    "description": "A meditation on the quiet hours.",
+    "genres": ["Ambient", "Neoclassical"],
+    "tracks": [
+      { "title": "Nocturne", "duration": "5:34" }
+    ],
+    "links": {
+      "spotify": "https://open.spotify.com/track/placeholder",
+      "appleMusic": "https://music.apple.com/album/placeholder",
+      "youtube": "https://youtube.com/watch?v=placeholder",
+      "soundcloud": "https://soundcloud.com/clade/nocturne"
+    },
+    "embedUrl": "https://open.spotify.com/embed/track/placeholder",
+    "featured": false
+  },
+  {
+    "id": "release-004",
+    "title": "Spectrum",
+    "artist": "Clade",
+    "type": "Album",
+    "releaseDate": "2024-05-01",
+    "artwork": "/placeholder.svg",
+    "description": "The debut album exploring the full range of harmonic possibility.",
+    "genres": ["Electronic", "Experimental", "Ambient"],
+    "tracks": [
+      { "title": "Ultraviolet", "duration": "3:45" },
+      { "title": "Indigo Waves", "duration": "4:12" },
+      { "title": "Emerald Path", "duration": "5:23" },
+      { "title": "Amber Light", "duration": "4:56" },
+      { "title": "Crimson Edge", "duration": "6:01" },
+      { "title": "Spectrum (Full)", "duration": "8:34" }
+    ],
+    "links": {
+      "spotify": "https://open.spotify.com/album/placeholder",
+      "appleMusic": "https://music.apple.com/album/placeholder",
+      "youtube": "https://youtube.com/watch?v=placeholder",
+      "soundcloud": "https://soundcloud.com/clade/sets/spectrum",
+      "tidal": "https://tidal.com/album/placeholder",
+      "deezer": "https://deezer.com/album/placeholder",
+      "amazon": "https://music.amazon.com/albums/placeholder"
+    },
+    "embedUrl": "https://open.spotify.com/embed/album/placeholder",
+    "featured": false
+  },
+  {
+    "id": "release-005",
+    "title": "First Light",
+    "artist": "Clade",
+    "type": "Single",
+    "releaseDate": "2024-02-14",
+    "artwork": "/placeholder.svg",
+    "description": "The very beginning.",
+    "genres": ["Electronic", "Cinematic"],
+    "tracks": [
+      { "title": "First Light", "duration": "4:20" }
+    ],
+    "links": {
+      "spotify": "https://open.spotify.com/track/placeholder",
+      "appleMusic": "https://music.apple.com/album/placeholder",
+      "youtube": "https://youtube.com/watch?v=placeholder",
+      "soundcloud": "https://soundcloud.com/clade/first-light"
+    },
+    "embedUrl": "https://open.spotify.com/embed/track/placeholder",
+    "featured": false
+  }
+]
