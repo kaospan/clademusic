@@ -63,14 +63,24 @@ export function useLocalBotChat({
   const [messages, setMessages] = useState<LocalChatMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<LocalPresenceUser[]>([]);
 
+  const nowRef = useRef(now);
+  const randomRef = useRef(random);
+  useEffect(() => {
+    nowRef.current = now;
+  }, [now]);
+  useEffect(() => {
+    randomRef.current = random;
+  }, [random]);
+
   const localUserId = useMemo(() => {
     if (typeof window === 'undefined') return 'guest-server';
-    return getOrCreateGuestId(random);
+    return getOrCreateGuestId(randomRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const timerRef = useRef<number | null>(null);
   const lastRoomKeyRef = useRef<string | null>(null);
+  const seqRef = useRef(0);
 
   const localUser = useMemo(
     () => ({
@@ -85,6 +95,7 @@ export function useLocalBotChat({
 
     if (lastRoomKeyRef.current !== roomKey) {
       lastRoomKeyRef.current = roomKey;
+      seqRef.current = 0;
       setMessages([]);
     }
 
@@ -102,7 +113,7 @@ export function useLocalBotChat({
           id: `m-${roomKey}-seed-1`,
           user_id: firstBot.id,
           message: pickBotMessage({ trackTitle, artist }, () => 0.12),
-          created_at: isoNow(now),
+          created_at: isoNow(nowRef.current),
           reply_to: null,
           user: { id: firstBot.id, display_name: firstBot.displayName },
         },
@@ -110,7 +121,7 @@ export function useLocalBotChat({
           id: `m-${roomKey}-seed-2`,
           user_id: secondBot.id,
           message: pickBotMessage({ trackTitle, artist }, () => 0.68),
-          created_at: isoNow(now),
+          created_at: isoNow(nowRef.current),
           reply_to: null,
           user: { id: secondBot.id, display_name: secondBot.displayName },
         },
@@ -118,13 +129,14 @@ export function useLocalBotChat({
     });
 
     const tick = () => {
-      const bot = pickRandom(BOT_PROFILES, random);
-      const message = pickBotMessage({ trackTitle, artist }, random);
-      const createdAt = isoNow(now);
+      const bot = pickRandom(BOT_PROFILES, randomRef.current);
+      const message = pickBotMessage({ trackTitle, artist }, randomRef.current);
+      const createdAt = isoNow(nowRef.current);
+      const seq = ++seqRef.current;
 
       setMessages((prev) => {
         const next: LocalChatMessage = {
-          id: `m-${roomKey}-${bot.id}-${createdAt}`,
+          id: `m-${roomKey}-${bot.id}-${createdAt}-${seq}`,
           user_id: bot.id,
           message,
           created_at: createdAt,
@@ -145,15 +157,16 @@ export function useLocalBotChat({
         timerRef.current = null;
       }
     };
-  }, [enabled, roomKey, localUserId, botIntervalMs, now, random, maxMessages, trackTitle, artist]);
+  }, [enabled, roomKey, localUserId, botIntervalMs, maxMessages, trackTitle, artist]);
 
   const sendLocalMessage = (text: string, replyTo?: string | null) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    const createdAt = isoNow(now);
+    const createdAt = isoNow(nowRef.current);
+    const seq = ++seqRef.current;
     setMessages((prev) => {
       const next: LocalChatMessage = {
-        id: `m-${roomKey}-${localUserId}-${createdAt}`,
+        id: `m-${roomKey}-${localUserId}-${createdAt}-${seq}`,
         user_id: localUserId,
         message: trimmed,
         created_at: createdAt,
@@ -167,4 +180,3 @@ export function useLocalBotChat({
 
   return { messages, onlineUsers, localUserId, localUser, sendLocalMessage };
 }
-
