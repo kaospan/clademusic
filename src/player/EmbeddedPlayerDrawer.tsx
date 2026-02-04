@@ -846,64 +846,81 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           {/* Compact Controls Row: Seekbar + Volume inline */}
           <div className="flex items-center gap-2 px-3 pb-3 md:px-4 md:pb-4 text-white">
             <span className="text-[10px] md:text-xs tabular-nums w-12 text-right" aria-label="Elapsed time">{formatTime(positionSec)}</span>
-            <input
-              key={`${provider ?? 'none'}-${trackId ?? 'none'}-seek`}
-              type="range"
-              min="0"
-              max={seekMaxSec}
-              step={seekStepSec}
-              value={seekValueSec}
-              onPointerDownCapture={(e) => e.stopPropagation()}
-              onMouseDownCapture={(e) => e.stopPropagation()}
-              onTouchStartCapture={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                const nextSec = Number(e.target.value);
-                if (!Number.isFinite(nextSec)) return;
-                setScrubSec(nextSec);
-                // Commit immediately so single taps and drag updates seek right away
-                commitSeek(nextSec);
-              }}
-              onPointerDown={(e) => {
-                const target = e.currentTarget as HTMLInputElement;
-                const nextSec = Number(target.value);
-                if (!Number.isFinite(nextSec)) return;
-                setScrubSec(nextSec);
-                setIsScrubbing(true);
-              }}
-              onPointerUp={(e) => {
-                const target = e.currentTarget as HTMLInputElement;
-                const nextSec = Number(target.value);
-                if (!Number.isFinite(nextSec)) return;
-                commitSeek(nextSec);
-                setIsScrubbing(false);
-              }}
-              onMouseUp={(e) => {
-                const target = e.currentTarget as HTMLInputElement;
-                const nextSec = Number(target.value);
-                if (!Number.isFinite(nextSec)) return;
-                commitSeek(nextSec);
-                setIsScrubbing(false);
-              }}
-              onTouchEnd={(e) => {
-                const target = e.currentTarget as HTMLInputElement;
-                const nextSec = Number(target.value);
-                if (!Number.isFinite(nextSec)) return;
-                commitSeek(nextSec);
-                setIsScrubbing(false);
-              }}
-              onClick={(e) => {
-                const target = e.currentTarget as HTMLInputElement;
-                const nextSec = Number(target.value);
-                if (!Number.isFinite(nextSec)) return;
-                commitSeek(nextSec);
-              }}
-              disabled={isIdle}
-              className="flex-1 min-w-[80px] h-1 bg-white/20 rounded-full appearance-none cursor-pointer
-                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
-                       [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
-                       [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
-              aria-label="Seek"
-            />
+            <div className="relative flex-1 min-w-[80px]">
+              {!isMini && sections.length > 1 && durationMsSafe > 0 && (
+                <div className="pointer-events-none absolute inset-0 flex items-center">
+                  {sections.slice(1).map((section) => {
+                    const left = Math.min(100, Math.max(0, (section.start_ms / durationMsSafe) * 100));
+                    return (
+                      <span
+                        key={`marker-${section.id}`}
+                        className="absolute top-1/2 -translate-y-1/2 h-2 w-px bg-white/40"
+                        style={{ left: `${left}%` }}
+                        aria-hidden="true"
+                      />
+                    );
+                  })}
+                </div>
+              )}
+              <input
+                key={`${provider ?? 'none'}-${trackId ?? 'none'}-seek`}
+                type="range"
+                min="0"
+                max={seekMaxSec}
+                step={seekStepSec}
+                value={seekValueSec}
+                onPointerDownCapture={(e) => e.stopPropagation()}
+                onMouseDownCapture={(e) => e.stopPropagation()}
+                onTouchStartCapture={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  const nextSec = Number(e.target.value);
+                  if (!Number.isFinite(nextSec)) return;
+                  setScrubSec(nextSec);
+                  // Commit immediately so single taps and drag updates seek right away
+                  commitSeek(nextSec);
+                }}
+                onPointerDown={(e) => {
+                  const target = e.currentTarget as HTMLInputElement;
+                  const nextSec = Number(target.value);
+                  if (!Number.isFinite(nextSec)) return;
+                  setScrubSec(nextSec);
+                  setIsScrubbing(true);
+                }}
+                onPointerUp={(e) => {
+                  const target = e.currentTarget as HTMLInputElement;
+                  const nextSec = Number(target.value);
+                  if (!Number.isFinite(nextSec)) return;
+                  commitSeek(nextSec);
+                  setIsScrubbing(false);
+                }}
+                onMouseUp={(e) => {
+                  const target = e.currentTarget as HTMLInputElement;
+                  const nextSec = Number(target.value);
+                  if (!Number.isFinite(nextSec)) return;
+                  commitSeek(nextSec);
+                  setIsScrubbing(false);
+                }}
+                onTouchEnd={(e) => {
+                  const target = e.currentTarget as HTMLInputElement;
+                  const nextSec = Number(target.value);
+                  if (!Number.isFinite(nextSec)) return;
+                  commitSeek(nextSec);
+                  setIsScrubbing(false);
+                }}
+                onClick={(e) => {
+                  const target = e.currentTarget as HTMLInputElement;
+                  const nextSec = Number(target.value);
+                  if (!Number.isFinite(nextSec)) return;
+                  commitSeek(nextSec);
+                }}
+                disabled={isIdle}
+                className="relative z-10 w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer
+                         [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 
+                         [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full 
+                         [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer"
+                aria-label="Seek"
+              />
+            </div>
             <span className="text-[10px] md:text-xs tabular-nums w-12 text-left" aria-label="Total duration">{formatTime(durationSec)}</span>
 
             <button
