@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { searchYouTubeVideos } from '@/services/youtubeSearchService';
 import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
 import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
+import { buildProviderDeepLink } from '@/player/universal/buildEmbedSrc';
 
 interface QuickStreamButtonsProps {
   track: TrackProviderInfo;
@@ -91,6 +92,15 @@ export function QuickStreamButtons({
     || (currentProvider === 'youtube' && youtubeTrackId && currentProviderTrackId === youtubeTrackId);
   const currentPositionSec = isCurrentTrack && positionMs ? positionMs / 1000 : undefined;
 
+  const spotifyDeepLink = useMemo(
+    () => (spotifyTrackId ? buildProviderDeepLink('spotify', spotifyTrackId) : null),
+    [spotifyTrackId]
+  );
+  const youtubeDeepLink = useMemo(
+    () => (youtubeTrackId ? buildProviderDeepLink('youtube', youtubeTrackId, { startSec: currentPositionSec }) : null),
+    [youtubeTrackId, currentPositionSec]
+  );
+
   const handleSpotifyClick = useCallback(() => {
     if (!hasSpotify || !spotifyTrackId) return;
     setPreferredProvider('spotify');
@@ -168,6 +178,15 @@ export function QuickStreamButtons({
       <motion.button
         whileHover={{ scale: hasSpotify ? 1.05 : 1 }}
         whileTap={{ scale: hasSpotify ? 0.97 : 1 }}
+        onMouseDown={(e) => {
+          // Middle-click / cmd-click / ctrl-click opens provider page in a new tab.
+          if (!hasSpotify || !spotifyDeepLink) return;
+          if (e.button === 1 || e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(spotifyDeepLink, '_blank', 'noopener,noreferrer');
+          }
+        }}
         onClick={hasSpotify ? handleSpotifyClick : undefined}
         data-provider="spotify"
         disabled={!hasSpotify}
@@ -177,7 +196,8 @@ export function QuickStreamButtons({
           hasSpotify
             ? 'bg-gradient-to-br from-[#1DB954] to-[#1ed760] text-white shadow-lg hover:shadow-xl hover:from-[#1ed760] hover:to-[#1DB954] cursor-pointer'
             : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60',
-          currentProvider === 'spotify' && isCurrentTrack && 'ring-2 ring-white ring-offset-2 ring-offset-background'
+          currentProvider === 'spotify' && isCurrentTrack && 'ring-2 ring-white ring-offset-2 ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
         )}
         title={hasSpotify ? 'Play in Spotify' : 'Spotify unavailable'}
         aria-label={hasSpotify ? `Play ${trackTitle} in Spotify` : 'Spotify unavailable'}
@@ -188,13 +208,22 @@ export function QuickStreamButtons({
       <motion.button
         whileHover={{ scale: hasYouTube ? 1.05 : 1 }}
         whileTap={{ scale: hasYouTube ? 0.97 : 1 }}
+        onMouseDown={(e) => {
+          if (!youtubeDeepLink) return;
+          if (e.button === 1 || e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(youtubeDeepLink, '_blank', 'noopener,noreferrer');
+          }
+        }}
         onClick={handleYouTubeClick}
         data-provider="youtube"
         className={cn(
           sizeClasses[size],
           'rounded-full flex items-center justify-center transition-all',
           'bg-gradient-to-br from-[#FF0000] to-[#CC0000] text-white shadow-lg hover:shadow-xl hover:from-[#FF0000] hover:to-[#EE0000] cursor-pointer',
-          currentProvider === 'youtube' && isCurrentTrack && 'ring-2 ring-white ring-offset-2 ring-offset-background'
+          currentProvider === 'youtube' && isCurrentTrack && 'ring-2 ring-white ring-offset-2 ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
         )}
         title={hasYouTube ? 'Play on YouTube' : 'Find on YouTube'}
         aria-label={hasYouTube ? `Play ${trackTitle} on YouTube` : `Find ${trackTitle} on YouTube`}

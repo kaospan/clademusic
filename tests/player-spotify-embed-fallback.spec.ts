@@ -14,8 +14,9 @@ test.describe('Spotify embed fallback for guests', () => {
 
     await spotifyBtn.click();
 
-    const embedIframe = page.locator('iframe[src*="open.spotify.com/embed/track"]');
-    await expect(embedIframe).toHaveCount(1, { timeout: 8000 });
+    const providerFrame = page.frameLocator('#universal-player').locator('iframe#provider');
+    await expect(providerFrame).toHaveCount(1, { timeout: 8000 });
+    await expect(providerFrame).toHaveAttribute('src', /open\.spotify\.com\/embed\/track/);
 
     const playerContainer = page.locator('[data-player="universal"]');
     await expect(playerContainer).toHaveCount(1);

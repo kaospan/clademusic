@@ -3,6 +3,7 @@ import { recordPlayEvent } from '@/api/playEvents';
 import { MusicProvider } from '@/types';
 import { getPreferredProvider } from '@/lib/preferences';
 import type { ProviderControls } from './providers/adapter';
+import { focusUniversalPlayerFrame } from '@/player/universal/UniversalPlayerHost';
 
 interface ConnectedProviders {
   spotify?: { connected: boolean };
@@ -655,6 +656,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [enqueuePlayerOp]);
 
   const openPlayer = useCallback((payload: OpenPlayerPayload) => {
+    // Capture a user-gesture focus on the universal player iframe to improve autoplay behavior
+    // for providers that allow it (e.g., YouTube embed). Safe no-op if iframe isn't mounted yet.
+    focusUniversalPlayerFrame();
+
     enqueuePlayerOp('openPlayer', async () => {
       const prevProvider = activeProviderRef.current;
       if (prevProvider && prevProvider !== payload.provider) {
@@ -778,6 +783,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const switchProvider = useCallback((provider: MusicProvider, providerTrackId: string | null, canonicalTrackId?: string | null) => {
+    focusUniversalPlayerFrame();
     enqueuePlayerOp('switchProvider', async () => {
       const prevProvider = activeProviderRef.current;
       const handoffStartSec = Math.floor(Math.max(0, positionMsRef.current) / 1000);

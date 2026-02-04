@@ -45,6 +45,7 @@ const PrivacyPolicyPage = lazy(() =>
 const MusicTasteSurvey = lazy(() =>
   import("./components/MusicTasteSurvey").then((module) => ({ default: module.MusicTasteSurvey }))
 );
+const E2EUniversalPlayerPage = lazy(() => import("./pages/E2EUniversalPlayerPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -121,6 +122,7 @@ const App = () => (
                       <Route path="/forum" element={<ForumHomePage />} />
                       <Route path="/forum/:forumName" element={<ForumHomePage />} />
                       <Route path="/forum/post/:postId" element={<ForumHomePage />} />
+                      <Route path="/__e2e__/player" element={<E2EUniversalPlayerPage />} />
                       {/* Legal Pages */}
                       <Route path="/terms" element={<TermsOfServicePage />} />
                       <Route path="/privacy" element={<PrivacyPolicyPage />} />
