@@ -4,11 +4,13 @@ import { usePlayer } from './PlayerContext';
 import { YouTubePlayer } from './providers/YouTubePlayer';
 import { SpotifyEmbedPreview } from './providers/SpotifyEmbedPreview';
 import { SpotifyWebPlayer } from './providers/SpotifyWebPlayer';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw, Repeat } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
 import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
 import { useSpotifyConnected } from '@/hooks/api/useSpotifyUser';
+import { useTrackSections } from '@/hooks/api/useTrackSections';
+import { getSectionDisplayLabel } from '@/lib/sections';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,6 +19,9 @@ const providerMeta = {
   youtube: { label: 'YouTube', badge: '▶', color: 'bg-black/90', Icon: YouTubeIcon },
   apple_music: { label: 'Apple Music', badge: '', color: 'bg-neutral-900/90', Icon: AppleMusicIcon },
 } as const;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (value: string | null | undefined) => Boolean(value && UUID_RE.test(value));
 
 type EmbeddedPlayerDrawerProps = {
   onNext?: () => void;
@@ -114,6 +119,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const {
     provider,
     trackId,
+    canonicalTrackId,
     trackTitle,
     trackArtist,
     lastKnownTitle,
@@ -134,6 +140,10 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     setVolumeLevel,
     toggleMute,
     seekToMs,
+    currentSectionId,
+    loopSectionId,
+    setCurrentSection,
+    setLoopSection,
     collapseToMini,
     restoreFromMini,
     setMiniPosition,
