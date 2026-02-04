@@ -96,7 +96,6 @@ export function SpotifyEmbedPreview({ providerTrackId, autoplay }: SpotifyEmbedP
     lastTrackIdRef.current = providerTrackId;
     lastEmitTsRef.current = 0;
     updatePlaybackState({
-      positionMs: 0,
       durationMs: 0,
       isPlaying: autoplay ?? autoplaySpotify ?? true,
     });

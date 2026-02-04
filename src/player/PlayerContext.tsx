@@ -141,6 +141,36 @@ const clampQueueIndex = (queueLength: number, index: number) => {
   return Math.max(0, Math.min(index, queueLength - 1));
 };
 
+const canonicalTrackIdFromProvider = (provider: MusicProvider, providerTrackId: string | null) => {
+  if (!providerTrackId) return null;
+
+  // Normalize common Spotify forms (spotify:track:ID, https://open.spotify.com/track/ID)
+  if (provider === 'spotify') {
+    if (providerTrackId.startsWith('spotify:track:')) {
+      const parts = providerTrackId.split(':');
+      const id = parts[parts.length - 1];
+      return id ? `spotify:${id}` : null;
+    }
+    if (providerTrackId.startsWith('spotify:')) return providerTrackId;
+    const match = providerTrackId.match(/open\.spotify\.com\/track\/([A-Za-z0-9]+)/);
+    if (match?.[1]) return `spotify:${match[1]}`;
+    return `spotify:${providerTrackId}`;
+  }
+
+  // Normalize common YouTube forms (https://www.youtube.com/watch?v=ID, youtu.be/ID)
+  if (provider === 'youtube') {
+    if (providerTrackId.startsWith('youtube:')) return providerTrackId;
+    const urlMatch = providerTrackId.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+    if (urlMatch?.[1]) return `youtube:${urlMatch[1]}`;
+    const shortMatch = providerTrackId.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+    if (shortMatch?.[1]) return `youtube:${shortMatch[1]}`;
+    if (providerTrackId.length === 11) return `youtube:${providerTrackId}`;
+    return `youtube:${providerTrackId}`;
+  }
+
+  return `${provider}:${providerTrackId}`;
+};
+
 // Choose the best available provider for a track, respecting user preference when possible
 const pickProviderForTrack = (track: import('@/types').Track) => {
   const preferred = getPreferredProvider();
@@ -191,10 +221,30 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   });
   const providerControlsRef = useRef<Partial<Record<MusicProvider, ProviderControls>>>({});
   const activeProviderRef = useRef<MusicProvider | null>(null);
+  const positionMsRef = useRef<number>(0);
+  const opChainRef = useRef<Promise<void>>(Promise.resolve());
+
+  const enqueuePlayerOp = useCallback((name: string, op: () => Promise<void>) => {
+    opChainRef.current = opChainRef.current
+      .catch(() => {
+        // Keep the chain alive even if a prior op failed.
+      })
+      .then(async () => {
+        try {
+          await op();
+        } catch (err) {
+          console.warn(`[Player] ${name} failed`, err);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     activeProviderRef.current = state.provider;
   }, [state.provider]);
+
+  useEffect(() => {
+    positionMsRef.current = state.positionMs;
+  }, [state.positionMs]);
 
   // Hydrate queue from localStorage on mount
   useEffect(() => {
@@ -209,7 +259,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error('Failed to hydrate queue from storage', err);
     }
-  }, [state.provider]);
+  }, []);
 
   // Persist queue to localStorage when it changes
   useEffect(() => {
@@ -227,6 +277,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const seekTo = useCallback((sec: number) => {
     const clamped = Math.max(0, sec);
+    positionMsRef.current = clamped * 1000;
     setState((prev) => ({ ...prev, seekToSec: clamped, positionMs: clamped * 1000 }));
     const active = activeProviderRef.current;
     if (active) {
@@ -308,7 +359,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => {
       const next: PlayerState = { ...prev };
 
-      if (updates.positionMs !== undefined) next.positionMs = Math.max(0, updates.positionMs);
+      if (updates.positionMs !== undefined) {
+        next.positionMs = Math.max(0, updates.positionMs);
+        positionMsRef.current = next.positionMs;
+      }
       if (updates.durationMs !== undefined) next.durationMs = Math.max(updates.durationMs, 0);
       if (updates.isPlaying !== undefined) next.isPlaying = updates.isPlaying;
       if (updates.volume !== undefined) next.volume = clamp01(updates.volume);
@@ -465,171 +519,204 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   // High-level play/pause/stop helpers (single definitions)
   const play = useCallback((canonicalTrackId: string | null, provider: MusicProvider, providerTrackId?: string | null, startSec?: number) => {
-    const prevProvider = activeProviderRef.current;
-    if (prevProvider && prevProvider !== provider) {
-      void stopActiveProvider(prevProvider, providerControlsRef);
-    }
-
-    setState((prev) => {
-      const updates: Partial<PlayerState> = {
-        canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
-        seekToSec: startSec ?? null,
-        provider,
-        trackId: providerTrackId ?? prev.trackId,
-        trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
-        trackArtist: dedupeArtists(prev.trackArtist ?? prev.lastKnownArtist),
-        trackAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
-        isMinimized: false,
-        isMini: false,
-        isCinema: false,
-        positionMs: startSec ? startSec * 1000 : 0,
-        durationMs: 0,
-        isMuted: false,
-      };
-
-      if (provider === 'spotify') {
-        updates.spotifyOpen = true;
-        updates.spotifyTrackId = providerTrackId ?? prev.spotifyTrackId;
-        updates.autoplaySpotify = true;
-        updates.youtubeOpen = false;
-        updates.autoplayYoutube = false;
-      } else {
-        updates.youtubeOpen = true;
-        updates.youtubeTrackId = providerTrackId ?? prev.youtubeTrackId;
-        updates.autoplayYoutube = true;
-        updates.spotifyOpen = false;
-        updates.autoplaySpotify = false;
+    enqueuePlayerOp('play', async () => {
+      const prevProvider = activeProviderRef.current;
+      if (prevProvider && prevProvider !== provider) {
+        await stopActiveProvider(prevProvider, providerControlsRef);
       }
 
-      updates.isPlaying = true;
+      setState((prev) => {
+        const resolvedCanonical = canonicalTrackId ?? prev.canonicalTrackId ?? canonicalTrackIdFromProvider(provider, providerTrackId ?? null);
+        const updates: Partial<PlayerState> = {
+          canonicalTrackId: resolvedCanonical,
+          seekToSec: startSec ?? null,
+          provider,
+          trackId: providerTrackId ?? prev.trackId,
+          trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
+          trackArtist: dedupeArtists(prev.trackArtist ?? prev.lastKnownArtist),
+          trackAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
+          isMinimized: false,
+          isMini: false,
+          isCinema: false,
+          positionMs: startSec ? startSec * 1000 : 0,
+          durationMs: 0,
+          isMuted: false,
+        };
 
-      return { ...prev, ...updates };
+        if (provider === 'spotify') {
+          updates.spotifyOpen = true;
+          updates.spotifyTrackId = providerTrackId ?? prev.spotifyTrackId;
+          updates.autoplaySpotify = true;
+          updates.youtubeOpen = false;
+          updates.autoplayYoutube = false;
+        } else {
+          updates.youtubeOpen = true;
+          updates.youtubeTrackId = providerTrackId ?? prev.youtubeTrackId;
+          updates.autoplayYoutube = true;
+          updates.spotifyOpen = false;
+          updates.autoplaySpotify = false;
+        }
+
+        updates.isPlaying = true;
+
+        positionMsRef.current = updates.positionMs ?? prev.positionMs;
+        activeProviderRef.current = provider;
+
+        return { ...prev, ...updates };
+      });
+
+      const idToLog = canonicalTrackId ?? canonicalTrackIdFromProvider(provider, providerTrackId ?? null);
+      if (idToLog) {
+        recordPlayEvent({ track_id: idToLog, provider, action: 'preview', context: 'player' }).catch((err) =>
+          console.error('Failed to record play event', err)
+        );
+      }
     });
-
-    if (canonicalTrackId) {
-      recordPlayEvent({ track_id: canonicalTrackId, provider, action: 'preview', context: 'player' }).catch((err) => console.error('Failed to record play event', err));
-    }
-  }, []);
+  }, [enqueuePlayerOp]);
 
   const pause = useCallback(() => {
+    const active = activeProviderRef.current;
+    if (active) {
+      providerControlsRef.current[active]?.pause?.();
+    }
     setState((prev) => ({ ...prev, isPlaying: false, autoplaySpotify: false, autoplayYoutube: false }));
   }, []);
 
   const stop = useCallback(() => {
-    void stopActiveProvider(activeProviderRef.current, providerControlsRef);
-    setState((prev) => ({
-      ...prev,
-      isPlaying: false,
-      spotifyOpen: false,
-      youtubeOpen: false,
-      spotifyTrackId: null,
-      youtubeTrackId: null,
-      canonicalTrackId: null,
-      trackId: null,
-      provider: null,
-       lastKnownTitle: prev.trackTitle ?? prev.lastKnownTitle,
-       lastKnownArtist: prev.trackArtist ?? prev.lastKnownArtist,
-       lastKnownAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
-      autoplaySpotify: false,
-      autoplayYoutube: false,
-      seekToSec: null,
-      isMini: false,
-      isCinema: false,
-    }));
-  }, []);
+    enqueuePlayerOp('stop', async () => {
+      await stopActiveProvider(activeProviderRef.current, providerControlsRef);
+      activeProviderRef.current = null;
+      setState((prev) => ({
+        ...prev,
+        isPlaying: false,
+        spotifyOpen: false,
+        youtubeOpen: false,
+        spotifyTrackId: null,
+        youtubeTrackId: null,
+        canonicalTrackId: null,
+        trackId: null,
+        provider: null,
+        lastKnownTitle: prev.trackTitle ?? prev.lastKnownTitle,
+        lastKnownArtist: prev.trackArtist ?? prev.lastKnownArtist,
+        lastKnownAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
+        autoplaySpotify: false,
+        autoplayYoutube: false,
+        seekToSec: null,
+        isMini: false,
+        isCinema: false,
+      }));
+    });
+  }, [enqueuePlayerOp]);
 
   const openPlayer = useCallback((payload: OpenPlayerPayload) => {
-    const prevProvider = activeProviderRef.current;
-    if (prevProvider && prevProvider !== payload.provider) {
-      void stopActiveProvider(prevProvider, providerControlsRef);
-    }
-
-    setState((prev) => {
-      // Ensure the track lives in the queue so Next/Prev always work
-      let nextQueue = prev.queue;
-      let nextQueueIndex = prev.queueIndex;
-      const canonicalId = payload.canonicalTrackId ?? prev.canonicalTrackId ?? `anon-${payload.provider}-${payload.providerTrackId ?? Date.now()}`;
-      if (canonicalId) {
-        const existingIdx = prev.queue.findIndex((t) => t.id === canonicalId);
-        if (existingIdx === -1) {
-          const queuedTrack: import('@/types').Track = {
-            id: canonicalId,
-            title: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle ?? 'Untitled',
-            artist: payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist ?? undefined,
-            album: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum ?? undefined,
-            spotify_id: payload.provider === 'spotify' ? payload.providerTrackId ?? undefined : undefined,
-            youtube_id: payload.provider === 'youtube' ? payload.providerTrackId ?? undefined : undefined,
-          };
-          nextQueue = [...prev.queue, queuedTrack];
-          nextQueueIndex = nextQueue.length - 1;
-        } else {
-          nextQueueIndex = existingIdx;
-        }
+    enqueuePlayerOp('openPlayer', async () => {
+      const prevProvider = activeProviderRef.current;
+      if (prevProvider && prevProvider !== payload.provider) {
+        await stopActiveProvider(prevProvider, providerControlsRef);
       }
 
-      const updates: Partial<PlayerState> = {
-        provider: payload.provider,
-        trackId: payload.providerTrackId,
-        canonicalTrackId: canonicalId,
-        trackTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
-        trackArtist: dedupeArtists(payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist),
-        trackAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
-        lastKnownTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
-        lastKnownArtist: dedupeArtists(payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist),
-        lastKnownAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
-        seekToSec: payload.startSec ?? null,
-        positionMs: payload.startSec ? payload.startSec * 1000 : 0,
-        durationMs: 0,
-        isMuted: false,
+      const resolvedCanonical = payload.canonicalTrackId ?? canonicalTrackIdFromProvider(payload.provider, payload.providerTrackId);
+
+      setState((prev) => {
+        // Ensure the track lives in the queue so Next/Prev always work
+        let nextQueue = prev.queue;
+        let nextQueueIndex = prev.queueIndex;
+        const canonicalId =
+          resolvedCanonical ??
+          (payload.provider === prev.provider && payload.providerTrackId === prev.trackId ? prev.canonicalTrackId : null) ??
+          `anon-${payload.provider}-${payload.providerTrackId ?? Date.now()}`;
+
+        if (canonicalId) {
+          const existingIdx = prev.queue.findIndex((t) => t.id === canonicalId);
+          if (existingIdx === -1) {
+            const queuedTrack: import('@/types').Track = {
+              id: canonicalId,
+              title: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle ?? 'Untitled',
+              artist: payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist ?? undefined,
+              album: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum ?? undefined,
+              spotify_id: payload.provider === 'spotify' ? payload.providerTrackId ?? undefined : undefined,
+              youtube_id: payload.provider === 'youtube' ? payload.providerTrackId ?? undefined : undefined,
+            };
+            nextQueue = [...prev.queue, queuedTrack];
+            nextQueueIndex = nextQueue.length - 1;
+          } else {
+            nextQueueIndex = existingIdx;
+          }
+        }
+
+        const updates: Partial<PlayerState> = {
+          provider: payload.provider,
+          trackId: payload.providerTrackId,
+          canonicalTrackId: canonicalId,
+          trackTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
+          trackArtist: dedupeArtists(payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist),
+          trackAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
+          lastKnownTitle: payload.title ?? prev.trackTitle ?? prev.lastKnownTitle,
+          lastKnownArtist: dedupeArtists(payload.artist ?? prev.trackArtist ?? prev.lastKnownArtist),
+          lastKnownAlbum: payload.album ?? prev.trackAlbum ?? prev.lastKnownAlbum,
+          seekToSec: payload.startSec ?? null,
+          positionMs: payload.startSec ? payload.startSec * 1000 : 0,
+          durationMs: 0,
+          isMuted: false,
+          isMinimized: false,
+          isMini: false,
+          isCinema: false,
+          isPlaying: payload.autoplay ?? true,
+          spotifyOpen: payload.provider === 'spotify',
+          youtubeOpen: payload.provider === 'youtube',
+          spotifyTrackId: payload.provider === 'spotify' ? payload.providerTrackId : prev.spotifyTrackId,
+          youtubeTrackId: payload.provider === 'youtube' ? payload.providerTrackId : prev.youtubeTrackId,
+          autoplaySpotify: payload.provider === 'spotify' ? payload.autoplay ?? true : false,
+          autoplayYoutube: payload.provider === 'youtube' ? payload.autoplay ?? true : false,
+          queue: nextQueue,
+          queueIndex: nextQueueIndex,
+        };
+
+        positionMsRef.current = updates.positionMs ?? prev.positionMs;
+        activeProviderRef.current = payload.provider;
+
+        return { ...prev, ...updates };
+      });
+
+      const idToLog = resolvedCanonical ?? payload.canonicalTrackId;
+      if (idToLog) {
+        recordPlayEvent({
+          track_id: idToLog,
+          provider: payload.provider,
+          action: 'preview',
+          context: payload.context ?? 'player',
+        }).catch((err) => {
+          console.error('Failed to record play event', err);
+        });
+      }
+    });
+  }, [enqueuePlayerOp]);
+
+  const closePlayer = useCallback(() => {
+    enqueuePlayerOp('closePlayer', async () => {
+      await stopActiveProvider(activeProviderRef.current, providerControlsRef);
+      activeProviderRef.current = null;
+      setState((prev) => ({
+        ...prev,
+        provider: null,
+        trackId: null,
+        canonicalTrackId: null,
+        trackTitle: prev.trackTitle,
+        trackArtist: prev.trackArtist,
+        isPlaying: false,
         isMinimized: false,
         isMini: false,
         isCinema: false,
-        isPlaying: payload.autoplay ?? true,
-        spotifyOpen: payload.provider === 'spotify',
-        youtubeOpen: payload.provider === 'youtube',
-        spotifyTrackId: payload.provider === 'spotify' ? payload.providerTrackId : prev.spotifyTrackId,
-        youtubeTrackId: payload.provider === 'youtube' ? payload.providerTrackId : prev.youtubeTrackId,
-        autoplaySpotify: payload.provider === 'spotify' ? payload.autoplay ?? true : false,
-        autoplayYoutube: payload.provider === 'youtube' ? payload.autoplay ?? true : false,
-        queue: nextQueue,
-        queueIndex: nextQueueIndex,
-      };
-      return { ...prev, ...updates };
+        seekToSec: null,
+        spotifyOpen: false,
+        youtubeOpen: false,
+        spotifyTrackId: null,
+        youtubeTrackId: null,
+        autoplaySpotify: false,
+        autoplayYoutube: false,
+      }));
     });
-
-    if (payload.canonicalTrackId) {
-      recordPlayEvent({
-        track_id: payload.canonicalTrackId,
-        provider: payload.provider,
-        action: 'preview',
-        context: payload.context ?? 'player',
-      }).catch((err) => {
-        console.error('Failed to record play event', err);
-      });
-    }
-  }, []);
-
-  const closePlayer = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      provider: null,
-      trackId: null,
-      canonicalTrackId: null,
-      trackTitle: prev.trackTitle,
-      trackArtist: prev.trackArtist,
-      isPlaying: false,
-      isMinimized: false,
-      isMini: false,
-      isCinema: false,
-      seekToSec: null,
-      spotifyOpen: false,
-      youtubeOpen: false,
-      spotifyTrackId: null,
-      youtubeTrackId: null,
-      autoplaySpotify: false,
-      autoplayYoutube: false,
-    }));
-  }, []);
+  }, [enqueuePlayerOp]);
 
   const closeSpotify = useCallback(() => {
     setState((prev) => ({ ...prev, spotifyOpen: false, autoplaySpotify: false }));
@@ -640,58 +727,62 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const switchProvider = useCallback((provider: MusicProvider, providerTrackId: string | null, canonicalTrackId?: string | null) => {
-    const prevProvider = activeProviderRef.current;
-    const handoffStartSec = Math.floor(Math.max(0, state.positionMs) / 1000);
-    if (prevProvider && prevProvider !== provider) {
-      void stopActiveProvider(prevProvider, providerControlsRef);
-    }
-
-    setState((prev) => {
-      const updates: Partial<PlayerState> = {
-        canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId,
-        provider,
-        trackId: providerTrackId ?? prev.trackId,
-        trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
-        trackArtist: dedupeArtists(prev.trackArtist ?? prev.lastKnownArtist),
-        trackAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
-        isMinimized: false,
-        isMini: false,
-        isCinema: false,
-        isPlaying: true,
-        isMuted: false,
-        seekToSec: handoffStartSec,
-        durationMs: 0,
-      };
-
-      if (provider === 'spotify') {
-        updates.spotifyOpen = true;
-        updates.spotifyTrackId = providerTrackId;
-        updates.autoplaySpotify = true;
-        updates.youtubeOpen = false;
-        updates.autoplayYoutube = false;
-      } else {
-        updates.youtubeOpen = true;
-        updates.youtubeTrackId = providerTrackId;
-        updates.autoplayYoutube = true;
-        updates.spotifyOpen = false;
-        updates.autoplaySpotify = false;
+    enqueuePlayerOp('switchProvider', async () => {
+      const prevProvider = activeProviderRef.current;
+      const handoffStartSec = Math.floor(Math.max(0, positionMsRef.current) / 1000);
+      if (prevProvider && prevProvider !== provider) {
+        await stopActiveProvider(prevProvider, providerControlsRef);
       }
 
-      return { ...prev, ...updates };
-    });
+      setState((prev) => {
+        const updates: Partial<PlayerState> = {
+          canonicalTrackId: canonicalTrackId ?? prev.canonicalTrackId ?? canonicalTrackIdFromProvider(provider, providerTrackId),
+          provider,
+          trackId: providerTrackId ?? prev.trackId,
+          trackTitle: prev.trackTitle ?? prev.lastKnownTitle,
+          trackArtist: dedupeArtists(prev.trackArtist ?? prev.lastKnownArtist),
+          trackAlbum: prev.trackAlbum ?? prev.lastKnownAlbum,
+          isMinimized: false,
+          isMini: false,
+          isCinema: false,
+          isPlaying: true,
+          isMuted: false,
+          seekToSec: handoffStartSec,
+          durationMs: 0,
+        };
 
-    const trackIdToLog = canonicalTrackId ?? state.canonicalTrackId;
-    if (trackIdToLog) {
-      recordPlayEvent({
-        track_id: trackIdToLog,
-        provider,
-        action: 'preview',
-        context: 'provider-switch',
-      }).catch((err) => {
-        console.error('Failed to record provider switch event', err);
+        if (provider === 'spotify') {
+          updates.spotifyOpen = true;
+          updates.spotifyTrackId = providerTrackId;
+          updates.autoplaySpotify = true;
+          updates.youtubeOpen = false;
+          updates.autoplayYoutube = false;
+        } else {
+          updates.youtubeOpen = true;
+          updates.youtubeTrackId = providerTrackId;
+          updates.autoplayYoutube = true;
+          updates.spotifyOpen = false;
+          updates.autoplaySpotify = false;
+        }
+
+        activeProviderRef.current = provider;
+
+        return { ...prev, ...updates };
       });
-    }
-  }, [state.canonicalTrackId, state.provider]);
+
+      const trackIdToLog = canonicalTrackId ?? state.canonicalTrackId ?? canonicalTrackIdFromProvider(provider, providerTrackId);
+      if (trackIdToLog) {
+        recordPlayEvent({
+          track_id: trackIdToLog,
+          provider,
+          action: 'preview',
+          context: 'provider-switch',
+        }).catch((err) => {
+          console.error('Failed to record provider switch event', err);
+        });
+      }
+    });
+  }, [enqueuePlayerOp, state.canonicalTrackId]);
 
   const isOpen = !!state.provider && !!state.trackId;
 

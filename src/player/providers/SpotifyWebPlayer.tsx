@@ -159,7 +159,6 @@ export function SpotifyWebPlayer({ providerTrackId, autoplay }: SpotifyWebPlayer
     setError(null);
     setReady(false);
     updatePlaybackState({
-      positionMs: 0,
       durationMs: 0,
       isPlaying: shouldAutoplay,
     });
