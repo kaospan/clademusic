@@ -9,6 +9,7 @@ const providerSelectors = {
 
 async function expectSinglePlayer(page) {
   await expect(page.locator(playerLocator)).toHaveCount(1);
+  await expect(page.locator('iframe#universal-player-host')).toHaveCount(1);
 }
 
 test.describe('Universal Player Singleton Enforcement', () => {
@@ -25,21 +26,19 @@ test.describe('Universal Player Singleton Enforcement', () => {
 
     await expectSinglePlayer(page);
 
-    const youtubeIframes = page.locator('iframe[src*="youtube"]');
-    const initialYouTubeCount = await youtubeIframes.count();
-    expect(initialYouTubeCount).toBeLessThanOrEqual(1);
+    const providerFrame = page.frameLocator('#universal-player-host').locator('iframe#provider');
+    await expect(providerFrame).toHaveAttribute('src', /open\.spotify\.com\/embed\/track/);
 
     const youtubeButton = page.locator(providerSelectors.youtube).first();
     await expect(youtubeButton).toBeVisible();
     await youtubeButton.click();
 
     await expectSinglePlayer(page);
-    await expect(youtubeIframes).toHaveCount(1);
+    await expect(providerFrame).toHaveAttribute('src', /youtube/);
 
     await spotifyButton.click();
     await expectSinglePlayer(page);
-    const afterSwitchYouTubeCount = await youtubeIframes.count();
-    expect(afterSwitchYouTubeCount).toBeLessThanOrEqual(1);
+    await expect(providerFrame).toHaveAttribute('src', /open\.spotify\.com\/embed\/track/);
 
     const cardEmbeds = page.locator('[data-track-card] iframe');
     await expect(cardEmbeds).toHaveCount(0);

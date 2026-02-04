@@ -743,7 +743,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
         }}
         data-player="universal"
         aria-hidden={isMini}
-        className={`fixed z-[70] ${isMini ? 'pointer-events-none opacity-0' : 'pointer-events-auto'} ${
+        className={`fixed z-[110] ${isMini ? 'pointer-events-none opacity-0' : 'pointer-events-auto'} ${
           isMini
             ? 'top-0 left-1/2 -translate-x-1/2 w-[min(720px,calc(100vw-32px))]'
             : isCompact
@@ -1128,7 +1128,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           role="region"
           aria-label="Mini player"
           aria-live="polite"
-          className="pointer-events-auto fixed bottom-4 right-4 z-[65] w-[260px] max-w-[85vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+          className="pointer-events-auto fixed bottom-4 right-4 z-[110] w-[260px] max-w-[85vw] rounded-xl border border-border/60 bg-neutral-900/90 shadow-2xl backdrop-blur-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
         >
           <div className="flex items-center justify-between px-3 py-2 gap-2">
             <div className="flex flex-col min-w-0">
