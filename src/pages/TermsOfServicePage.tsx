@@ -3,13 +3,14 @@ import { ArrowLeft, Shield, FileText, Cookie, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Footer } from '@/components/Footer';
+import { BottomNav } from '@/components/BottomNav';
 
 export function TermsOfServicePage() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 pt-24 pb-8 max-w-4xl">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -165,6 +166,7 @@ export function TermsOfServicePage() {
       </div>
 
       <Footer />
+      <BottomNav />
     </div>
   );
 }

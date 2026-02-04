@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('Spotify embed fallback for guests', () => {
   test('renders a single Spotify embed iframe after clicking Spotify quickstream', async ({ page }) => {
-    await page.goto('/cladeai/feed');
+    await page.goto('/feed');
 
     const spotifyBtn = page.locator('[data-provider="spotify"]').first();
     await expect(spotifyBtn).toBeVisible();

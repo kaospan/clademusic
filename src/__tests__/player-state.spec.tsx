@@ -174,4 +174,47 @@ describe('Player state invariants', () => {
       expect(latest?.isPlaying).toBe(true);
     });
   });
+
+  it('queues tracks for Next/Prev navigation', async () => {
+    let latest: ReturnType<typeof usePlayer> | null = null;
+
+    withProvider((ctx) => {
+      latest = ctx;
+    });
+
+    await waitFor(() => expect(latest).toBeTruthy());
+
+    act(() => {
+      latest?.openPlayer({
+        canonicalTrackId: 'track-1',
+        provider: 'spotify' as MusicProvider,
+        providerTrackId: 's-1',
+        title: 'First',
+        artist: 'Artist',
+        autoplay: true,
+      });
+      latest?.openPlayer({
+        canonicalTrackId: 'track-2',
+        provider: 'spotify' as MusicProvider,
+        providerTrackId: 's-2',
+        title: 'Second',
+        artist: 'Artist',
+        autoplay: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(latest?.queue.length).toBe(2);
+      expect(latest?.queueIndex).toBe(1);
+    });
+
+    act(() => {
+      latest?.playFromQueue(0);
+    });
+
+    await waitFor(() => {
+      expect(latest?.queueIndex).toBe(0);
+      expect(latest?.trackId).toBe('s-1');
+    });
+  });
 });

@@ -105,7 +105,7 @@ export default function ComparePage() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
-        <div className="px-4 py-4 max-w-lg mx-auto">
+        <div className="pr-4 pl-36 sm:pl-44 py-4 max-w-lg mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <CladeLogoAnimated size={22} className="text-primary" />

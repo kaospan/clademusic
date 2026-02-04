@@ -39,6 +39,10 @@ cypress/videos
 cypress/screenshots
 cypress/downloads
 
+# Playwright
+test-results/*
+!test-results/.last-run.json
+
 # Local tooling
 .tools/
 

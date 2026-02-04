@@ -42,6 +42,7 @@ export function PageLayout({
   
   const containerWidth = fullWidth ? '' : 'max-w-7xl mx-auto';
   const mainPadding = fixedHeader ? 'pt-16 pb-24' : 'pb-24';
+  const headerPaddingClass = hideNav ? 'px-4 py-4' : 'pr-4 pl-36 sm:pl-44 py-4';
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,7 +51,7 @@ export function PageLayout({
       </div>
       {/* Header */}
       <header className={`z-40 glass-strong safe-top ${headerPositionClass}`}>
-        <div className={`px-4 py-4 ${containerWidth}`}>
+        <div className={`${headerPaddingClass} ${containerWidth}`}>
           {headerContent ? (
             headerContent
           ) : (

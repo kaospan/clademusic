@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePlayer } from './PlayerContext';
-import { Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, RefreshCcw, Repeat, Sparkles, ArrowLeftRight } from 'lucide-react';
+import { Volume2, VolumeX, Maximize2, X, ChevronUp, Play, Pause, SkipBack, SkipForward, ListMusic, Repeat, Sparkles, ArrowLeftRight } from 'lucide-react';
 import { QueueSheet } from './QueueSheet';
 import { SpotifyIcon, YouTubeIcon, AppleMusicIcon } from '@/components/QuickStreamButtons';
 import { useConnectSpotify } from '@/hooks/api/useSpotifyConnect';
@@ -423,14 +423,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [enterCinema, exitCinema]);
 
-  // Hydrate persisted layout (compact flag + scale)
+  // Hydrate persisted layout (scale)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const raw = localStorage.getItem(layoutStorageKey);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as Partial<{ isCompact: boolean; playerScale: number }>;
-      if (typeof parsed.isCompact === 'boolean') setIsCompact(parsed.isCompact);
+      const parsed = JSON.parse(raw) as Partial<{ playerScale: number }>;
       if (Number.isFinite(parsed.playerScale)) setPlayerScale(clampPlayerScale(parsed.playerScale!));
     } catch (err) {
       console.warn('Failed to hydrate player layout', err);
@@ -440,13 +439,13 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   // Persist layout whenever it changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const payload = JSON.stringify({ isCompact, playerScale });
+    const payload = JSON.stringify({ playerScale });
     try {
       localStorage.setItem(layoutStorageKey, payload);
     } catch (err) {
       console.warn('Failed to persist player layout', err);
     }
-  }, [isCompact, playerScale]);
+  }, [playerScale]);
 
   // Hydrate positions from cookie
   useEffect(() => {
@@ -593,7 +592,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
 
   useLayoutEffect(() => {
     setDragBoundsIfChanged();
-  }, [isMini, isCompact, mainPosition, compactPosition, miniPosition, playerScale, setDragBoundsIfChanged, videoScale]);
+  }, [isMini, isCompact, mainPosition, compactPosition, miniPosition, playerScale, setDragBoundsIfChanged]);
 
   useEffect(() => {
     if (isMini) {
@@ -809,19 +808,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               >
                 {isPlaying ? <Pause className="h-4 w-4 md:h-5 md:w-5" /> : <Play className="h-4 w-4 md:h-5 md:w-5" />}
               </button>
-              {isCompact && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCompact(false);
-                  }}
-                  className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                  aria-label="Show video and expand player"
-                  title="Show video"
-                >
-                  <ChevronUp className="h-3 w-3 md:h-4 md:w-4" />
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => (effectiveCanNext ? handleNext() : null)}
@@ -832,19 +818,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               >
                 <SkipForward className="h-4 w-4 md:h-5 md:w-5" />
               </button>
-              {!isCompact && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCompact(true);
-                  }}
-                  className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-full border border-border/70 bg-muted/60 text-muted-foreground transition hover:border-border hover:bg-background hover:text-foreground"
-                  aria-label="Compact player and hide video"
-                  title="Compact (hide video)"
-                >
-                  <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-                </button>
-              )}
               <button
                 type="button"
                 onClick={toggleFullscreen}
@@ -879,26 +852,16 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               ? {}
               : {
                   animate: {
-                    height: provider && trackId && !isCompact ? 'auto' : 0,
-                    opacity: provider && trackId && !isCompact ? 1 : 0,
+                    height: provider && trackId ? 'auto' : 0,
+                    opacity: provider && trackId ? 1 : 0,
                   },
                   transition: { duration: 0.25, ease: 'easeOut' },
                 })}
             className="overflow-hidden bg-black/80"
-            aria-hidden={!provider || !trackId || isCompact}
+            aria-hidden={!provider || !trackId}
           >
             <div className="relative flex justify-center px-2 py-2">
-              <div
-                className="w-full sm:w-auto relative"
-                style={{
-                  width:
-                    provider === 'youtube'
-                      ? `${Math.min(Math.max(videoScale * 100, 30), 160)}%`
-                      : '100%',
-                  maxWidth: '100%',
-                  transition: 'width 120ms ease',
-                }}
-              >
+              <div className="w-full relative">
                 <UniversalPlayerHost
                   request={
                     provider && trackId
@@ -1035,18 +998,6 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
               </button>
             )}
 
-            {provider === 'youtube' && (
-              <>
-                <button
-                  onClick={() => setVideoScale(1)}
-                  className="p-1.5 text-white/80 hover:text-white transition-colors rounded"
-                  aria-label="Reset video size"
-                  title="Reset video size"
-                >
-                  <RefreshCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                </button>
-              </>
-            )}
           </div>
 
           {!isMini && !isCompact && sections.length > 0 && (

@@ -312,7 +312,7 @@ export default function TrackDetailPage() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong safe-top">
-        <div className="flex items-center gap-3 px-4 py-3 max-w-4xl mx-auto">
+        <div className="flex items-center gap-3 pr-4 pl-36 sm:pl-44 py-3 max-w-4xl mx-auto">
           <Button
             variant="ghost"
             size="icon"

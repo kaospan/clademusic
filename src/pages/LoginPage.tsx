@@ -5,10 +5,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Music, Loader2, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/shared';
+import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
+import { CladeWordmark } from '@/components/shared/CladeWordmark';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -126,10 +128,10 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 mb-8"
         >
-          <div className="p-3 rounded-2xl bg-primary/20 glow-primary">
-            <Music className="w-8 h-8 text-primary" />
+          <div className="p-3 rounded-2xl bg-background/60 border border-border/40 shadow-lg backdrop-blur">
+            <CladeLogoAnimated size={40} className="drop-shadow-sm" />
           </div>
-          <h1 className="text-3xl font-bold gradient-text">HarmonyFeed</h1>
+          <CladeWordmark size="lg" className="leading-none" />
         </motion.div>
 
         <motion.div
