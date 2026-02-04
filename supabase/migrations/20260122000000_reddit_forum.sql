@@ -224,7 +224,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_update_post_vote_count
 AFTER INSERT OR UPDATE OR DELETE ON forum_votes
 FOR EACH ROW 
-WHEN (NEW.post_id IS NOT NULL OR OLD.post_id IS NOT NULL)
 EXECUTE FUNCTION update_post_vote_count();
 
 -- Update comment vote count
@@ -255,7 +254,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_update_comment_vote_count
 AFTER INSERT OR UPDATE OR DELETE ON forum_votes
 FOR EACH ROW 
-WHEN (NEW.comment_id IS NOT NULL OR OLD.comment_id IS NOT NULL)
 EXECUTE FUNCTION update_comment_vote_count();
 
 -- RLS Policies

@@ -76,7 +76,13 @@ const App = () => (
             <QueueProvider>
               <Toaster />
               <Sonner />
-              <BrowserRouter basename={import.meta.env.BASE_URL}>
+              <BrowserRouter
+                basename={
+                  (import.meta as any).env?.MODE === 'production'
+                    ? import.meta.env.BASE_URL
+                    : '/'
+                }
+              >
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
