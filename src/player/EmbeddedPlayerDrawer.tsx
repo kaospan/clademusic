@@ -258,6 +258,39 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const isIdle = !isOpen || !provider || !trackId;
   const effectiveCanNext = canNext ?? (safeQueue.length > 1 || Boolean(onNext));
   const effectiveCanPrev = canPrev ?? !isIdle;
+  const authoritativePositionMs = safeMs(positionMs);
+
+  const activeSection = useMemo(() => {
+    if (!sections.length) return null;
+    return sections.find((s) => authoritativePositionMs >= s.start_ms && authoritativePositionMs < s.end_ms) ?? null;
+  }, [authoritativePositionMs, sections]);
+
+  const loopSection = useMemo(() => {
+    if (!loopSectionId) return null;
+    return sections.find((s) => s.id === loopSectionId) ?? null;
+  }, [loopSectionId, sections]);
+
+  useEffect(() => {
+    if (typeof setCurrentSection !== 'function') return;
+    const nextId = activeSection?.id ?? null;
+    if (nextId !== currentSectionId) {
+      setCurrentSection(nextId);
+    }
+  }, [activeSection?.id, currentSectionId, setCurrentSection]);
+
+  const lastLoopSeekAtRef = useRef<number>(0);
+  useEffect(() => {
+    if (!loopSection) return;
+    const ms = authoritativePositionMs;
+    const thresholdMs = 200;
+    if (ms >= loopSection.end_ms - thresholdMs) {
+      const now = performance.now();
+      if (now - lastLoopSeekAtRef.current > 800) {
+        lastLoopSeekAtRef.current = now;
+        seekToMs(loopSection.start_ms);
+      }
+    }
+  }, [authoritativePositionMs, loopSection, seekToMs]);
 
   const meta = useMemo(() => {
     const fallback = { label: 'Now Playing', badge: '♪', color: 'bg-neutral-900/90', Icon: null as React.ComponentType<{ className?: string }> | null };
