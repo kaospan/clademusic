@@ -38,3 +38,9 @@ dist-ssr
 cypress/videos
 cypress/screenshots
 cypress/downloads
+
+# Local tooling
+.tools/
+
+# Supabase CLI local state
+supabase/.temp/
