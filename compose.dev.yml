@@ -1,0 +1,21 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: clademusic-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: bun run dev
+    restart: unless-stopped
+    networks:
+      - clademusic-network
+
+networks:
+  clademusic-network:
+    driver: bridge

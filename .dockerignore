@@ -1,0 +1,65 @@
+# Dependencies
+node_modules
+.lockb-*.tmp
+
+# Build output
+dist
+dist-ssr
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env*.local
+
+# Testing
+coverage
+test-results
+cypress/videos
+cypress/screenshots
+cypress/downloads
+playwright-report
+
+# Logs
+logs
+*.log
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+docs
+artifacts
+
+# Config files not needed in production
+.eslintrc*
+eslint.config.js
+tsconfig*.json
+vite.config.mjs
+vitest.config.ts
+cypress.config.*
+playwright.config.ts
+postcss.config.js
+tailwind.config.ts
+components.json
