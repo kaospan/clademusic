@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Universal player z-index dominance', () => {
   test('player must be visually above feed and controls', async ({ page }) => {
-    await page.goto('/feed');
+    await page.goto('/clademusic/feed');
 
     await page.waitForSelector('[data-provider="spotify"]');
 

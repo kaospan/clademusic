@@ -239,7 +239,7 @@ export function QueueSheet({
       {/* Desktop/tablet: right sidebar */}
       {open && (
         <div
-          className="hidden md:flex fixed inset-y-0 right-0 z-[80] w-[420px] max-w-[40vw] border-l bg-background shadow-2xl flex-col"
+          className="hidden md:flex fixed inset-y-0 right-0 z-[120] w-[420px] max-w-[40vw] border-l bg-background shadow-2xl flex-col"
           aria-label="Queue sidebar"
         >
           {queueBody}

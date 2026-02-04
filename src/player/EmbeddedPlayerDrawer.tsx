@@ -759,7 +759,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
           }
         }}
         data-player="universal"
-        className={`pointer-events-auto fixed z-[70] w-[min(720px,calc(100vw-32px))] ${
+        className={`pointer-events-auto fixed z-[110] w-[min(720px,calc(100vw-32px))] ${
           isMini
             ? 'bottom-6 right-4 left-auto translate-x-0 w-[clamp(200px,80vw,360px)]'
             : isCompact
