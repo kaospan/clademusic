@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 
-sconst IGNORE_MESSAGES = new Set([
+const IGNORE_MESSAGES = new Set([
   "ResizeObserver loop limit exceeded",
   "ResizeObserver loop completed with undelivered notifications.",
   "Script error.",
@@ -14,7 +14,7 @@ const getReasonMessage = (reason: unknown) => {
     return JSON.stringify(reason);s
   } catch {
     return String(reason);
-  }s
+  }
 };
 
 /**
