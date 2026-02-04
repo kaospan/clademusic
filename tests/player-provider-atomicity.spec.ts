@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Provider switch is atomic (no overlap)', () => {
   test('switching providers stops previous playback first', async ({ page }) => {
-    await page.goto('__e2e__/player');
+    await page.goto('/clademusic/__e2e__/player');
 
     await page.waitForSelector('[data-e2e-player]');
     await page.waitForSelector('[data-provider="spotify"]');
