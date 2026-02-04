@@ -1,0 +1,1 @@
+import{j as a,q as r}from"./index-B9figJCG.js";function o({className:t,size:e="md"}){const s={sm:"text-lg",md:"text-2xl",lg:"text-3xl"}[e];return a.jsx("span",{className:r("font-bold bg-gradient-to-r from-[#00F5FF] via-[#FF00FF] to-[#FFD700] bg-clip-text text-transparent",s,t),children:"Clade"})}export{o as C};
