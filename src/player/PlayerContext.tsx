@@ -36,6 +36,7 @@ export interface PlayerState {
   miniPosition: { x: number; y: number };
   seekToSec: number | null;
   currentSectionId: string | null;
+  loopSectionId: string | null;
   queue: import('@/types').Track[];
   queueIndex: number;
 }
@@ -95,6 +96,7 @@ interface PlayerContextValue extends PlayerState {
   setVolumeLevel: (volume: number) => void;
   toggleMute: () => void;
   setCurrentSection: (sectionId: string | null) => void;
+  setLoopSection: (sectionId: string | null) => void;
   setIsPlaying: (playing: boolean) => void;
   setMinimized: (value: boolean) => void;
   collapseToMini: () => void;
@@ -218,6 +220,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     miniPosition: { x: 0, y: 0 },
     seekToSec: null,
     currentSectionId: null,
+    loopSectionId: null,
     queue: [],
     queueIndex: -1,
   });
@@ -298,6 +301,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const setCurrentSection = useCallback((sectionId: string | null) => {
     setState((prev) => ({ ...prev, currentSectionId: sectionId }));
+  }, []);
+
+  const setLoopSection = useCallback((sectionId: string | null) => {
+    setState((prev) => ({ ...prev, loopSectionId: sectionId }));
   }, []);
 
   const setIsPlaying = useCallback((playing: boolean) => {
@@ -569,6 +576,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => {
         const resolvedCanonical = canonicalTrackId ?? prev.canonicalTrackId ?? canonicalTrackIdFromProvider(provider, providerTrackId ?? null);
+        const isSameCanonical = resolvedCanonical != null && resolvedCanonical === prev.canonicalTrackId;
         const updates: Partial<PlayerState> = {
           canonicalTrackId: resolvedCanonical,
           seekToSec: startSec ?? null,
@@ -583,6 +591,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           positionMs: startSec ? startSec * 1000 : 0,
           durationMs: 0,
           isMuted: false,
+          currentSectionId: isSameCanonical ? prev.currentSectionId : null,
+          loopSectionId: isSameCanonical ? prev.loopSectionId : null,
         };
 
         if (provider === 'spotify') {
@@ -644,6 +654,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         autoplaySpotify: false,
         autoplayYoutube: false,
         seekToSec: null,
+        currentSectionId: null,
+        loopSectionId: null,
         isMini: false,
         isCinema: false,
       }));
@@ -667,6 +679,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           resolvedCanonical ??
           (payload.provider === prev.provider && payload.providerTrackId === prev.trackId ? prev.canonicalTrackId : null) ??
           `anon-${payload.provider}-${payload.providerTrackId ?? Date.now()}`;
+        const isSameCanonical = canonicalId != null && canonicalId === prev.canonicalTrackId;
 
         if (canonicalId) {
           const existingIdx = prev.queue.findIndex((t) => t.id === canonicalId);
@@ -704,6 +717,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           isMini: false,
           isCinema: false,
           isPlaying: payload.autoplay ?? true,
+          currentSectionId: isSameCanonical ? prev.currentSectionId : null,
+          loopSectionId: isSameCanonical ? prev.loopSectionId : null,
           spotifyOpen: payload.provider === 'spotify',
           youtubeOpen: payload.provider === 'youtube',
           spotifyTrackId: payload.provider === 'spotify' ? payload.providerTrackId : prev.spotifyTrackId,
@@ -750,6 +765,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isMini: false,
         isCinema: false,
         seekToSec: null,
+        currentSectionId: null,
+        loopSectionId: null,
         spotifyOpen: false,
         youtubeOpen: false,
         spotifyTrackId: null,
@@ -895,6 +912,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setVolumeLevel,
     toggleMute,
     setCurrentSection,
+    setLoopSection,
     setIsPlaying,
     setMinimized,
     collapseToMini,
@@ -914,7 +932,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     shuffleQueue,
     nextTrack,
     previousTrack,
-  }), [state, isOpen, openPlayer, play, pause, stop, closePlayer, closeSpotify, closeYoutube, switchProvider, seekTo, seekToMs, clearSeek, togglePlayPause, setVolumeLevel, toggleMute, setCurrentSection, setIsPlaying, setMinimized, collapseToMini, restoreFromMini, setMiniPosition, enterCinema, exitCinema, registerProviderControls, updatePlaybackState, enqueueNext, enqueueLater, addToQueue, playFromQueue, removeFromQueue, reorderQueue, clearQueue, shuffleQueue, nextTrack, previousTrack]);
+  }), [state, isOpen, openPlayer, play, pause, stop, closePlayer, closeSpotify, closeYoutube, switchProvider, seekTo, seekToMs, clearSeek, togglePlayPause, setVolumeLevel, toggleMute, setCurrentSection, setLoopSection, setIsPlaying, setMinimized, collapseToMini, restoreFromMini, setMiniPosition, enterCinema, exitCinema, registerProviderControls, updatePlaybackState, enqueueNext, enqueueLater, addToQueue, playFromQueue, removeFromQueue, reorderQueue, clearQueue, shuffleQueue, nextTrack, previousTrack]);
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
 }
