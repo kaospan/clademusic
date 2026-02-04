@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { MoreVertical, Album, User, Music2, Link2, ListMusic, PlaySquare } from 'lucide-react';
 import { Track } from '@/types';
 import { useNavigate } from 'react-router-dom';
-import { useQueue } from '@/contexts/QueueContext';
+import { usePlayer } from '@/player/PlayerContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,7 @@ interface TrackMenuProps {
 
 export function TrackMenu({ track }: TrackMenuProps) {
   const navigate = useNavigate();
-  const { playNext, playLater } = useQueue();
+  const { enqueueNext, enqueueLater } = usePlayer();
 
   const handleViewAlbum = () => {
     if (track.album) {
@@ -57,11 +57,11 @@ export function TrackMenu({ track }: TrackMenuProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={() => playNext(track)}>
+        <DropdownMenuItem onClick={() => enqueueNext(track)}>
           <PlaySquare className="w-4 h-4 mr-2" />
           Play Next
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => playLater(track)}>
+        <DropdownMenuItem onClick={() => enqueueLater(track)}>
           <ListMusic className="w-4 h-4 mr-2" />
           Add to Queue
         </DropdownMenuItem>

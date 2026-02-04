@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PlayerProvider } from "@/player/PlayerContext";
 import { YouTubePlayerProvider } from "@/contexts/YouTubePlayerContext";
-import { QueueProvider } from "@/contexts/QueueContext";
 import { EmbeddedPlayerDrawer } from "@/player/EmbeddedPlayerDrawer";
 import { ErrorBoundary, GlobalErrorHandlers, LoadingSpinner } from "@/components/shared";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -96,7 +95,6 @@ const App = () => (
       <AuthProvider>
         <YouTubePlayerProvider>
           <PlayerProvider>
-            <QueueProvider>
               <Toaster />
               <Sonner />
               <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -142,7 +140,6 @@ const App = () => (
                 </RouteErrorBoundary>
                 <PlayerVisibilityGate />
               </BrowserRouter>
-            </QueueProvider>
         </PlayerProvider>
       </YouTubePlayerProvider>
     </AuthProvider>

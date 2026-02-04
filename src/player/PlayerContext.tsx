@@ -104,6 +104,8 @@ interface PlayerContextValue extends PlayerState {
   exitCinema: () => void;
   registerProviderControls: (provider: MusicProvider, controls: ProviderControls) => void;
   updatePlaybackState: (updates: Partial<Pick<PlayerState, 'positionMs' | 'durationMs' | 'isPlaying' | 'volume' | 'isMuted' | 'trackTitle' | 'trackArtist' | 'trackAlbum' | 'lastKnownTitle' | 'lastKnownArtist' | 'lastKnownAlbum'>>) => void;
+  enqueueNext: (track: import('@/types').Track) => void;
+  enqueueLater: (track: import('@/types').Track) => void;
   addToQueue: (track: import('@/types').Track) => void;
   playFromQueue: (index: number) => void;
   removeFromQueue: (index: number) => void;
@@ -415,9 +417,49 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isCinema: false }));
   }, []);
 
-  const addToQueue = useCallback((track: import('@/types').Track) => {
-    setState((prev) => ({ ...prev, queue: [...prev.queue, track] }));
+  const enqueueLater = useCallback((track: import('@/types').Track) => {
+    setState((prev) => {
+      const existingIdx = prev.queue.findIndex((t) => t.id === track.id);
+      if (existingIdx === prev.queueIndex) return prev;
+
+      let queue = prev.queue;
+      let queueIndex = prev.queueIndex;
+
+      if (existingIdx !== -1) {
+        queue = prev.queue.filter((_, i) => i !== existingIdx);
+        if (existingIdx < queueIndex) queueIndex -= 1;
+      }
+
+      queue = [...queue, track];
+      return { ...prev, queue, queueIndex: clampQueueIndex(queue.length, queueIndex) };
+    });
   }, []);
+
+  const enqueueNext = useCallback((track: import('@/types').Track) => {
+    setState((prev) => {
+      let baseIndex = prev.queueIndex;
+      const isValidBase = baseIndex >= 0 && baseIndex < prev.queue.length;
+      if (!isValidBase) baseIndex = -1;
+
+      const queue = [...prev.queue];
+      const existingIdx = queue.findIndex((t) => t.id === track.id);
+      if (existingIdx === baseIndex) return prev;
+
+      if (existingIdx !== -1) {
+        queue.splice(existingIdx, 1);
+        if (existingIdx < baseIndex) baseIndex -= 1;
+      }
+
+      const insertAt = baseIndex === -1 ? queue.length : baseIndex + 1;
+      queue.splice(insertAt, 0, track);
+
+      return { ...prev, queue, queueIndex: clampQueueIndex(queue.length, baseIndex) };
+    });
+  }, []);
+
+  const addToQueue = useCallback((track: import('@/types').Track) => {
+    enqueueLater(track);
+  }, [enqueueLater]);
 
   const playFromQueue = useCallback((index: number) => {
     setState((prev) => {
@@ -862,6 +904,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     exitCinema,
     registerProviderControls,
     updatePlaybackState,
+    enqueueNext,
+    enqueueLater,
     addToQueue,
     playFromQueue,
     removeFromQueue,
@@ -870,7 +914,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     shuffleQueue,
     nextTrack,
     previousTrack,
-  }), [state, isOpen, openPlayer, play, pause, stop, closePlayer, closeSpotify, closeYoutube, switchProvider, seekTo, seekToMs, clearSeek, togglePlayPause, setVolumeLevel, toggleMute, setCurrentSection, setIsPlaying, setMinimized, collapseToMini, restoreFromMini, setMiniPosition, enterCinema, exitCinema, registerProviderControls, updatePlaybackState, addToQueue, playFromQueue, removeFromQueue, reorderQueue, clearQueue, shuffleQueue, nextTrack, previousTrack]);
+  }), [state, isOpen, openPlayer, play, pause, stop, closePlayer, closeSpotify, closeYoutube, switchProvider, seekTo, seekToMs, clearSeek, togglePlayPause, setVolumeLevel, toggleMute, setCurrentSection, setIsPlaying, setMinimized, collapseToMini, restoreFromMini, setMiniPosition, enterCinema, exitCinema, registerProviderControls, updatePlaybackState, enqueueNext, enqueueLater, addToQueue, playFromQueue, removeFromQueue, reorderQueue, clearQueue, shuffleQueue, nextTrack, previousTrack]);
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
 }
