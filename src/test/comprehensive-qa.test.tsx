@@ -189,7 +189,7 @@ describe('Mobile Player QA', () => {
 
     it('should have proper z-index hierarchy', () => {
       const { container } = render(<EmbeddedPlayerDrawer />, { wrapper });
-      const player = container.querySelector('.z-\\[70\\]');
+      const player = container.querySelector('.z-\\[110\\]');
       
       expect(player).toBeInTheDocument();
     });
