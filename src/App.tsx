@@ -78,8 +78,8 @@ const App = () => (
               <Sonner />
               <BrowserRouter
                 basename={
-                  (import.meta as any).env?.MODE === 'production'
-                    ? import.meta.env.BASE_URL
+                  typeof window !== 'undefined' && window.location.pathname.startsWith('/clademusic')
+                    ? '/clademusic'
                     : '/'
                 }
               >
