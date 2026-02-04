@@ -8,6 +8,10 @@ title: Welcome to Clade
 
 Clade is a TikTok-style music discovery platform that analyzes songs by **harmonic structure**, not genre. Find tracks using chord progressions, cadence patterns, and relative theory.
 
+## 🔖 Current Version
+
+- Web: **1.0.1** (2026-02-04) — see [CHANGELOG.md](../CHANGELOG.md)
+
 ## 📚 Documentation
 
 ### Getting Started
@@ -34,6 +38,9 @@ Clade is a TikTok-style music discovery platform that analyzes songs by **harmon
 ### Reference
 - [Changelog](../CHANGELOG.md) — Version history and recent changes
 - [Tasks](../TASKS.md) — Current progress and roadmap
+- [Release Process](RELEASE_PROCESS.md) — How versions/releases work
+- [Code Review Checklist](CODE_REVIEW.md) — What to verify for every PR
+- [Known Issues](KNOWN_ISSUES.md) — Operational notes + open bugs
 
 ---
 

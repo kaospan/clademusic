@@ -52,7 +52,8 @@ A TikTok-style music discovery platform that helps you find songs based on **har
 ## 🚀 Quick Start
 
 ### Prerequisites
-
+- Bun (required)
+- Git
 
 ### Installation
 
@@ -63,14 +64,12 @@ cd clademusic
 
 # Install dependencies
 bun install
-# or: bun install
 
 # Start the development server
-bun dev
-# or: bun run dev
+bun run dev
 ```
 
-The app will be available at `http://localhost:5173`
+The app will be available at `http://localhost:8080/clademusic/`
 
 ### Environment Variables
 
@@ -83,7 +82,10 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Spotify OAuth (optional)
 VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
-VITE_SPOTIFY_REDIRECT_URI=http://localhost:5173/api/spotify-callback
+VITE_SPOTIFY_REDIRECT_URI=http://localhost:8080/clademusic/spotify-callback
+
+# Production (GitHub Pages)
+# VITE_SPOTIFY_REDIRECT_URI=https://kaospan.github.io/clademusic/spotify-callback
 ```
 
 ## 🏗️ Project Structure
@@ -135,11 +137,12 @@ src/
 
 | Route | Description |
 |-------|-------------|
-| `/` | **Feed** — TikTok-style track discovery with desktop sidebar, progress tracking, and keyboard shortcuts |
+| `/` | **Landing** — Intro + onboarding entry point |
+| `/feed` | **Feed** — TikTok-style track discovery with desktop sidebar, progress tracking, and keyboard shortcuts |
 | `/search` | **Search** — Find songs by name/artist or chord progression patterns (e.g., "I-V-vi-IV") |
 | `/following` | **Following** — Activity feed from people you follow with play events |
 | `/profile` | **Profile** — Your taste DNA, connected services, complete play history with clickable tracks |
-| `/connections` | **Connections** — Track relationships (samples, covers, remixes) with network visualization |
+| `/connections/:trackId` | **Connections** — Track relationships (samples, covers, remixes) with network visualization |
 | `/compare` | **Compare** — Side-by-side harmonic analysis comparison tool |
 | `/track/:id` | **Track Detail** — Full metadata, credits, sections, similar tracks by harmony |
 
@@ -167,7 +170,13 @@ bun run preview
 
 ### Deploying to GitHub Pages
 
-1. Ensure your `package.json` includes:
+This repo deploys automatically on push to `main` using GitHub Actions (`.github/workflows/deploy.yml`).
+
+**Recommended (GitHub Actions):**
+- GitHub: **Settings → Pages → Source → GitHub Actions**
+- Push to `main` (Deploy workflow publishes `dist/`)
+
+**Manual deploy (optional):** ensure your `package.json` includes:
 
    ```json
    "homepage": "https://kaospan.github.io/clademusic/",
@@ -191,7 +200,7 @@ bun run preview
    # or: bun run deploy
    ```
 
-4. Go to your GitHub repository settings → Pages, and set the source to the `gh-pages` branch. Your site will be live at:
+4. Go to your GitHub repository settings → Pages, and set the source to the `gh-pages` branch (manual deploy only). Your site will be live at:
 
    https://kaospan.github.io/clademusic/
 

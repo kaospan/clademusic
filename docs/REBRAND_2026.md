@@ -29,8 +29,8 @@
 |------|--------|
 | `index.html` | Title: "Clade - Find Your Harmony" |
 | `package.json` | Homepage: `kaospan.github.io/clademusic/` |
-| `vite.config.ts` | Base path: `/clade/` |
-| `src/App.tsx` | Router basename: `/clademusic` |
+| `vite.config.ts` | Base path: `/clademusic/` |
+| `src/App.tsx` | Router basename: `import.meta.env.BASE_URL` |
 | `src/lib/searchHistory.ts` | LocalStorage key: `clade_search_history` |
 | All docs | Updated references (17 files) |
 
@@ -161,5 +161,5 @@ New: https://kaospan.github.io/clademusic/spotify-callback
 ---
 
 **Rebranded**: January 22, 2026  
-**Version**: 1.1.0 (upcoming)  
+**Version**: 1.0.0+  
 **Status**: Technical migration complete ✓

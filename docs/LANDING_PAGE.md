@@ -173,7 +173,7 @@ The demo showcases real progressions from famous tracks:
 # Just navigate to the root path
 bun run dev
 
-# Open http://localhost:5173
+# Open http://localhost:8080/clademusic/
 ```
 
 ## 🎨 Customization

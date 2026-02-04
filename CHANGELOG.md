@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **REBRAND TO CLADE** — Simplified brand name from "CladeAI" to "Clade"
   - New tagline: "Find Your Harmony"
   - Updated all documentation (README, docs, TASKS, CHANGELOG)
-  - Changed base path from `/cladeai/` to `/clade/`
+  - Changed GitHub Pages base path from `/cladeai/` to `/clademusic/`
   - Updated localStorage key to `clade_search_history`
   - New meta tags: "Clade - Find Your Harmony"
   - Cleaner, more memorable brand identity
@@ -48,6 +48,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Play history now shows clickable track links instead of IDs
 - Active player z-index properly managed (100 for active, 50 for inactive)
 - Whitespace handling in file replacements
+
+## [1.0.1] - 2026-02-04
+
+### Added
+- App-level error boundary + route-level reset to prevent blank screens on render errors
+- Global `window` error + unhandled promise rejection handling with throttled toasts
+
+### Changed
+- Spotify OAuth callback now invalidates relevant React Query caches after token exchange (no refresh required)
+- GitHub Pages deploy runs automatically on push to `main` via GitHub Actions
+
+### Fixed
+- Blank screen caused by accidental stray characters/merge markers committed into source files
+- CI/CD deploy failures caused by lockfile drift with `bun install --frozen-lockfile`
 
 ## [1.0.0] - 2026-01-21
 
@@ -100,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | Version | Date | Highlights |
 |---------|------|------------|
 | Unreleased | 2026-01 | Harmonic analysis architecture, responsive desktop UI |
+| 1.0.1 | 2026-02-04 | Error boundaries, Spotify callback refresh, CI/CD deploy fixes |
 | 1.0.0 | 2026-01-21 | Queue management, song credits, DRY refactoring |
 | 0.9.0 | 2025-12 | Initial release with core features |
 
