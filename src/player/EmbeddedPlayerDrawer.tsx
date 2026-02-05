@@ -247,7 +247,7 @@ export function EmbeddedPlayerDrawer({ onNext, onPrev, canNext, canPrev }: Embed
   const safeQueueIndex = typeof queueIndex === 'number' ? queueIndex : -1;
   const cinemaRef = useRef<HTMLDivElement | null>(null);
   const autoplay = isPlaying;
-  const canSeekInEmbed = false;
+  const canSeekInEmbed = true; // Enable seekbar - commit seek immediately to sync positionMs and provider
   const [queueOpen, setQueueOpen] = useState(false);
   const [scrubSec, setScrubSec] = useState<number | null>(null);
   const [videoScale, setVideoScale] = useState(0.9); // slightly larger, cleaner default for the main player
