@@ -55,6 +55,7 @@
           providerFrame.allow =
             'autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write';
           providerFrame.setAttribute('referrerpolicy', 'origin-when-cross-origin');
+          providerFrame.setAttribute('allowfullscreen', 'true');
           providerFrame.setAttribute('loading', 'eager');
           providerFrame.setAttribute('tabindex', '0');
           providerFrame.src = 'about:blank';
@@ -73,8 +74,7 @@
         };
 
         window.addEventListener('message', (event) => {
-          // Only accept messages from the embedding page (parent).
-          if (!event || event.source !== window.parent) return;
+          if (!event || event.origin !== window.location.origin) return;
           const data = event && event.data;
           if (!data || typeof data !== 'object') return;
           if (data.type !== 'universal-player:play') return;
