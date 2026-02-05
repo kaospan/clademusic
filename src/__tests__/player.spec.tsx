@@ -83,6 +83,22 @@ describe('TrackSections Component', () => {
       expect(isActive).toBe(false);
     });
   });
+
+  it('handles exact boundary position at section end', () => {
+    const positionMs = 50000; // Exactly at chorus end_ms
+    const currentSectionId = null;
+
+    // When position equals end_ms, it should NOT highlight for non-last sections
+    const chorusSection = mockSections[2]; // Last section in our mock
+    const index = 2;
+    const isLastSection = index === mockSections.length - 1;
+    const isActive = currentSectionId === chorusSection.id || 
+      (currentSectionId === null && positionMs >= chorusSection.start_ms && 
+       (isLastSection ? positionMs <= chorusSection.end_ms : positionMs < chorusSection.end_ms));
+    
+    // Should be highlighted because it's the last section and we use <= for last section
+    expect(isActive).toBe(true);
+  });
 });
 
 describe('PlayerContext seekTo behavior', () => {

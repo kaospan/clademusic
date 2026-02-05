@@ -69,8 +69,10 @@ export function CompactSongSections({
         
         // Highlight active section: explicit currentSectionId match OR
         // fallback to position-based highlighting when currentSectionId is null
+        const isLastSection = index === sections.length - 1;
         const isActive = currentSectionId === section.id || 
-          (currentSectionId === null && positionMs >= section.start_ms && positionMs < section.end_ms);
+          (currentSectionId === null && positionMs >= section.start_ms && 
+           (isLastSection ? positionMs <= section.end_ms : positionMs < section.end_ms));
         
         return (
           <motion.button
