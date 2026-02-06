@@ -35,7 +35,7 @@ export function CompactSongSections({
   canonicalTrackId = null,
   className 
 }: CompactSongSectionsProps) {
-  const { openPlayer, seekTo, youtubeOpen, youtubeTrackId, spotifyOpen, spotifyTrackId } = usePlayer();
+  const { openPlayer, seekTo, youtubeOpen, youtubeTrackId, spotifyOpen, spotifyTrackId, currentSectionId, positionMs } = usePlayer();
 
   const handleSectionClick = (section: TrackSection) => {
     const startSeconds = Math.floor(section.start_ms / 1000);
@@ -67,6 +67,13 @@ export function CompactSongSections({
       {sections.map((section, index) => {
         const colorClass = SECTION_COLORS[section.label] || 'bg-muted/20 text-muted-foreground border-muted/30';
         
+        // Highlight active section: explicit currentSectionId match OR
+        // fallback to position-based highlighting when currentSectionId is null
+        const isLastSection = index === sections.length - 1;
+        const isActive = currentSectionId === section.id || 
+          (currentSectionId === null && positionMs >= section.start_ms && 
+           (isLastSection ? positionMs <= section.end_ms : positionMs < section.end_ms));
+        
         return (
           <motion.button
             key={section.id}
@@ -77,6 +84,7 @@ export function CompactSongSections({
             className={cn(
               'group relative px-2 py-1 rounded-md text-xs font-medium',
               'border transition-all hover:scale-105',
+              isActive && 'ring-2 ring-primary ring-offset-1',
               colorClass
             )}
             title={`Play from ${section.label} at ${formatTime(section.start_ms)}`}

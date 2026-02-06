@@ -38,6 +38,7 @@ export function TrackSections({ trackId }: TrackSectionsProps) {
     currentSectionId,
     setCurrentSection,
     isPlaying,
+    positionMs,
   } = usePlayer();
 
   useEffect(() => {
@@ -63,8 +64,13 @@ export function TrackSections({ trackId }: TrackSectionsProps) {
   return (
     <div className="mt-4">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {sections.map((section) => {
-          const active = currentSectionId === section.id;
+        {sections.map((section, index) => {
+          // Highlight active section: explicit currentSectionId match OR
+          // fallback to position-based highlighting when currentSectionId is null
+          const isLastSection = index === sections.length - 1;
+          const active = currentSectionId === section.id || 
+            (currentSectionId === null && positionMs >= section.start_ms && 
+             (isLastSection ? positionMs <= section.end_ms : positionMs < section.end_ms));
 
           return (
             <button
