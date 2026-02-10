@@ -30,7 +30,6 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { formatTime, formatDuration } from '@/lib/timeFormat';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
 
 interface VideoSource {
@@ -320,7 +319,6 @@ export default function TrackDetailPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <CladeLogoAnimated size={22} className="text-primary" />
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold truncate">{track.title}</h1>
             <p className="text-sm text-muted-foreground truncate">{track.artist}</p>

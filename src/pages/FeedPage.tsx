@@ -17,7 +17,6 @@ import { ChevronUp, ChevronDown, LogIn, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '@/player/PlayerContext';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
 
 export default function FeedPage() {
@@ -228,7 +227,6 @@ export default function FeedPage() {
         <ResponsiveContainer maxWidth="full">
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
-              <CladeLogoAnimated size={24} className="text-primary" />
               <h1 className="text-lg lg:text-xl font-bold gradient-text">HarmonyFeed</h1>
             </div>
             <div className="flex items-center gap-3 lg:gap-4">

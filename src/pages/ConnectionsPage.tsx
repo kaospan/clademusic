@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BottomNav } from '@/components/BottomNav';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
 import { useTrackConnections, TrackConnectionRow, ConnectionGraphData } from '@/hooks/api/useConnections';
 import { Button } from '@/components/ui/button';
@@ -51,7 +50,6 @@ export default function ConnectionsPage() {
               <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <CladeLogoAnimated size={22} className="text-primary" />
               <h1 className="text-xl font-bold">Connections</h1>
             </div>
             <ProfileCircle />
@@ -81,7 +79,6 @@ export default function ConnectionsPage() {
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <CladeLogoAnimated size={22} className="text-primary" />
             <h1 className="text-xl font-bold">Connections</h1>
           </div>
           <ProfileCircle />

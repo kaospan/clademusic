@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { ProfileCircle } from './ProfileCircle';
-import { Link } from 'react-router-dom';
 
 interface PageLayoutProps {
   /** Page title shown in header */

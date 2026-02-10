@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
-import { ProfileCircle } from '@/components/shared';
+import { CladeBrand, ProfileCircle } from '@/components/shared';
 
 interface SubscriptionRow {
   plan: string;
@@ -117,7 +116,7 @@ export default function BillingPage() {
         <header className="mb-8">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <CladeLogoAnimated size={26} className="text-primary" />
+              <CladeBrand size="sm" />
               <h1 className="text-3xl font-bold">Billing</h1>
             </div>
             <ProfileCircle />

@@ -7,8 +7,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
-import { ProfileCircle } from '@/components/shared';
+import { CladeBrand, ProfileCircle } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -155,7 +154,7 @@ export function ForumHomePage() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <CladeLogoAnimated size={24} className="text-primary" />
+              <CladeBrand size="sm" />
               <h1 className="text-2xl font-bold">Forums</h1>
             </div>
 
