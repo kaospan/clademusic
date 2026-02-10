@@ -6,4 +6,5 @@ export { ProfileCircle } from './ProfileCircle';
 export { ErrorBoundary } from './ErrorBoundary';
 export { GlobalErrorHandlers } from './GlobalErrorHandlers';
 export { CladeBrand } from './CladeBrand';
+export { CladeWordmark } from './CladeWordmark';
 
