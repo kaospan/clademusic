@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "clademusic",
+			"path": "."
+		}
+	],
+	"settings": {
+		"chatgpt.openOnStartup": true
+	}
+}
