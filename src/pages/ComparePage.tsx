@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BottomNav } from '@/components/BottomNav';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
 import { ChordBadge } from '@/components/ChordBadge';
 import { HarmonyCard } from '@/components/HarmonyCard';
@@ -108,7 +107,6 @@ export default function ComparePage() {
         <div className="px-4 py-4 max-w-lg mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <CladeLogoAnimated size={22} className="text-primary" />
               <h1 className="text-xl font-bold">Compare</h1>
             </div>
             <ProfileCircle />
