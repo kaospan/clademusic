@@ -18,6 +18,8 @@ export default function E2EUniversalPlayerPage() {
         </p>
       </header>
 
+      <div className="h-6 w-24 rounded bg-muted/40" data-feed />
+
       <div className="space-y-4">
         <div className="rounded-lg border border-border p-4 space-y-2">
           <div className="text-sm font-medium">Track A</div>

@@ -187,7 +187,7 @@ export function ForumHomePage() {
               >
                 <>
                   {sort === 'hot' && <TrendingUp className="h-4 w-4 mr-2" />}
-                  {sort.charAt(0).toUpperCase() + sort.slice(1)}
+                  <span>{sort.charAt(0).toUpperCase() + sort.slice(1)}</span>
                 </>
               </Button>
             ))}

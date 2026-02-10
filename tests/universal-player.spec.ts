@@ -30,8 +30,7 @@ test('Spotify quickstream swaps provider src deterministically (singleton univer
   await expect(providerFrame).toHaveAttribute('src', /open\.spotify\.com\/embed\/track\/4uLU6hMCjMI75M1A2tKUQC/);
 
   // Click Track B via keyboard activation
-  await spotifyButtons.nth(1).focus();
-  await page.keyboard.press('Enter');
+  await spotifyButtons.nth(1).press('Enter');
   await expect(page.getByText('E2E Track B')).toBeVisible();
   await expect(providerFrame).toHaveAttribute('src', /open\.spotify\.com\/embed\/track\/7ouMYWpwJ422jRcDASZB7P/);
 });

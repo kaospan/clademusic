@@ -11,7 +11,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Track, SongSection } from '@/types';
-import { seedTracks } from '@/data/seedTracks';
+let seedTracksCache: Track[] | null = null;
+
+async function getSeedTracks(): Promise<Track[]> {
+  if (seedTracksCache) return seedTracksCache;
+  const module = await import('@/data/seedTracks');
+  seedTracksCache = module.seedTracks;
+  return seedTracksCache;
+}
 
 export interface TrackQuery {
   id?: string;
@@ -108,7 +115,8 @@ async function fetchFromDatabase(query: TrackQuery): Promise<Track[] | null> {
 /**
  * Filter seed tracks based on query
  */
-function filterSeedTracks(query: TrackQuery): Track[] {
+async function filterSeedTracks(query: TrackQuery): Promise<Track[]> {
+  const seedTracks = await getSeedTracks();
   let results = [...seedTracks];
   
   if (query.id) {
@@ -154,7 +162,7 @@ export async function fetchTracks(query: TrackQuery = {}): Promise<TrackResult> 
   }
   
   // Fallback to seed data
-  const seedResults = filterSeedTracks(query);
+  const seedResults = await filterSeedTracks(query);
   
   return {
     tracks: seedResults,
@@ -208,6 +216,7 @@ export async function getDataSourceStatus(): Promise<{
   seedDataAvailable: boolean;
 }> {
   const dbConnected = await checkDatabaseConnection();
+  const seedTracks = await getSeedTracks();
   
   return {
     database: dbConnected,
