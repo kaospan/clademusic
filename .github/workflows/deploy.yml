@@ -44,6 +44,12 @@ jobs:
           VITE_YOUTUBE_API_KEY: ${{ secrets.VITE_YOUTUBE_API_KEY || vars.VITE_YOUTUBE_API_KEY }}
           VITE_LASTFM_API_KEY: ${{ secrets.VITE_LASTFM_API_KEY || vars.VITE_LASTFM_API_KEY }}
 
+      - name: Run lint
+        run: bun run lint
+
+      - name: Run typecheck
+        run: bun run typecheck
+
       - name: Install Playwright (Chromium)
         run: bunx playwright install --with-deps chromium
 

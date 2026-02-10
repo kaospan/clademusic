@@ -31,26 +31,21 @@ export function ScrollingComments({
   maxVisible = 5,
   scrollSpeed = 5000,
 }: ScrollingCommentsProps) {
-  if (IS_TEST) {
-    return (
-      <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none px-4 md:px-8">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-2">
-            <div className="inline-block rounded-full bg-background/60 backdrop-blur-xl border border-border/30 px-4 py-2 shadow-lg">
-              <p className="text-sm text-foreground">
-                <span className="font-semibold">Test User:</span>{' '}
-                <span className="font-normal">Test comment</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
   const chatDisabled = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
   const disabled = chatDisabled || (!trackId && chatSchemaMissing);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [visibleComments, setVisibleComments] = useState<Comment[]>([]);
+  const [visibleComments, setVisibleComments] = useState<Comment[]>(() =>
+    IS_TEST
+      ? [
+          {
+            id: 'test-comment',
+            content: 'Test comment',
+            author: 'Test User',
+            created_at: new Date().toISOString(),
+          },
+        ]
+      : []
+  );
 
   // Subscribe to real-time comments
   useEffect(() => {
@@ -196,7 +191,7 @@ export function ScrollingComments({
     return () => clearTimeout(timeout);
   }, [visibleComments, scrollSpeed]);
 
-  if (disabled) return null;
+  if (disabled && !IS_TEST) return null;
 
   return (
     <div className="fixed bottom-24 left-0 right-0 z-40 pointer-events-none px-4 md:px-8">
