@@ -1,3 +1,6 @@
+/// <reference lib="dom.iterable" />
+/// <reference lib="es2015.iterable" />
+
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,11 +11,9 @@ import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Search,
   TrendingUp,
-  Users,
   MessageSquare,
   Plus,
   ArrowUp,
@@ -22,9 +23,7 @@ import {
   Share2,
 } from 'lucide-react';
 
-const IS_TEST =
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
-  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
+const IS_TEST = typeof import.meta !== 'undefined' && import.meta.env?.MODE === 'test';
 
 interface Forum {
   id: string;
