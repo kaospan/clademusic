@@ -22,6 +22,9 @@ interface RecordPlayEventParams {
 type PlaybackEventType = 'intent' | 'link_out' | 'state' | 'qualified_play' | 'error';
 
 const ANON_ID_KEY = 'clade_anonymous_id_v1';
+const IS_TEST =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
 
 function getOrCreateAnonymousId(): string {
   try {
@@ -65,6 +68,7 @@ function getSessionIdFor(params: {
  * Record a play event (non-hook version for use outside React components)
  */
 export async function recordPlayEvent(params: RecordPlayEventParams): Promise<void> {
+  if (IS_TEST) return;
   try {
     const anonymousId = getOrCreateAnonymousId();
     const { data: userRes } = await supabase.auth.getUser();

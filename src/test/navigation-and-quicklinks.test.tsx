@@ -32,7 +32,10 @@ describe('Navigation & quicklinks regressions', () => {
 
   it('routes Feed nav item to /feed', () => {
     render(
-      <MemoryRouter initialEntries={["/profile"]}>
+      <MemoryRouter
+        initialEntries={["/profile"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <BottomNav />
       </MemoryRouter>
     );
@@ -43,7 +46,7 @@ describe('Navigation & quicklinks regressions', () => {
 
   it('renders Spotify + YouTube quicklinks and triggers universal player', () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <QuickStreamButtons
           track={{ spotifyId: 's1', youtubeId: 'y1' }}
           trackTitle="Title"

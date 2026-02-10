@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
 import Index from "@/pages/Index";
 
 vi.mock("framer-motion", () => {
@@ -34,11 +33,12 @@ vi.mock("framer-motion", () => {
 describe("Home route", () => {
   it("renders the landing page content", () => {
     render(
-      <AuthProvider>
-        <MemoryRouter initialEntries={["/"]}>
-          <Index />
-        </MemoryRouter>
-      </AuthProvider>
+      <MemoryRouter
+        initialEntries={["/"]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Index />
+      </MemoryRouter>
     );
     expect(screen.getAllByText("Clade").length).toBeGreaterThan(0);
   });

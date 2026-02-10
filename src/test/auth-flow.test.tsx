@@ -23,7 +23,10 @@ vi.mock('@/hooks/useAuth', () => ({
 
 function renderWithRouter(ui: React.ReactNode, initial = ['/auth']) {
   render(
-    <MemoryRouter initialEntries={initial}>
+    <MemoryRouter
+      initialEntries={initial}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <Routes>
         <Route path="/auth" element={<AuthGatePage />} />
         <Route path="/login" element={<div data-testid="login-page">login</div>} />
@@ -58,11 +61,15 @@ describe('LoginPage', () => {
 
   it('allows sign-in from guest mode and navigates to auth gate', async () => {
     render(
-      <MemoryRouter initialEntries={[{ pathname: '/login' }]}
-        ><Routes>
+      <MemoryRouter
+        initialEntries={[{ pathname: '/login' }]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth" element={<div data-testid="auth-gate" />} />
-        </Routes></MemoryRouter>
+        </Routes>
+      </MemoryRouter>
     );
 
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'user@example.com' } });

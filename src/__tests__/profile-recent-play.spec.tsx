@@ -68,7 +68,7 @@ beforeEach(() => {
 describe('ProfilePage recent playback', () => {
   it('clicking recent track play button opens global player once', () => {
     const { getByLabelText } = render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ProfilePage />
       </MemoryRouter>
     );

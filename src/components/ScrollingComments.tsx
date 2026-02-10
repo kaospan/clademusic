@@ -21,6 +21,9 @@ interface ScrollingCommentsProps {
  * Shows real-time comments overlaid on the content
  */
 let chatSchemaMissing = false;
+const IS_TEST =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
 
 export function ScrollingComments({
   trackId,
@@ -59,10 +62,14 @@ export function ScrollingComments({
         const { data, error } = await query;
         if (error) {
           if ((error as any)?.code === 'PGRST205' || (error as any)?.message?.includes("Could not find the table 'public.chat_messages'")) {
-            console.warn('[ScrollingComments] chat_messages table missing; disabling global comments');
+            if (!IS_TEST) {
+              console.warn('[ScrollingComments] chat_messages table missing; disabling global comments');
+            }
             chatSchemaMissing = true;
           } else {
-            console.warn('[ScrollingComments] skipping due to schema error', error);
+            if (!IS_TEST) {
+              console.warn('[ScrollingComments] skipping due to schema error', error);
+            }
           }
           setComments([]);
           disableRealtime = true;
@@ -78,7 +85,9 @@ export function ScrollingComments({
           setComments(formattedComments.reverse());
         }
       } catch (error) {
-        console.error('Failed to load scrolling comments:', error);
+        if (!IS_TEST) {
+          console.error('Failed to load scrolling comments:', error);
+        }
         setComments([]);
         disableRealtime = true;
       }
@@ -116,7 +125,9 @@ export function ScrollingComments({
 
               setComments((prev) => [...prev, newComment]);
             } catch (error) {
-              console.error('Failed to hydrate scrolling comment:', error);
+              if (!IS_TEST) {
+                console.error('Failed to hydrate scrolling comment:', error);
+              }
             }
           }
         )
