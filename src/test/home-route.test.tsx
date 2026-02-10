@@ -2,6 +2,16 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Index from "@/pages/Index";
 
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: null,
+    session: null,
+    accessToken: null,
+    loading: false,
+    guestMode: false,
+  }),
+}));
+
 vi.mock("framer-motion", () => {
   const Motion = new Proxy(
     {},

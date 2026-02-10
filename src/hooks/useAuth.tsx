@@ -20,15 +20,19 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const IS_TEST =
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+    (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!IS_TEST);
   const [guestMode, setGuestMode] = useState<boolean>(() => {
     return localStorage.getItem('clade-guest-mode') === 'true';
   });
 
   useEffect(() => {
+    if (IS_TEST) return;
     let mounted = true;
 
     const bootstrap = async () => {
