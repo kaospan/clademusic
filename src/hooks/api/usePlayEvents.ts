@@ -35,6 +35,10 @@ interface PlayEventData {
 // Known enum (see supabase): like | save | skip | more_harmonic | more_vibe | share
 const ALLOWED_INTERACTIONS = new Set(['like', 'save', 'skip', 'more_harmonic', 'more_vibe', 'share']);
 
+const IS_TEST =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test') ||
+  (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
+
 let interactionsDisabled = false;
 let interactionsWarned = false;
 let interactionsDisabledReason: string | null = null;
@@ -42,6 +46,7 @@ let interactionsDisabledReason: string | null = null;
 function disableInteractions(reason: string) {
   interactionsDisabled = true;
   interactionsDisabledReason = reason;
+  if (IS_TEST) return;
   if (!interactionsWarned) {
     console.warn('[PlayEvents] disabled user_interactions:', reason);
     interactionsWarned = true;

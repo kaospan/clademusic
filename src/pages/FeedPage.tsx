@@ -1,10 +1,10 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useMemo, useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrackCard } from '@/components/TrackCard';
 import { FeedSkeleton } from '@/components/FeedSkeleton';
-import { FeedSidebar } from '@/components/FeedSidebar';
-import { LiveChat } from '@/components/LiveChat';
-import { ScrollingComments } from '@/components/ScrollingComments';
+const ScrollingComments = lazy(() =>
+  import('@/components/ScrollingComments').then((module) => ({ default: module.ScrollingComments }))
+);
 import { BottomNav } from '@/components/BottomNav';
 import { GuestBanner } from '@/components/GuestBanner';
 import { ResponsiveContainer, DesktopColumns } from '@/components/layout/ResponsiveLayout';
@@ -16,7 +16,6 @@ import { InteractionType, Track } from '@/types';
 import { ChevronUp, ChevronDown, LogIn, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useMemo, useState } from 'react';
 import { usePlayer } from '@/player/PlayerContext';
 import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from '@/components/shared';
@@ -72,7 +71,7 @@ export default function FeedPage() {
   }, [lastfmRecentRaw]);
 
   // Merge in priority order: scrobbles (newest), base feed, personalized recs; dedupe by provider id or title+artist
-  const tracks: Track[] = (() => {
+  const tracks: Track[] = useMemo(() => {
     const seen = new Set<string>();
     const all = [...lastfmRecent, ...baseFeed, ...personalizedRecs];
     return all.filter((t) => {
@@ -84,7 +83,7 @@ export default function FeedPage() {
       seen.add(key);
       return true;
     });
-  })();
+  }, [lastfmRecent, baseFeed, personalizedRecs]);
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [interactions, setInteractions] = useState<Map<string, Set<InteractionType>>>(new Map());
@@ -372,7 +371,9 @@ export default function FeedPage() {
 
       {/* Scrolling comments overlay for current track */}
       {tracks[currentIndex] && (
-        <ScrollingComments roomId="global" maxVisible={3} scrollSpeed={4000} />
+        <Suspense fallback={null}>
+          <ScrollingComments roomId="global" maxVisible={3} scrollSpeed={4000} />
+        </Suspense>
       )}
 
       {/* Guest banner */}

@@ -96,7 +96,10 @@ const App = () => (
         <PlayerProvider>
               <Toaster />
               <Sonner />
-              <BrowserRouter basename={import.meta.env.BASE_URL}>
+              <BrowserRouter
+                basename={import.meta.env.BASE_URL}
+                future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+              >
                 <GlobalErrorHandlers />
                 <RouteErrorBoundary>
                   <Suspense fallback={<PageLoader />}>
