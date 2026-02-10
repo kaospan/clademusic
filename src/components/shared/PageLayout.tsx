@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import { BottomNav } from '@/components/BottomNav';
-import { CladeLogoAnimated } from '@/components/icons/CladeIcon';
 import { ProfileCircle } from './ProfileCircle';
 import { Link } from 'react-router-dom';
 
@@ -57,14 +56,7 @@ export function PageLayout({
                 {title ? <h1 className="text-xl font-bold truncate">{title}</h1> : null}
               </div>
 
-              <Link
-                to="/"
-                className="justify-self-center inline-flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                aria-label="Clade home"
-                title="Clade"
-              >
-                <CladeLogoAnimated size={34} className="drop-shadow-sm" />
-              </Link>
+              <div />
 
               <div className="flex items-center gap-3 justify-self-end">
                 {headerActions}
