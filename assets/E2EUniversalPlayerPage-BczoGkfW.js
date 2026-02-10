@@ -1,1 +1,0 @@
-import{j as e}from"./index-njTaQvGO.js";function r(){return e.jsx("div",{className:"min-h-screen flex items-center justify-center bg-background text-foreground p-6",children:e.jsx("div",{className:"text-sm text-muted-foreground",children:"Not available."})})}export{r as default};
