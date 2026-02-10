@@ -185,10 +185,8 @@ export function ForumHomePage() {
                   loadPosts();
                 }}
               >
-                <>
-                  {sort === 'hot' && <TrendingUp className="h-4 w-4 mr-2" />}
-                  <span>{sort.charAt(0).toUpperCase() + sort.slice(1)}</span>
-                </>
+                {sort === 'hot' && <TrendingUp className="h-4 w-4 mr-2" />}
+                <span>{sort.charAt(0).toUpperCase() + sort.slice(1)}</span>
               </Button>
             ))}
           </div>
