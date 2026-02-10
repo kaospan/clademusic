@@ -10,7 +10,7 @@ export default function E2EUniversalPlayerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 space-y-6">
+    <div className="min-h-screen bg-background text-foreground p-6 space-y-6" data-e2e-player>
       <header className="space-y-1">
         <h1 className="text-xl font-semibold">E2E Universal Player Fixture</h1>
         <p className="text-sm text-muted-foreground">

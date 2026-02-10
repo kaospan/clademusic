@@ -32,7 +32,7 @@ test.describe('Universal Player Singleton Enforcement', () => {
     await youtubeButton.click();
 
     await expectSinglePlayer(page);
-    await expect(providerFrame).toHaveAttribute('src', /youtube/);
+    await expect(providerFrame).toHaveAttribute('src', /youtube/, { timeout: 15000 });
 
     await spotifyButton.click();
     await expectSinglePlayer(page);

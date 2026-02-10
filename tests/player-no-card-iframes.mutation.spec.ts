@@ -7,6 +7,7 @@ test.describe('Track cards never render iframes (mutation guard)', () => {
 
     await page.waitForSelector('[data-e2e-player]');
     await page.waitForSelector('[data-provider="youtube"]');
+    await page.waitForLoadState('networkidle');
 
     await page.click('[data-provider="youtube"]');
 
