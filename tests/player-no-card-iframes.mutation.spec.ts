@@ -3,8 +3,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Track cards never render iframes (mutation guard)', () => {
   test('no iframe may exist inside any track card at any time', async ({ page }) => {
-    await page.goto('/clademusic/feed');
+    await page.goto('/clademusic/__e2e__/player');
 
+    await page.waitForSelector('[data-e2e-player]');
     await page.waitForSelector('[data-provider="youtube"]');
 
     await page.click('[data-provider="youtube"]');
