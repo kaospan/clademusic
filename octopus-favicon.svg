@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!--
+    CladeMusic octopus mark.
+    Colors match the app's own theme tokens (src/index.css):
+      --primary (180 70% 50%, teal)  -> mantle
+      --accent  (330 85% 60%, pink)  -> tentacles
+    Kept deliberately simple - thick strokes, no fine detail - so it stays
+    legible at 16x16/32x32 favicon sizes, not just at full size.
+  -->
+  <!-- Tentacles: stroked curves under the mantle so they read as legs even
+       at tiny sizes, rather than relying on filled shapes that would blur
+       together. -->
+  <g fill="none" stroke="#E63FA6" stroke-width="7" stroke-linecap="round">
+    <path d="M22,58 C15,68 25,78 18,92" />
+    <path d="M32,62 C28,74 38,80 31,94" />
+    <path d="M42,64 C40,76 48,82 43,96" />
+    <path d="M58,64 C60,76 52,82 57,96" />
+    <path d="M68,62 C72,74 62,80 69,94" />
+    <path d="M78,58 C85,68 75,78 82,92" />
+  </g>
+
+  <!-- Mantle (head/body) -->
+  <ellipse cx="50" cy="40" rx="33" ry="27" fill="#22D3D3" />
+
+  <!-- Eyes -->
+  <circle cx="38" cy="36" r="6" fill="#0F1720" />
+  <circle cx="62" cy="36" r="6" fill="#0F1720" />
+  <circle cx="40" cy="34" r="1.6" fill="#F5FEFE" />
+  <circle cx="64" cy="34" r="1.6" fill="#F5FEFE" />
+</svg>
