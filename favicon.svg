@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Clade">
+  <title>Clade</title>
+  <circle cx="50" cy="50" r="50" fill="#0B0B12" />
+  <g transform="translate(50,50) scale(0.78) translate(-50,-55)">
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round">
+    <path d="M61.78,36.51 A13,13 0 1 0 61.78,47.49" stroke-width="6.40" />
+    <path d="M50,55 L50,74" stroke-width="4.60" />
+    <path d="M41.14,81.56 A9,9 0 1 0 58.86,81.56" stroke-width="4.20" />
+  </g>
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+    <path d="M40.1,32.1 L30.4,23" fill="none" />
+    <circle cx="29.9" cy="22.5" r="5.0" stroke="none" />
+  </g>
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+    <path d="M59.9,32.1 L69.6,23" fill="none" />
+    <circle cx="70.1" cy="22.5" r="5.0" stroke="none" />
+  </g>
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+    <path d="M36.6,45.4 C30.5,48 24,44.5 18.3,41" fill="none" />
+    <circle cx="17.5" cy="40.6" r="5.0" stroke="none" />
+  </g>
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+    <path d="M63.4,45.4 C69.5,48 76,44.5 81.7,41" fill="none" />
+    <circle cx="82.5" cy="40.6" r="5.0" stroke="none" />
+  </g>
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+    <path d="M47.5,55 C41,61.5 29,64.5 18.7,60.2" fill="none" />
+    <circle cx="17.9" cy="59.9" r="5.0" stroke="none" />
+  </g>
+  <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+    <path d="M52.5,55 C59,61.5 71,64.5 81.3,60.2" fill="none" />
+    <circle cx="82.1" cy="59.9" r="5.0" stroke="none" />
+  </g>
+  <circle cx="50" cy="80" r="4.60" fill="#FFFFFF" />
+  </g>
+</svg>
