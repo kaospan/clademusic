@@ -73,10 +73,42 @@
           });
         };
 
+        // Forwards a transport command to whichever provider iframe is
+        // currently loaded. YouTube's embed (with enablejsapi=1, set by
+        // buildEmbedSrc) listens for exactly this postMessage shape without
+        // needing its full IFrame API script loaded. Spotify's plain embed
+        // iframe has no equivalent public postMessage control surface, so
+        // there's nothing to forward there - Premium playback goes through
+        // the separate Web Playback SDK instead, which controls Spotify for
+        // real.
+        const sendProviderCommand = (command, args) => {
+          if (current.provider !== 'youtube') return;
+          if (!providerFrame || !providerFrame.contentWindow) return;
+          providerFrame.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: command, args: args || [] }),
+            '*'
+          );
+        };
+
         window.addEventListener('message', (event) => {
           if (!event || event.origin !== window.location.origin) return;
           const data = event && event.data;
           if (!data || typeof data !== 'object') return;
+
+          if (data.type === 'universal-player:command') {
+            const payload = data.payload || {};
+            if (payload.command === 'play') sendProviderCommand('playVideo');
+            else if (payload.command === 'pause') sendProviderCommand('pauseVideo');
+            else if (payload.command === 'seek' && typeof payload.seconds === 'number') {
+              sendProviderCommand('seekTo', [Math.max(0, payload.seconds), true]);
+            } else if (payload.command === 'setVolume' && typeof payload.volume === 'number') {
+              sendProviderCommand('setVolume', [Math.round(Math.max(0, Math.min(1, payload.volume)) * 100)]);
+            } else if (payload.command === 'setMute') {
+              sendProviderCommand(payload.muted ? 'mute' : 'unMute');
+            }
+            return;
+          }
+
           if (data.type !== 'universal-player:play') return;
 
           const next = data.payload;
