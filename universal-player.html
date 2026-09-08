@@ -44,6 +44,7 @@
       (() => {
         const root = document.getElementById('root');
         const placeholder = document.getElementById('placeholder');
+        const parentOrigin = window.location.origin;
         let providerFrame = null;
         let current = { provider: null, id: null, src: null, requestId: 0 };
 
@@ -71,6 +72,8 @@
           requestAnimationFrame(() => {
             frame.src = next.src;
           });
+          if (next.provider === 'youtube') startYouTubeListening();
+          else stopYouTubeListening();
         };
 
         // Forwards a transport command to whichever provider iframe is
@@ -90,8 +93,77 @@
           );
         };
 
+        // ---- YouTube state relay ----
+        // Same undocumented-but-standard wire protocol the commands above
+        // already use: telling the embed something is "listening" makes it
+        // start posting periodic infoDelivery messages back with real
+        // position/duration/state, which we forward up to the app as
+        // universal-player:state. Without this, position/duration for any
+        // YouTube playback through this embed just sat at whatever they were
+        // initialized to (0) forever - the seekbar's smooth motion came
+        // entirely from the app's own optimistic RAF extrapolation, never
+        // corrected against reality.
+        let ytListenTimer = null;
+
+        const startYouTubeListening = () => {
+          stopYouTubeListening();
+          const announce = () => {
+            if (current.provider !== 'youtube' || !providerFrame || !providerFrame.contentWindow) return;
+            providerFrame.contentWindow.postMessage(
+              JSON.stringify({ event: 'listening', id: 'widget', channel: 'widget' }),
+              '*'
+            );
+          };
+          announce();
+          // Re-announce periodically rather than once: there's no reliable
+          // "iframe finished loading" signal for a cross-origin frame, and a
+          // message sent before YouTube's own script has initialized is
+          // simply dropped, not queued.
+          ytListenTimer = setInterval(announce, 1000);
+        };
+
+        const stopYouTubeListening = () => {
+          if (ytListenTimer) {
+            clearInterval(ytListenTimer);
+            ytListenTimer = null;
+          }
+        };
+
         window.addEventListener('message', (event) => {
-          if (!event || event.origin !== window.location.origin) return;
+          // Messages FROM the embedded YouTube iframe itself arrive from a
+          // different origin (youtube.com) than ours, so they're identified
+          // by source, not origin, and handled before the same-origin check
+          // below (which exists for commands coming down from the app and
+          // would otherwise drop these).
+          if (providerFrame && event.source === providerFrame.contentWindow && current.provider === 'youtube') {
+            let data = event.data;
+            if (typeof data === 'string') {
+              try {
+                data = JSON.parse(data);
+              } catch (e) {
+                return;
+              }
+            }
+            if (data && data.event === 'infoDelivery' && data.info) {
+              const info = data.info;
+              const durationSec = typeof info.duration === 'number' ? info.duration : 0;
+              const positionSec = typeof info.currentTime === 'number' ? info.currentTime : 0;
+              window.parent.postMessage(
+                {
+                  type: 'universal-player:state',
+                  payload: {
+                    positionMs: Math.max(0, positionSec * 1000),
+                    durationMs: Math.max(0, durationSec * 1000),
+                    isPlaying: info.playerState === 1, // YT.PlayerState.PLAYING
+                  },
+                },
+                parentOrigin
+              );
+            }
+            return;
+          }
+
+          if (!event || event.origin !== parentOrigin) return;
           const data = event && event.data;
           if (!data || typeof data !== 'object') return;
 
