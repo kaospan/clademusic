@@ -26,24 +26,23 @@
         display: block;
         background: transparent;
       }
-      #placeholder {
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.75);
-        padding: 12px;
-        text-align: center;
-      }
     </style>
   </head>
   <body>
-    <div id="root" aria-label="Universal player frame">
-      <div id="placeholder">Select a provider to start playback.</div>
-    </div>
+    <!-- Intentionally empty. This frame is mounted on every page from the
+         moment the app loads (the player is a singleton iframe reused across
+         provider switches), so anything rendered here is on screen before
+         anyone has asked to play anything. It used to read "Select a provider
+         to start playback.", which showed to signed-in listeners and guests
+         alike as an instruction to do something they had not asked to do -
+         and kept showing even with a track already loaded and its provider
+         buttons right there. The frame now stays blank until a provider is
+         actually loaded into it. -->
+    <div id="root" aria-label="Universal player frame"></div>
 
     <script>
       (() => {
         const root = document.getElementById('root');
-        const placeholder = document.getElementById('placeholder');
         const parentOrigin = window.location.origin;
         let providerFrame = null;
         let current = { provider: null, id: null, src: null, requestId: 0 };
@@ -61,7 +60,6 @@
           providerFrame.setAttribute('tabindex', '0');
           providerFrame.src = 'about:blank';
           root.appendChild(providerFrame);
-          if (placeholder) placeholder.remove();
           return providerFrame;
         };
 
