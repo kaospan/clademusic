@@ -144,17 +144,35 @@
             }
             if (data && data.event === 'infoDelivery' && data.info) {
               const info = data.info;
-              const durationSec = typeof info.duration === 'number' ? info.duration : 0;
-              const positionSec = typeof info.currentTime === 'number' ? info.currentTime : 0;
+              // infoDelivery messages are PARTIAL: after the initial full
+              // payload, YouTube sends only the fields that changed. Reading
+              // every message as if it were complete meant an ordinary
+              // progress tick carrying just currentTime was relayed as
+              // "duration 0, not playing" - `undefined === 1` is false, so
+              // isPlaying was reported false several times a second while the
+              // track was plainly playing. That left the transport button
+              // stuck showing Play during playback and kept collapsing the
+              // seekbar's duration to 0:00. Send only what this message
+              // actually carries and let the app keep the rest.
+              const payload = {};
+              if (typeof info.currentTime === 'number') {
+                payload.positionMs = Math.max(0, info.currentTime * 1000);
+              }
+              if (typeof info.duration === 'number' && info.duration > 0) {
+                payload.durationMs = Math.max(0, info.duration * 1000);
+              }
+              if (typeof info.playerState === 'number') {
+                // 1 PLAYING, 3 BUFFERING. Buffering counts as playing on
+                // purpose: it's a stall inside playback, not a pause, and
+                // reporting it as stopped made the button flip to Play and
+                // back on every buffer.
+                payload.isPlaying = info.playerState === 1 || info.playerState === 3;
+              }
+              // Nothing we track changed - staying silent beats sending a
+              // no-op state update that re-renders every player consumer.
+              if (Object.keys(payload).length === 0) return;
               window.parent.postMessage(
-                {
-                  type: 'universal-player:state',
-                  payload: {
-                    positionMs: Math.max(0, positionSec * 1000),
-                    durationMs: Math.max(0, durationSec * 1000),
-                    isPlaying: info.playerState === 1, // YT.PlayerState.PLAYING
-                  },
-                },
+                { type: 'universal-player:state', payload },
                 parentOrigin
               );
             }
