@@ -142,6 +142,24 @@
                 return;
               }
             }
+            // YouTube refusing to play at all - a removed or private video, one
+            // whose owner disallows embedding, one blocked in the viewer's
+            // country. It sends onError with a numeric code and then NOTHING
+            // else: no infoDelivery, ever. That silence is why the app used to
+            // sit there showing a Pause button and a climbing clock over a
+            // video that never started, since its own optimistic clock had
+            // nothing to correct it. Relay the code so the app can stop
+            // pretending and say what happened.
+            if (data && data.event === 'onError') {
+              window.parent.postMessage(
+                {
+                  type: 'universal-player:error',
+                  payload: { code: typeof data.info === 'number' ? data.info : null, provider: current.provider, id: current.id },
+                },
+                parentOrigin
+              );
+              return;
+            }
             if (data && data.event === 'infoDelivery' && data.info) {
               const info = data.info;
               // infoDelivery messages are PARTIAL: after the initial full
