@@ -1,1 +1,0 @@
-import{s as a}from"./index-DDrnH0Wr.js";async function f(r){const{data:l,error:o}=await a.from("user_follows").select("following_id").eq("follower_id",r);if(o)throw o;return(l??[]).map(s=>s.following_id)}export{f};
